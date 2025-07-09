@@ -15,7 +15,7 @@ export default function AppNavigator() {
         <Stack.Screen
           name="InsertShop"
           component={InsertShopScreen}
-          options={{ title: 'Add Business' }}
+          options={{ title: 'Add Shop' }}
         />
 {/* 
         <Stack.Screen
