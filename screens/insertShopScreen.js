@@ -23,15 +23,20 @@ export default function InsertShopScreen() {
   const handleSubmit = async () => {
     setMessage('Submitting...');
     const result = await insertShop(name, address, latitude, longitude);
-    if (result) {
+    if (result?.success === true) {
       setMessage('✅ Shop added successfully!');
       setName('');
       setAddress('');
       setLatitude(null);
       setLongitude(null);
     } else {
-      setMessage('❌ Failed to add shop.');
+      if (result.code === 'duplicate') {
+        setMessage('❌ Shop location already exists.');
+      } else {
+        setMessage('❌ Failed to add shop');
+      }
     }
+
     setSuggestions([]);
   };
 

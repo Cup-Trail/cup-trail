@@ -56,19 +56,34 @@ export async function insertShop(
 ) {
   try {
     console.log(supabase);
-    const {error } = await supabase
+    const { error } = await supabase
       .from(SHOPS_TABLE)
       .insert([{ name, address, latitude, longitude, image_url, archived }]);
 
     if (error) {
-      console.error('Failed to insert shop:', error);
-      return null;
+      if (error.code === '23505') {
+        // 23505 = unique_violation in PostgreSQL
+        console.warn('[Duplicate Entry]', error.message);
+        return {
+          success: false,
+          source: 'supabase',
+          code: 'duplicate',
+          message: 'That shop already exists at this address.',
+        };
+      }
+      console.error('[Supabase Insert Error]', error.message);
+
+      return {
+        success: false,
+        source: 'supabase',
+        message: error.message,
+      };
     }
 
-    return true;
+    return { success: true };
   } catch (err) {
-    console.error('Failed to insert shop:', err);
-    return null;
+    console.error('[JavaScript Exception]', err.message);
+    return { success: false, source: 'exception', message: err.message };
   }
 }
 
@@ -82,10 +97,17 @@ export async function archiveShop(shopName) {
       .update({ archived: true })
       .eq('name', shopName);
 
-    if (error) throw new Error(error.message);
+    if (error) {
+      console.error('[Supabase Update Error]', error.message);
+      return {
+        success: false,
+        source: 'supabase',
+        message: error.message,
+      };
+    }
     return data;
   } catch (err) {
-    console.error(`Failed to archive shop "${shopName}":`, err);
-    return null;
+    console.error('[JavaScript Exception]', err.message);
+    return { success: false, source: 'exception', message: err.message };
   }
 }
