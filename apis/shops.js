@@ -55,7 +55,6 @@ export async function insertShop(
   archived = false
 ) {
   try {
-    console.log(supabase);
     const { error } = await supabase
       .from(SHOPS_TABLE)
       .insert([{ name, address, latitude, longitude, image_url, archived }]);
