@@ -47,19 +47,25 @@ export async function fetchShopByName(shopName) {
  * Insert a new shop.
  */
 export async function insertShop(
-  shopName,
+  name,
   address,
-  latitude = null,
-  longitude = null,
-  image_url = null
+  latitude,
+  longitude,
+  image_url = null,
+  archived = false
 ) {
   try {
-    const { data, error } = await supabase
+    console.log(supabase);
+    const {error } = await supabase
       .from(SHOPS_TABLE)
-      .insert([{ shopName, address, latitude, longitude, image_url }]);
+      .insert([{ name, address, latitude, longitude, image_url, archived }]);
 
-    if (error) throw new Error(error.message);
-    return data;
+    if (error) {
+      console.error('Failed to insert shop:', error);
+      return null;
+    }
+
+    return true;
   } catch (err) {
     console.error('Failed to insert shop:', err);
     return null;
