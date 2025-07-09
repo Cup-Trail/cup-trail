@@ -20,24 +20,31 @@ export default function InsertShopScreen() {
   const [message, setMessage] = useState('');
   const [activeField, setActiveField] = useState(null);
 
+  const clearForm = () => {
+    setName('');
+    setAddress('');
+    setLatitude(null);
+    setLongitude(null);
+  };
+
   const handleSubmit = async () => {
     setMessage('Submitting...');
+    setSuggestions([]);
+
     const result = await insertShop(name, address, latitude, longitude);
-    if (result?.success === true) {
+
+    if (result?.success) {
       setMessage('✅ Shop added successfully!');
-      setName('');
-      setAddress('');
-      setLatitude(null);
-      setLongitude(null);
-    } else {
-      if (result.code === 'duplicate') {
-        setMessage('❌ Shop location already exists.');
-      } else {
-        setMessage('❌ Failed to add shop');
-      }
+      clearForm();
+      return;
     }
 
-    setSuggestions([]);
+    const errorMsg =
+      result?.code === 'duplicate'
+        ? '❌ Shop location already exists.'
+        : '❌ Failed to add shop';
+
+    setMessage(errorMsg);
   };
 
   const fetchAutocomplete = async (input) => {
@@ -100,7 +107,7 @@ export default function InsertShopScreen() {
           fetchAutocomplete(text);
         }}
         style={styles.input}
-        placeholder="Boba Bliss"
+        placeholder="Enter a shop"
       />
 
       {suggestions.length > 0 && (
@@ -118,7 +125,7 @@ export default function InsertShopScreen() {
         />
       )}
 
-      <Button title="Insert Shop" onPress={handleSubmit} />
+      <Button title="Add" onPress={handleSubmit} />
       {message !== '' && <Text style={styles.message}>{message}</Text>}
     </View>
   );
