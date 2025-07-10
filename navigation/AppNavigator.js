@@ -4,25 +4,24 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
 // Import your screens
 import InsertShopScreen from '../screens/insertShopScreen';
-// import ShopListScreen from '../screens/ShopListScreen';
-
+import SearchScreen from '../screens/searchScreen';
+// import HomeScreen from '../screens/homeScreen';
 const Stack = createNativeStackNavigator();
 
 export default function AppNavigator() {
   return (
     <NavigationContainer>
-      <Stack.Navigator initialRouteName="InsertShop">
+      <Stack.Navigator initialRouteName="Search">
+        <Stack.Screen
+          name="Search"
+          component={SearchScreen}
+          options={{ title: 'CupTrail' }}
+        />
         <Stack.Screen
           name="InsertShop"
           component={InsertShopScreen}
           options={{ title: 'Add Shop' }}
         />
-{/* 
-        <Stack.Screen
-          name="ShopList"
-          component={ShopListScreen}
-          options={{ title: 'All Shops' }}
-        /> */}
       </Stack.Navigator>
     </NavigationContainer>
   );
