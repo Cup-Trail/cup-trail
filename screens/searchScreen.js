@@ -51,7 +51,9 @@ export default function SearchScreen() {
     const errorMsg =
       result?.code === 'duplicate'
         ? '❌ Shop location already exists.'
-        : '❌ Failed to add shop';
+        : result?.code === 'empty'
+        ? '❌ Input invalid. Please add valid shop.'
+        : '❌ Failed to add shop.';
 
     setMessage(errorMsg);
   };
@@ -145,7 +147,9 @@ export default function SearchScreen() {
         />
       )}
 
-      <Button title="Add" onPress={handleSubmit} >Add</Button>
+      <Button title="Add" onPress={handleSubmit}>
+        Add
+      </Button>
       {message !== '' && <Text style={styles.message}>{message}</Text>}
 
       <View style={styles.categoryContainer}>
@@ -231,7 +235,7 @@ const styles = StyleSheet.create({
   message: {
     marginTop: 8,
     fontSize: 16,
-    marginBttom: 8
+    marginBttom: 8,
   },
   sectionTitle: {
     fontSize: 18,

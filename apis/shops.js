@@ -55,6 +55,10 @@ export async function insertShop(
   archived = false
 ) {
   try {
+    if (!name || !address || name == '' || address == '') {
+      console.warn('[Empty Input]');
+      return { success: false, code: 'empty' };
+    }
     const { error } = await supabase
       .from(SHOPS_TABLE)
       .insert([{ name, address, latitude, longitude, image_url, archived }]);
