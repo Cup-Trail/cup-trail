@@ -8,13 +8,13 @@ import {
   TouchableOpacity,
   ScrollView,
 } from 'react-native';
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@react-navigation/elements';
 import { useNavigation } from '@react-navigation/native';
 // backend
 import { GOOGLE_API_KEY } from '@env';
-import { fetchRecentReviews } from '../apis/reviews';
 import { insertShop } from '../apis/shops';
+import { fetchRecentReviews } from '../apis/reviews';
 
 // mock data for now
 const categories = ['Matcha', 'Boba', 'Coffee', 'Milk Tea', 'Fruit Tea'];
@@ -190,7 +190,7 @@ export default function SearchScreen() {
           );
         }}
       />
-      <Button onPress={() => navigation.navigate('InsertShop')}>
+      <Button onPress={() => navigation.navigate('Add Review')}>
         Add review
       </Button>
     </View>
