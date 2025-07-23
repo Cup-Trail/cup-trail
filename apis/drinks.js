@@ -55,15 +55,47 @@ export async function fetchDrinks(shopName) {
  * Fetch a specific drink by shop and drink name.
  */
 export async function fetchShopDrinkByName(shopName, drinkName) {
-  const data = await fetchShopDrinks({
-    'shops.name': shopName,
-    'drinks.name': drinkName,
-  });
+  try {
+    const { data, error } = await supabase
+      .from(SHOP_DRINKS_TABLE)
+      .select(
+        `
+        id,
+        drinks(name),
+        shops(name)
+      `
+      )
+      .eq('drinks.name', drinkName)
+      .eq('shops.name', shopName)
+      .maybeSingle(); // returns in {} shape instead of arr
+    if (error) {
+      console.error(`[Supabase Fetch Error] ${error.message}`);
+      return {
+        success: false,
+        source: 'supabase',
+        message: error.message,
+      };
+    }
 
-  if (!data || data.length === 0) {
-    console.warn(`No match found for "${drinkName}" at "${shopName}".`);
-    return null;
+    if (!data || data.length === 0) {
+      return {
+        success: false,
+        code: 'not_found',
+        source: 'app',
+        message: `${drinkName} at ${shopName} not found.`,
+      };
+    }
+
+    return { success: true, data };
+  } catch (err) {
+    console.error(
+      `[Exception] Failed to fetch ${drinkName} at ${shopName}:`,
+      err
+    );
+    return {
+      success: false,
+      source: 'exception',
+      message: err.message,
+    };
   }
-
-  return data[0];
 }
