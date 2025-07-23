@@ -23,22 +23,22 @@ export async function fetchShops() {
 /**
  * Fetch a shop by name.
  */
-export async function fetchShopByName(shopName) {
+export async function fetchShopByName(name) {
   try {
     const { data, error } = await supabase
       .from(SHOPS_TABLE)
       .select('*')
-      .eq('name', shopName)
+      .eq('name', name)
       .single();
 
     if (error) throw new Error(error.message);
     if (!data || data.length === 0) {
-      console.warn(`"${shopName}" not found.`);
+      console.warn(`"${name}" not found.`);
       return null;
     }
     return data;
   } catch (err) {
-    console.error(`Failed to fetch shop "${shopName}":`, err);
+    console.error(`Failed to fetch shop "${name}":`, err);
     return null;
   }
 }
@@ -85,7 +85,7 @@ export async function insertShop(
 
     return { success: true };
   } catch (err) {
-    console.error('[JavaScript Exception]', err.message);
+    console.error('[Exception]', err.message);
     return { success: false, source: 'exception', message: err.message };
   }
 }
@@ -93,12 +93,12 @@ export async function insertShop(
 /**
  * Soft-delete (archive) a shop by setting `archived = true`.
  */
-export async function archiveShop(shopName) {
+export async function archiveShop(name) {
   try {
     const { data, error } = await supabase
       .from(SHOPS_TABLE)
       .update({ archived: true })
-      .eq('name', shopName);
+      .eq('name', name);
 
     if (error) {
       console.error('[Supabase Update Error]', error.message);
@@ -110,7 +110,7 @@ export async function archiveShop(shopName) {
     }
     return data;
   } catch (err) {
-    console.error('[JavaScript Exception]', err.message);
+    console.error('[Exception]', err.message);
     return { success: false, source: 'exception', message: err.message };
   }
 }
