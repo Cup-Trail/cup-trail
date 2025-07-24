@@ -1,7 +1,12 @@
 import supabase from './supabase';
-import { fetchShopDrinkByName } from './drinks';
+import {
+  fetchOrInsertDrink,
+  fetchOrInsertShopDrink,
+  updateShopDrink,
+} from './drinks';
 
 const REVIEWS_TABLE = 'reviews';
+const SHOP_DRINKS_TABLE = 'shop_drinks';
 
 /**
  * Fetch all reviews for a drink at a particular shop.
@@ -131,7 +136,7 @@ export async function fetchRecentReviews() {
  * @returns
  */
 export async function insertReview(
-  shopName,
+  shopId,
   drinkName,
   rating,
   comment,
@@ -139,36 +144,62 @@ export async function insertReview(
   userId = null
 ) {
   try {
-    const result = await fetchShopDrinkByName(shopName, drinkName);
+    const drinkResult = await fetchOrInsertDrink(drinkName);
+    if (!drinkResult?.success) return drinkResult;
 
-    if (!result.success) {
-      console.warn('Fetch failed:', result.message);
-      if (result.code === 'not_found') {
-        // add shop_drink insert func here
-      }
-      return {
-        success: false,
-        source: result.source,
-        message: result.message,
-        code: result.code,
-      };
-    }
-    console.log('Fetched row:', result.data);
+    const shopDrinkResult = await fetchOrInsertShopDrink(
+      shopId,
+      drinkResult.data.id
+    );
+    if (!shopDrinkResult?.success) return shopDrinkResult;
+
     const { error } = await supabase.from(REVIEWS_TABLE).insert({
       user_id: userId,
-      shop_drink_id: result.data.id,
+      shop_drink_id: shopDrinkResult.data.id,
       rating,
       comment,
       photo_url: photoUrl,
     });
     if (error) {
-      console.error('[Supabase Insert Error]', error.message);
+      console.error('[insertReview → insert]', error.message);
       return { success: false, source: 'supabase', message: error.message };
     }
 
+    const avgResult = await calculateAndUpdateAvgRating(
+      shopDrinkResult.data.id
+    );
+    if (!avgResult?.success) return avgResult;
+
     return { success: true };
   } catch (err) {
-    console.error('[JavaScript Exception]', err.message);
+    console.error('[insertReview → exception]', err.message);
+    return { success: false, source: 'exception', message: err.message };
+  }
+}
+
+async function calculateAndUpdateAvgRating(shopDrinkId) {
+  try {
+    const { data, error } = await supabase
+      .from(REVIEWS_TABLE)
+      .select('rating')
+      .eq('shop_drink_id', shopDrinkId);
+
+    if (error) {
+      console.error('[calculateAndUpdateAvgRating → fetch]', error.message);
+      return { success: false, source: 'supabase', message: error.message };
+    }
+
+    if (!data?.length) {
+      console.warn(
+        `[calculateAndUpdateAvgRating] No ratings for ${shopDrinkId}`
+      );
+      return { success: true };
+    }
+
+    const avg = data.reduce((sum, r) => sum + r.rating, 0) / data.length;
+    return await updateShopDrink(shopDrinkId, avg);
+  } catch (err) {
+    console.error('[calculateAndUpdateAvgRating → exception]', err.message);
     return { success: false, source: 'exception', message: err.message };
   }
 }

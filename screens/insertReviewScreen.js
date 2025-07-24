@@ -2,23 +2,53 @@
 import {
   View,
   Text,
+  Alert,
   TextInput,
   StyleSheet,
-  FlatList,
   TouchableOpacity,
-  ScrollView,
 } from 'react-native';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Button } from '@react-navigation/elements';
-import { useNavigation } from '@react-navigation/native';
-// backend
-import { GOOGLE_API_KEY } from '@env';
-import { insertShop } from '../apis/shops';
-import { fetchRecentReviews } from '../apis/reviews';
+import { useRoute, useNavigation } from '@react-navigation/native';
+import { insertReview } from '../apis/reviews';
 
 export default function InsertReviewScreen() {
+  const route = useRoute();
+
   const [review, setReview] = useState('');
+  const [rating, setRating] = useState(null);
   const [drink, setDrink] = useState('');
+
+  const { shopName, shopId } = route.params;
+  const clearForm = () => {
+    setDrink('');
+    setRating(null);
+    setReview('');
+  };
+  const handleSubmit = async () => {
+    const parsedRating = parseFloat(rating);
+    if (isNaN(parsedRating) || parsedRating < 0 || parsedRating > 10) {
+      Alert.alert('Invalid rating', 'Please enter a number between 0 and 10.');
+      return;
+    }
+    if (!review) {
+      Alert.alert('Invalid review', 'Please enter a valid review.');
+      return;
+    }
+    if (!drink) {
+      Alert.alert('Invalid drink', 'Please enter a valid drink.');
+      return;
+    }
+    const result = await insertReview(shopId, drink, parsedRating, review);
+
+    if (result?.success) {
+      Alert.alert('Success', '✅ Review added successfully!');
+      clearForm();
+      return;
+    }
+
+    Alert.alert('Error', result.message);
+  };
 
   const navigation = useNavigation();
 
@@ -36,6 +66,23 @@ export default function InsertReviewScreen() {
         placeholder="Name of Drink"
         value={drink}
         onChangeText={setDrink}
+      />
+      <Text style={styles.label}>Shop</Text>
+      <TextInput
+        style={styles.textArea}
+        multiline
+        numberOfLines={5}
+        placeholder="Name of Shop"
+        value={shopName}
+      />
+      <Text style={styles.label}>Rating</Text>
+      <TextInput
+        style={styles.textArea}
+        multiline
+        numberOfLines={5}
+        placeholder="0 - 10"
+        value={rating}
+        onChangeText={setRating}
       />
       <Text style={styles.label}>Your Review</Text>
       <TextInput
@@ -55,8 +102,9 @@ export default function InsertReviewScreen() {
       </TouchableOpacity>
 
       <View style={styles.buttonGroup}>
-        <Button title="Add Review" >Submit</Button>
-        {/* Add more buttons/screens later like Favorites */}
+        <Button title="Add Review" onPress={handleSubmit}>
+          Submit
+        </Button>
       </View>
     </View>
   );
