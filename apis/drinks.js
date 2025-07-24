@@ -77,7 +77,7 @@ export async function fetchShopDrinkByName(shopName, drinkName) {
       };
     }
 
-    if (!data || data.length === 0) {
+    if (!data) {
       return {
         success: false,
         code: 'not_found',
