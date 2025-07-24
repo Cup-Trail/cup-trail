@@ -24,17 +24,10 @@ export default function SearchScreen() {
   const [suggestions, setSuggestions] = useState([]);
   const [activeField, setActiveField] = useState(null);
 
-  const clearForm = () => {
-    setName('');
-    setAddress('');
-    setLatitude(null);
-    setLongitude(null);
-  };
-
   const fetchAutocomplete = async (input) => {
     if (!input) {
       setSuggestions([]);
-      clearForm();
+      setName('');
       return;
     }
 
@@ -49,7 +42,7 @@ export default function SearchScreen() {
     } catch (err) {
       console.error('Autocomplete error:', err);
       setSuggestions([]);
-      clearForm();
+      setName('');
     }
   };
 
@@ -112,7 +105,9 @@ export default function SearchScreen() {
     <View style={styles.container}>
       <TextInput
         style={styles.searchBar}
-        onFocus={clearForm}
+        onFocus={() => {
+          setName('');
+        }}
         onChangeText={(text) => {
           setName(text);
           setActiveField('name');
