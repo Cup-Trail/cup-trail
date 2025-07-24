@@ -8,8 +8,8 @@ import {
   TouchableOpacity,
   ScrollView,
 } from 'react-native';
-import { useState, useEffect } from 'react';
-import { useNavigation } from '@react-navigation/native';
+import { useState, useCallback, useEffect } from 'react';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 // backend
 import { GOOGLE_API_KEY } from '@env';
 import { fetchOrInsertShop } from '../apis/shops';
@@ -75,8 +75,7 @@ export default function SearchScreen() {
           navigation.navigate('Storefront', {
             shopName: name,
             address: formatted_address,
-            latitude: lat,
-            longitude: lng,
+            shopId: result.data.id,
           });
         }
       } else {
@@ -90,16 +89,29 @@ export default function SearchScreen() {
   useEffect(() => {
     const fetchReviews = async () => {
       const result = await fetchRecentReviews();
-      console.log('[SearchScreen] fetch result:', result);
+      console.log('[SearchScreen] useEffect result:', result);
       if (!result?.success) {
         console.warn('Error fetching reviews:', result?.message);
         return;
       }
       setReviews(result.data);
     };
-
     fetchReviews();
   }, []);
+  useFocusEffect(
+    useCallback(() => {
+      const refetchReviews = async () => {
+        const result = await fetchRecentReviews();
+        console.log('[SearchScreen] useFocusEffect result:', result);
+        if (!result?.success) {
+          console.warn('Error reloading reviews:', result?.message);
+          return;
+        }
+        setReviews(result.data);
+      };
+      refetchReviews();
+    }, [])
+  );
   const navigation = useNavigation();
   return (
     <View style={styles.container}>
@@ -157,7 +169,7 @@ export default function SearchScreen() {
               <Text style={styles.reviewTitle}>
                 {drinkName ? `${drinkName} @ ${shopName}` : 'Review'}
               </Text>
-              <Text style={styles.reviewRating}>⭐ {item.rating}/5</Text>
+              <Text style={styles.reviewRating}>⭐ {item.rating}/10</Text>
               {item.comment && (
                 <Text style={styles.reviewComment}>{item.comment}</Text>
               )}
