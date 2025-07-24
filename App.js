@@ -4,6 +4,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 // screens
 import SearchScreen from './screens/searchScreen';
 import InsertReview from './screens/insertReviewScreen';
+import StoreFrontScreen from './screens/storeFrontScreen';
 
 const Stack = createNativeStackNavigator();
 function RootStack() {
@@ -11,6 +12,7 @@ function RootStack() {
     <Stack.Navigator>
       <Stack.Screen name="Home" component={SearchScreen} />
       <Stack.Screen name="Add Review" component={InsertReview} />
+      <Stack.Screen name="Storefront" component={StoreFrontScreen} />
     </Stack.Navigator>
   );
 }
