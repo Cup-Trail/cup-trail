@@ -52,3 +52,12 @@ GOOGLE_API_KEY=your-google-places-api-key
 ```
 npx expo start
 ```
+
+## Meet the Team
+This project wouldn't have been possible without the creativity, technical skill, and thoughtful feedback of the following team members:
+
+[Katherine Wong] – Full-stack Developer 
+
+[Ly Nguyen] – Frontend Developer
+
+[Tracy Nguyen] – UI/UX Designer
