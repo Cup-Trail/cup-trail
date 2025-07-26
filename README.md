@@ -34,12 +34,12 @@ CupTrail is a mobile app built with React Native that helps users discover and r
 git clone https://github.com/your-username/cup-trail.git
 cd cup-trail
 ```
-2. Install dependencies
+2. **Install dependencies**
 ```
 npm install
 ```
 
-3. Set up environment variables
+3. **Set up environment variables**
 Create a .env file in the root directory:
 
 ```
@@ -48,7 +48,7 @@ SUPABASE_ANON_KEY=your-supabase-anon-key
 GOOGLE_API_KEY=your-google-places-api-key
 ```
 
-4. Run the app
+4. **Run the app**
 ```
 npx expo start
 ```
