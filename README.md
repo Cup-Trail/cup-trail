@@ -30,25 +30,25 @@ CupTrail is a mobile app built with React Native that helps users discover and r
 ## 🛠️ Setup Instructions
 
 1. **Clone the repo**
-    ```
-    git clone https://github.com/your-username/cup-trail.git
-    cd cup-trail
-    ```
+```
+git clone https://github.com/your-username/cup-trail.git
+cd cup-trail
+```
 2. Install dependencies
-    ```
-    npm install
-    ```
+```
+npm install
+```
 
 3. Set up environment variables
-    Create a .env file in the root directory:
+Create a .env file in the root directory:
 
-    ```
-    SUPABASE_URL=your-supabase-url
-    SUPABASE_ANON_KEY=your-supabase-anon-key
-    GOOGLE_API_KEY=your-google-places-api-key
-    ```
+```
+SUPABASE_URL=your-supabase-url
+SUPABASE_ANON_KEY=your-supabase-anon-key
+GOOGLE_API_KEY=your-google-places-api-key
+```
 
 4. Run the app
-    ```
-    npx expo start
-    ```
+```
+npx expo start
+```
