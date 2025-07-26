@@ -1,20 +1,19 @@
 import supabase from './supabase';
 import {
-  fetchOrInsertDrink,
-  fetchOrInsertShopDrink,
+  getOrInsertDrink,
+  getOrInsertShopDrink,
   updateShopDrink,
 } from './drinks';
 
 const REVIEWS_TABLE = 'reviews';
-const SHOP_DRINKS_TABLE = 'shop_drinks';
 
 /**
- * Fetch all reviews for a drink at a particular shop.
+ * Get all reviews for a drink at a particular shop.
  * @param {*} shopName
  * @param {*} drinkName
  * @returns
  */
-export async function fetchReviewsByShopAndDrink(shopName, drinkName) {
+export async function getReviewsByShopAndDrink(shopName, drinkName) {
   try {
     const { data, error } = await supabase
       .from(REVIEWS_TABLE)
@@ -69,10 +68,10 @@ export async function fetchReviewsByShopAndDrink(shopName, drinkName) {
   }
 }
 /**
- * Fetch 10 recent reviews to display on the Home screen.
+ * Get 10 recent reviews to display on the Home screen.
  * @returns
  */
-export async function fetchRecentReviews() {
+export async function getRecentReviews() {
   try {
     const { data, error } = await supabase
       .from(REVIEWS_TABLE)
@@ -144,10 +143,10 @@ export async function insertReview(
   userId = null
 ) {
   try {
-    const drinkResult = await fetchOrInsertDrink(drinkName);
+    const drinkResult = await getOrInsertDrink(drinkName);
     if (!drinkResult?.success) return drinkResult;
 
-    const shopDrinkResult = await fetchOrInsertShopDrink(
+    const shopDrinkResult = await getOrInsertShopDrink(
       shopId,
       drinkResult.data.id
     );
@@ -185,7 +184,7 @@ async function calculateAndUpdateAvgRating(shopDrinkId) {
       .eq('shop_drink_id', shopDrinkId);
 
     if (error) {
-      console.error('[calculateAndUpdateAvgRating → fetch]', error.message);
+      console.error('[calculateAndUpdateAvgRating → get]', error.message);
       return { success: false, source: 'supabase', message: error.message };
     }
 
