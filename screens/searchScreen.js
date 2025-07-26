@@ -8,13 +8,12 @@ import {
   TouchableOpacity,
   ScrollView,
 } from 'react-native';
-import React, { useState, useEffect } from 'react';
-import { Button } from '@react-navigation/elements';
-import { useNavigation } from '@react-navigation/native';
+import { useState, useCallback, useEffect } from 'react';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 // backend
 import { GOOGLE_API_KEY } from '@env';
+import { fetchOrInsertShop } from '../apis/shops';
 import { fetchRecentReviews } from '../apis/reviews';
-import { insertShop } from '../apis/shops';
 
 // mock data for now
 const categories = ['Matcha', 'Boba', 'Coffee', 'Milk Tea', 'Fruit Tea'];
@@ -22,45 +21,13 @@ const categories = ['Matcha', 'Boba', 'Coffee', 'Milk Tea', 'Fruit Tea'];
 export default function SearchScreen() {
   const [reviews, setReviews] = useState([]);
   const [name, setName] = useState('');
-  const [address, setAddress] = useState('');
-  const [latitude, setLatitude] = useState(null);
-  const [longitude, setLongitude] = useState(null);
   const [suggestions, setSuggestions] = useState([]);
-  const [message, setMessage] = useState('');
   const [activeField, setActiveField] = useState(null);
-
-  const clearForm = () => {
-    setName('');
-    setAddress('');
-    setLatitude(null);
-    setLongitude(null);
-  };
-
-  const handleSubmit = async () => {
-    setMessage('Submitting...');
-    setSuggestions([]);
-
-    const result = await insertShop(name, address, latitude, longitude);
-
-    if (result?.success) {
-      setMessage('✅ Shop added successfully!');
-      clearForm();
-      return;
-    }
-
-    const errorMsg =
-      result?.code === 'duplicate'
-        ? '❌ Shop location already exists.'
-        : result?.code === 'empty'
-        ? '❌ Input invalid. Please add valid shop.'
-        : '❌ Failed to add shop.';
-
-    setMessage(errorMsg);
-  };
 
   const fetchAutocomplete = async (input) => {
     if (!input) {
       setSuggestions([]);
+      setName('');
       return;
     }
 
@@ -75,6 +42,7 @@ export default function SearchScreen() {
     } catch (err) {
       console.error('Autocomplete error:', err);
       setSuggestions([]);
+      setName('');
     }
   };
 
@@ -92,11 +60,23 @@ export default function SearchScreen() {
         console.log(formatted_address);
 
         if (activeField === 'name' && name) setName(name);
-        if (formatted_address) setAddress(formatted_address);
-        if (lat != null && lng != null) {
-          setLatitude(lat);
-          setLongitude(lng);
-          console.log('Lat:', lat, 'Lng:', lng);
+        if (name && formatted_address && lat && lng) {
+          const result = await fetchOrInsertShop(
+            name,
+            formatted_address,
+            lat,
+            lng
+          );
+          if (result.success) {
+            console.log('Shop row:', result.data);
+          } else {
+            console.warn('Failed to get or create shop:', result.message);
+          }
+          navigation.navigate('Storefront', {
+            shopName: name,
+            address: formatted_address,
+            shopId: result.data.id,
+          });
         }
       } else {
         console.warn('Place Details failed:', data.status);
@@ -109,21 +89,37 @@ export default function SearchScreen() {
   useEffect(() => {
     const fetchReviews = async () => {
       const result = await fetchRecentReviews();
-      console.log('[SearchScreen] fetch result:', result);
+      console.log('[SearchScreen] useEffect result:', result);
       if (!result?.success) {
         console.warn('Error fetching reviews:', result?.message);
         return;
       }
       setReviews(result.data);
     };
-
     fetchReviews();
   }, []);
+  useFocusEffect(
+    useCallback(() => {
+      const refetchReviews = async () => {
+        const result = await fetchRecentReviews();
+        console.log('[SearchScreen] useFocusEffect result:', result);
+        if (!result?.success) {
+          console.warn('Error reloading reviews:', result?.message);
+          return;
+        }
+        setReviews(result.data);
+      };
+      refetchReviews();
+    }, [])
+  );
   const navigation = useNavigation();
   return (
     <View style={styles.container}>
       <TextInput
         style={styles.searchBar}
+        onFocus={() => {
+          setName('');
+        }}
         onChangeText={(text) => {
           setName(text);
           setActiveField('name');
@@ -146,12 +142,6 @@ export default function SearchScreen() {
           )}
         />
       )}
-
-      <Button title="Add" onPress={handleSubmit}>
-        Add
-      </Button>
-      {message !== '' && <Text style={styles.message}>{message}</Text>}
-
       <View style={styles.categoryContainer}>
         <ScrollView
           horizontal
@@ -179,7 +169,7 @@ export default function SearchScreen() {
               <Text style={styles.reviewTitle}>
                 {drinkName ? `${drinkName} @ ${shopName}` : 'Review'}
               </Text>
-              <Text style={styles.reviewRating}>⭐ {item.rating}/5</Text>
+              <Text style={styles.reviewRating}>⭐ {item.rating}/10</Text>
               {item.comment && (
                 <Text style={styles.reviewComment}>{item.comment}</Text>
               )}
@@ -190,9 +180,6 @@ export default function SearchScreen() {
           );
         }}
       />
-      <Button onPress={() => navigation.navigate('InsertShop')}>
-        Add review
-      </Button>
     </View>
   );
 }
