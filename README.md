@@ -20,12 +20,13 @@ CupTrail is a mobile app built with React Native that helps users discover and r
 - **APIs**: Google Places API, Place Details API
 
 ## Folder Structure
+```
 ├── apis/ # Supabase and API logic (shops, reviews, drinks)
 ├── screens/ # App screens (Search, Storefront, InsertReview)
 ├── assets/ # Static assets (images, fonts, icons)
 ├── App.js # Entry point of the app
 └── README.md # Project overview
-
+```
 ## 🛠️ Setup Instructions
 
 1. **Clone the repo**
