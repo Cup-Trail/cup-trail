@@ -1,6 +1,6 @@
-# CupTrail
+# Cup Trail
 
-CupTrail is a mobile app built with React Native that helps users discover and review their favorite drinks - from matcha and boba to coffee and more. Users can search local shops, write reviews with photos, and track their favorite drinks - leaving a trail of cups wherever they go.
+Cup Trail is a mobile app built with React Native that helps users discover and review their favorite drinks - from matcha and boba to coffee and more. Users can search local shops, write reviews with photos, and track their favorite drinks - leaving a trail of cups wherever they go.
 
 ## Features
 
