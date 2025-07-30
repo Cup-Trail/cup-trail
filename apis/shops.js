@@ -3,9 +3,9 @@ import supabase from './supabase';
 const SHOPS_TABLE = 'shops';
 
 /**
- * Insert a new shop.
+ * Get a shop's information or insert a new shop if it doesn't exist.
  */
-export async function fetchOrInsertShop(
+export async function getOrInsertShop(
   name,
   address,
   latitude,
@@ -14,25 +14,21 @@ export async function fetchOrInsertShop(
   archived = false
 ) {
   try {
-    // if (!name || !address || name == '' || address == '') {
-    //   console.warn('[Empty Input]');
-    //   return { success: false, code: 'empty' };
-    // }
-    const { data: fetchData, error: fetchError } = await supabase
+    const { data: getData, error: getError } = await supabase
       .from(SHOPS_TABLE)
       .select('*')
       .eq('name', name)
       .eq('address', address)
       .maybeSingle();
-    if (fetchError)
+    if (getError)
       return {
         success: false,
         source: 'supabase',
-        message: fetchError.message,
+        message: getError.message,
       };
 
-    if (fetchData) {
-      return { success: true, data: fetchData };
+    if (getData) {
+      return { success: true, data: getData };
     }
     const { data: insertData, error: insertError } = await supabase
       .from(SHOPS_TABLE)

@@ -22,7 +22,7 @@ const SHOP_DRINK_SELECT = `
  * @param {Object} filters - key-value pairs to use as filters
  * @returns {Array|null} - array of rows or null on error
  */
-export async function fetchShopDrinks(filters = {}) {
+export async function getShopDrinks(filters = {}) {
   try {
     let query = supabase.from('shop_drinks').select(SHOP_DRINK_SELECT);
 
@@ -36,12 +36,12 @@ export async function fetchShopDrinks(filters = {}) {
 
     return data;
   } catch (err) {
-    console.error('fetchShopDrinks error:', err.message);
+    console.error('getShopDrinks error:', err.message);
     return null;
   }
 }
 
-export async function fetchHighlyRatedDrinks(shopId) {
+export async function getHighlyRatedDrinks(shopId) {
   try {
     const { data, error } = await supabase
       .from(SHOP_DRINKS_TABLE)
@@ -77,9 +77,9 @@ export async function fetchHighlyRatedDrinks(shopId) {
 }
 
 /**
- * Fetch a specific drink by shop and drink name.
+ * Get a specific drink by shop and drink name.
  */
-export async function fetchShopDrinkByName(shopName, drinkName) {
+export async function getShopDrinkByName(shopName, drinkName) {
   try {
     const { data, error } = await supabase
       .from(SHOP_DRINKS_TABLE)
@@ -94,7 +94,7 @@ export async function fetchShopDrinkByName(shopName, drinkName) {
       .eq('shops.name', shopName)
       .maybeSingle(); // returns in {} shape instead of arr
     if (error) {
-      console.error(`[Supabase Fetch Error] ${error.message}`);
+      console.error(`[Supabase get Error] ${error.message}`);
       return {
         success: false,
         source: 'supabase',
@@ -114,7 +114,7 @@ export async function fetchShopDrinkByName(shopName, drinkName) {
     return { success: true, data };
   } catch (err) {
     console.error(
-      `[Exception] Failed to fetch ${drinkName} at ${shopName}:`,
+      `[Exception] Failed to get ${drinkName} at ${shopName}:`,
       err
     );
     return {
@@ -127,22 +127,22 @@ export async function fetchShopDrinkByName(shopName, drinkName) {
 /**
  * Insert a new row into drinks.
  */
-export async function fetchOrInsertDrink(name, tags = null) {
+export async function getOrInsertDrink(name, tags = null) {
   try {
-    const { data: fetchData, error: fetchError } = await supabase
+    const { data: getData, error: getError } = await supabase
       .from(DRINKS_TABLE)
       .select('*')
       .eq('name', name)
       .maybeSingle();
-    if (fetchError)
+    if (getError)
       return {
         success: false,
         source: 'supabase',
-        message: fetchError.message,
+        message: getError.message,
       };
 
-    if (fetchData) {
-      return { success: true, data: fetchData };
+    if (getData) {
+      return { success: true, data: getData };
     }
     const { data: insertData, error: insertError } = await supabase
       .from(DRINKS_TABLE)
@@ -168,7 +168,7 @@ export async function fetchOrInsertDrink(name, tags = null) {
 /**
  * Insert a new row into shop_drinks.
  */
-export async function fetchOrInsertShopDrink(
+export async function getOrInsertShopDrink(
   shopId,
   drinkId,
   price = null,
@@ -177,22 +177,22 @@ export async function fetchOrInsertShopDrink(
   avgRating = null
 ) {
   try {
-    const { data: fetchData, error: fetchError } = await supabase
+    const { data: getData, error: getError } = await supabase
       .from(SHOP_DRINKS_TABLE)
       .select('*')
       .eq('shop_id', shopId)
       .eq('drink_id', drinkId)
       .maybeSingle();
-    if (fetchError)
+    if (getError)
       return {
         success: false,
         source: 'supabase',
-        message: fetchError.message,
+        message: getError.message,
       };
 
-    if (fetchData) {
+    if (getData) {
       // update average rating
-      return { success: true, data: fetchData };
+      return { success: true, data: getData };
     }
     const { data: insertData, error: insertError } = await supabase
       .from(SHOP_DRINKS_TABLE)
