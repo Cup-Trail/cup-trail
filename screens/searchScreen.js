@@ -11,7 +11,6 @@ import {
 import { useState, useCallback, useEffect } from 'react';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 // backend
-import { GOOGLE_API_KEY } from '@env';
 import { fetchOrInsertShop } from '../apis/shops';
 import { fetchRecentReviews } from '../apis/reviews';
 
@@ -33,14 +32,28 @@ export default function SearchScreen() {
 
     try {
       const response = await fetch(
-        `https://maps.googleapis.com/maps/api/place/autocomplete/json?input=${encodeURIComponent(
+        `${
+          process.env.EXPO_PUBLIC_SUPABASE_URL
+        }/functions/v1/maps?type=autocomplete&input=${encodeURIComponent(
           input
-        )}&key=${GOOGLE_API_KEY}&types=establishment&language=en`
+        )}`,
+        {
+          headers: {
+            Authorization: `Bearer ${process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY}`,
+          },
+        }
       );
+      console.log(response);
       const json = await response.json();
-      setSuggestions(json.predictions || []);
+
+      if (json.predictions) {
+        setSuggestions(json.predictions);
+      } else {
+        console.warn('No predictions returned from edge function');
+        setSuggestions([]);
+      }
     } catch (err) {
-      console.error('Autocomplete error:', err);
+      console.error('Autocomplete fetch error:', err);
       setSuggestions([]);
       setName('');
     }
@@ -49,7 +62,16 @@ export default function SearchScreen() {
   const handleSelectSuggestion = async (suggestion) => {
     try {
       const response = await fetch(
-        `https://maps.googleapis.com/maps/api/place/details/json?place_id=${suggestion.place_id}&key=${GOOGLE_API_KEY}`
+        `${
+          process.env.EXPO_PUBLIC_SUPABASE_URL
+        }/functions/v1/maps?type=details&place_id=${encodeURIComponent(
+          suggestion.place_id
+        )}`,
+        {
+          headers: {
+            Authorization: `Bearer ${process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY}`,
+          },
+        }
       );
       const data = await response.json();
 
