@@ -13,7 +13,7 @@ import {
   useNavigation,
   useFocusEffect,
 } from '@react-navigation/native';
-import { fetchHighlyRatedDrinks } from '../apis/drinks';
+import { getHighlyRatedDrinks } from '../apis/drinks';
 
 export default function StoreFrontScreen() {
   const route = useRoute();
@@ -24,25 +24,25 @@ export default function StoreFrontScreen() {
 
   useEffect(() => {
     if (address) setShopAddress(address);
-    const fetchDrinks = async () => {
+    const getDrinks = async () => {
       console.log(`shopId = ${shopId}`);
-      const result = await fetchHighlyRatedDrinks(shopId);
+      const result = await getHighlyRatedDrinks(shopId);
       console.log('[StoreFrontScreen] useEffect result:', result);
       if (!result?.success) {
-        console.warn('Error fetching ratings:', result?.message);
+        console.warn('Error getting ratings:', result?.message);
         return;
       }
       setDrinks(result.data);
     };
 
-    fetchDrinks();
+    getDrinks();
   }, [address]);
 
   useFocusEffect(
     useCallback(() => {
-      const refetchDrinks = async () => {
-        // re-fetch drinks and store details
-        const result = await fetchHighlyRatedDrinks(shopId);
+      const reloadDrinks = async () => {
+        // reload drinks and store details
+        const result = await getHighlyRatedDrinks(shopId);
         console.log('[StoreFrontScreen] useFocusEffect result:', result);
         if (!result?.success) {
           console.warn('Error reloading ratings:', result?.message);
@@ -50,7 +50,7 @@ export default function StoreFrontScreen() {
         }
         setDrinks(result.data);
       };
-      refetchDrinks();
+      reloadDrinks();
     }, [shopId])
   );
   return (

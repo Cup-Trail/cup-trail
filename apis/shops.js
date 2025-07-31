@@ -69,7 +69,9 @@ export async function archiveShop(name) {
         message: error.message,
       };
     }
-    return data;
+    if (data) {
+      return { success: true, data };
+    }
   } catch (err) {
     console.error('[Exception]', err.message);
     return { success: false, source: 'exception', message: err.message };

@@ -11,8 +11,8 @@ import {
 import { useState, useCallback, useEffect } from 'react';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 // backend
-import { fetchOrInsertShop } from '../apis/shops';
-import { fetchRecentReviews } from '../apis/reviews';
+import { getOrInsertShop } from '../apis/shops';
+import { getRecentReviews } from '../apis/reviews';
 
 // mock data for now
 const categories = ['Matcha', 'Boba', 'Coffee', 'Milk Tea', 'Fruit Tea'];
@@ -22,8 +22,9 @@ export default function SearchScreen() {
   const [name, setName] = useState('');
   const [suggestions, setSuggestions] = useState([]);
   const [activeField, setActiveField] = useState(null);
+  const navigation = useNavigation();
 
-  const fetchAutocomplete = async (input) => {
+  const getAutocomplete = async (input) => {
     if (!input) {
       setSuggestions([]);
       setName('');
@@ -55,7 +56,6 @@ export default function SearchScreen() {
     } catch (err) {
       console.error('Autocomplete fetch error:', err);
       setSuggestions([]);
-      setName('');
     }
   };
 
@@ -83,7 +83,7 @@ export default function SearchScreen() {
 
         if (activeField === 'name' && name) setName(name);
         if (name && formatted_address && lat && lng) {
-          const result = await fetchOrInsertShop(
+          const result = await getOrInsertShop(
             name,
             formatted_address,
             lat,
@@ -104,26 +104,26 @@ export default function SearchScreen() {
         console.warn('Place Details failed:', data.status);
       }
     } catch (error) {
-      console.error('Failed to fetch place details:', error);
+      console.error('Failed to get place details:', error);
     }
     setSuggestions([]);
   };
   useEffect(() => {
-    const fetchReviews = async () => {
-      const result = await fetchRecentReviews();
+    const getReviews = async () => {
+      const result = await getRecentReviews();
       console.log('[SearchScreen] useEffect result:', result);
       if (!result?.success) {
-        console.warn('Error fetching reviews:', result?.message);
+        console.warn('Error getting reviews:', result?.message);
         return;
       }
       setReviews(result.data);
     };
-    fetchReviews();
+    getReviews();
   }, []);
   useFocusEffect(
     useCallback(() => {
-      const refetchReviews = async () => {
-        const result = await fetchRecentReviews();
+      const reloadReviews = async () => {
+        const result = await getRecentReviews();
         console.log('[SearchScreen] useFocusEffect result:', result);
         if (!result?.success) {
           console.warn('Error reloading reviews:', result?.message);
@@ -131,10 +131,9 @@ export default function SearchScreen() {
         }
         setReviews(result.data);
       };
-      refetchReviews();
+      reloadReviews();
     }, [])
   );
-  const navigation = useNavigation();
   return (
     <View style={styles.container}>
       <TextInput
@@ -145,7 +144,7 @@ export default function SearchScreen() {
         onChangeText={(text) => {
           setName(text);
           setActiveField('name');
-          fetchAutocomplete(text);
+          getAutocomplete(text);
         }}
         placeholder="Search shops, drinks, or cities..."
         value={name}
