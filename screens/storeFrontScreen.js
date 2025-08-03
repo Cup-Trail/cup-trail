@@ -66,8 +66,14 @@ export default function StoreFrontScreen() {
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
           <View style={styles.drinkCard}>
+            {item.cover_photo_url && (
+              <Image
+                source={{ uri: item.cover_photo_url }}
+                style={styles.drinkImage}
+                resizeMode="cover"
+              />
+            )}
             <Text style={styles.drinkName}>{item.drinks.name}</Text>
-            {/* <Text style={styles.drinkTag}>{item.tags?.join(', ')}</Text> */}
             {/* <Text style={styles.drinkPrice}>${item.price}</Text> */}
             <Text style={styles.drinkPrice}>⭐ {item.avg_rating}/10</Text>
           </View>
@@ -87,53 +93,11 @@ export default function StoreFrontScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    padding: 20,
-    paddingBottom: 60,
-    backgroundColor: '#fff',
-  },
-  shopTitle: {
-    fontSize: 28,
-    fontWeight: '700',
-    marginBottom: 8,
-    textAlign: 'center',
-  },
-  shopImage: {
-    width: '100%',
-    height: 200,
-    borderRadius: 12,
-    marginBottom: 12,
-  },
   address: {
     textAlign: 'center',
     fontSize: 14,
     color: '#666',
     marginBottom: 16,
-  },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: '600',
-    marginBottom: 12,
-  },
-  drinkCard: {
-    backgroundColor: '#F3FBF7',
-    padding: 12,
-    borderRadius: 10,
-    marginRight: 12,
-    width: 160,
-  },
-  drinkName: {
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  drinkTag: {
-    fontSize: 12,
-    color: '#999',
-    marginVertical: 4,
-  },
-  drinkPrice: {
-    fontSize: 14,
-    color: '#333',
   },
   button: {
     backgroundColor: '#D46A92',
@@ -146,5 +110,55 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: '600',
     fontSize: 16,
+  },
+  container: {
+    padding: 20,
+    paddingBottom: 60,
+    backgroundColor: '#fff',
+  },
+  drinkCard: {
+    backgroundColor: '#F3FBF7',
+    padding: 12,
+    borderRadius: 10,
+    marginRight: 12,
+    width: 160,
+  },
+  drinkImage: {
+    width: '100%',
+    height: 100,
+    borderRadius: 8,
+    marginBottom: 8,
+    backgroundColor: '#eee',
+    resizeMode: 'cover',
+  },
+  drinkName: {
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  drinkPrice: {
+    fontSize: 14,
+    color: '#333',
+  },
+  drinkTag: {
+    fontSize: 12,
+    color: '#999',
+    marginVertical: 4,
+  },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+    marginBottom: 12,
+  },
+  shopTitle: {
+    fontSize: 28,
+    fontWeight: '700',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  shopImage: {
+    width: '100%',
+    height: 200,
+    borderRadius: 12,
+    marginBottom: 12,
   },
 });

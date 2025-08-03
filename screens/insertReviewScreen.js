@@ -94,7 +94,25 @@ export default function InsertReviewScreen() {
       });
 
       if (!result.canceled) {
-        setPhotos((prev) => [...prev, ...result.assets]);
+        let duplicateDetected = false;
+
+        setPhotos((prev) => {
+          const existingPhotoIds = new Set(prev.map((photo) => photo.assetId));
+          const newPhotos = result.assets.filter((photo) => {
+            if (existingPhotoIds.has(photo.assetId)) {
+              duplicateDetected = true;
+              return false;
+            }
+            return true;
+          });
+          if (duplicateDetected) {
+            Alert.alert(
+              'Duplicate Photo',
+              'You have already selected one or more of these photos.'
+            );
+          }
+          return [...prev, ...newPhotos];
+        });
       }
     } catch (err) {
       console.error('Image picker failed:', err);
@@ -102,7 +120,7 @@ export default function InsertReviewScreen() {
   };
 
   const handleRemovePhoto = (uri) => {
-    setPhotos((prev) => prev.filter((photo) => photo !== uri));
+    setPhotos((prev) => prev.filter((photo) => photo.uri !== uri));
   };
 
   return (
@@ -180,24 +198,71 @@ export default function InsertReviewScreen() {
 }
 
 const styles = StyleSheet.create({
+  buttonGroup: {
+    gap: 12,
+  },
   container: {
     padding: 24,
     flex: 1,
     justifyContent: 'flex-start',
     backgroundColor: '#F3FBF7',
   },
-  title: {
-    fontSize: 20,
-    fontWeight: '700',
-    marginBottom: 8,
-    textAlign: 'center',
-  },
   label: {
     fontWeight: '600',
     marginBottom: 6,
     fontSize: 16,
   },
-
+  imagePreview: {
+    width: 100,
+    height: 100,
+    borderRadius: 8,
+  },
+  imageWrapper: {
+    position: 'relative',
+  },
+  photoButton: {
+    backgroundColor: '#FDDDE6',
+    borderRadius: 8,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    alignSelf: 'flex-start',
+    marginBottom: 5,
+  },
+  photoButtonText: {
+    color: '#D46A92',
+    fontWeight: '600',
+    fontSize: 14,
+  },
+  previewContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+    marginBottom: 10,
+    marginTop: 10,
+  },
+  removeButton: {
+    position: 'absolute',
+    top: -6,
+    right: -6,
+    width: 18,
+    height: 18,
+    backgroundColor: '#fff',
+    borderRadius: 9,
+    padding: 2,
+    elevation: 2,
+  },
+  removeText: {
+    color: '#D46A92',
+    textAlign: 'center',
+    fontSize: 14,
+    fontWeight: 'bold',
+  },
+  subtitle: {
+    fontSize: 16,
+    marginBottom: 32,
+    textAlign: 'center',
+    color: '#555',
+  },
   textArea: {
     borderWidth: 1,
     borderColor: '#ccc',
@@ -208,57 +273,10 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     marginBottom: 16,
   },
-
-  photoButton: {
-    backgroundColor: '#FDDDE6',
-    borderRadius: 8,
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    alignSelf: 'flex-start',
-    marginBottom: 32,
-  },
-
-  photoButtonText: {
-    color: '#D46A92',
-    fontWeight: '600',
-    fontSize: 14,
-  },
-  previewContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 10,
-    marginBottom: 16,
-  },
-  imageWrapper: {
-    position: 'relative',
-  },
-  imagePreview: {
-    width: 100,
-    height: 100,
-    borderRadius: 8,
-  },
-  removeButton: {
-    position: 'absolute',
-    top: -6,
-    right: -6,
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 2,
-    elevation: 2,
-  },
-  removeText: {
-    color: '#D46A92',
-    fontSize: 14,
-    fontWeight: 'bold',
-  },
-
-  subtitle: {
-    fontSize: 16,
-    marginBottom: 32,
+  title: {
+    fontSize: 20,
+    fontWeight: '700',
+    marginBottom: 8,
     textAlign: 'center',
-    color: '#555',
-  },
-  buttonGroup: {
-    gap: 12,
   },
 });
