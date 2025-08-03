@@ -167,8 +167,15 @@ export async function insertReview(
     const avgResult = await calculateAndUpdateAvgRating(
       shopDrinkResult.data.id
     );
+    console.log('avgResult', avgResult);
     if (!avgResult?.success) return avgResult;
-
+    if (photoUrl) {
+      const uploadNewCoverPhoto = await updateShopDrink(
+        shopDrinkResult.data.id,
+        { cover_photo_url: photoUrl }
+      );
+      if (!uploadNewCoverPhoto?.success) return uploadNewCoverPhoto;
+    }
     return { success: true };
   } catch (err) {
     console.error('[insertReview → exception]', err.message);
@@ -196,7 +203,7 @@ async function calculateAndUpdateAvgRating(shopDrinkId) {
     }
 
     const avg = data.reduce((sum, r) => sum + r.rating, 0) / data.length;
-    return await updateShopDrink(shopDrinkId, avg);
+    return await updateShopDrink(shopDrinkId, { avg_rating: avg });
   } catch (err) {
     console.error('[calculateAndUpdateAvgRating → exception]', err.message);
     return { success: false, source: 'exception', message: err.message };
