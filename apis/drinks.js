@@ -1,4 +1,5 @@
 import supabase from './supabase';
+
 const DRINKS_TABLE = 'drinks';
 const SHOP_DRINKS_TABLE = 'shop_drinks';
 const SHOP_DRINK_SELECT = `

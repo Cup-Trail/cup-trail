@@ -1,9 +1,9 @@
-import supabase from './supabase';
 import {
   getOrInsertDrink,
   getOrInsertShopDrink,
   updateShopDrink,
 } from './drinks';
+import supabase from './supabase';
 
 const REVIEWS_TABLE = 'reviews';
 

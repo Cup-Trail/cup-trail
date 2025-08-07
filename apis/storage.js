@@ -1,21 +1,22 @@
 import supabase from './supabase';
-import * as FileSystem from 'expo-file-system';
 import { decode } from 'base64-arraybuffer';
+import * as FileSystem from 'expo-file-system';
+
 const MEDIA_BUCKET = 'review-photos';
 
-export async function uploadMedia(img) {
+export async function uploadMedia(media) {
   try {
     console.log('inside uploadPhoto fx');
-    const base64 = await FileSystem.readAsStringAsync(img.uri, {
+    const base64 = await FileSystem.readAsStringAsync(media.uri, {
       encoding: 'base64',
     });
     const filePath = `${new Date().getTime()}.${
-      img.type === 'image' ? 'jpg' : 'mp4'
+      media.type === 'image' ? 'jpg' : 'mp4'
     }`;
     const { error } = await supabase.storage
       .from(MEDIA_BUCKET)
       .upload(filePath, decode(base64), {
-        contentType: img.type === 'image' ? 'image/jpeg' : 'video/mp4',
+        contentType: media.type === 'image' ? 'image/jpeg' : 'video/mp4',
       });
 
     if (error)
