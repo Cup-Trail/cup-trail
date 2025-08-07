@@ -3,8 +3,9 @@ import * as FileSystem from 'expo-file-system';
 import { decode } from 'base64-arraybuffer';
 const MEDIA_BUCKET = 'review-photos';
 
-export async function uploadPhoto(img) {
+export async function uploadMedia(img) {
   try {
+    console.log('inside uploadPhoto fx');
     const base64 = await FileSystem.readAsStringAsync(img.uri, {
       encoding: 'base64',
     });
@@ -14,7 +15,7 @@ export async function uploadPhoto(img) {
     const { error } = await supabase.storage
       .from(MEDIA_BUCKET)
       .upload(filePath, decode(base64), {
-        contentType: img.type === 'image' ? 'image/jpeg' : 'video/mp3',
+        contentType: img.type === 'image' ? 'image/jpeg' : 'video/mp4',
       });
 
     if (error)

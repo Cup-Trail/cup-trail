@@ -80,7 +80,7 @@ export async function getRecentReviews() {
             id,
             rating,
             comment,
-            photo_url,
+            media_urls,
             created_at,
             shop_drinks (
               id,
@@ -130,7 +130,7 @@ export async function getRecentReviews() {
  * @param {*} drinkName
  * @param {*} rating - up to 10
  * @param {*} comment
- * @param {*} photoUrl
+ * @param {*} mediaUrl
  * @param {*} userId
  * @returns
  */
@@ -139,7 +139,7 @@ export async function insertReview(
   drinkName,
   rating,
   comment,
-  photoUrl = null,
+  mediaUrlArr = null,
   userId = null
 ) {
   try {
@@ -157,7 +157,7 @@ export async function insertReview(
       shop_drink_id: shopDrinkResult.data.id,
       rating,
       comment,
-      photo_url: photoUrl,
+      media_urls: mediaUrlArr,
     });
     if (error) {
       console.error('[insertReview → insert]', error.message);
@@ -169,13 +169,28 @@ export async function insertReview(
     );
     console.log('avgResult', avgResult);
     if (!avgResult?.success) return avgResult;
-    if (photoUrl) {
-      const uploadNewCoverPhoto = await updateShopDrink(
-        shopDrinkResult.data.id,
-        { cover_photo_url: photoUrl }
-      );
-      if (!uploadNewCoverPhoto?.success) return uploadNewCoverPhoto;
+
+    if (mediaUrlArr && mediaUrlArr.length > 0) {
+      let mediaUrl = null;
+
+      // find first image from recent review
+      for (const url of mediaUrlArr) {
+        if (url.endsWith('.jpg') || url.endsWith('.jpeg')) {
+          mediaUrl = url;
+          break;
+        }
+      }
+
+      // update cover img to a photo from a recent review
+      if (mediaUrl) {
+        const uploadNewCoverPhoto = await updateShopDrink(
+          shopDrinkResult.data.id,
+          { cover_photo_url: mediaUrl }
+        );
+        if (!uploadNewCoverPhoto?.success) return uploadNewCoverPhoto;
+      }
     }
+
     return { success: true };
   } catch (err) {
     console.error('[insertReview → exception]', err.message);
