@@ -7,8 +7,7 @@ const SHOP_DRINK_SELECT = `
   price,
   drinks (
     id,
-    name,
-    tags
+    name
   ),
   shops (
     id,

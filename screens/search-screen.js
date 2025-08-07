@@ -2,11 +2,13 @@
 import {
   View,
   Text,
+  FlatList,
+  Keyboard,
   TextInput,
   StyleSheet,
-  FlatList,
-  TouchableOpacity,
   ScrollView,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
 } from 'react-native';
 import { useState, useCallback, useEffect } from 'react';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
@@ -135,73 +137,83 @@ export default function SearchScreen() {
     }, [])
   );
   return (
-    <View style={styles.container}>
-      <TextInput
-        style={styles.searchBar}
-        onFocus={() => {
-          setName('');
-        }}
-        onChangeText={(text) => {
-          setName(text);
-          setActiveField('name');
-          getAutocomplete(text);
-        }}
-        placeholder="Search shops, drinks, or cities..."
-        value={name}
-      />
-      {suggestions.length > 0 && (
-        <FlatList
-          data={suggestions}
-          keyExtractor={(item) => item.place_id}
-          renderItem={({ item }) => (
-            <TouchableOpacity
-              style={styles.suggestion}
-              onPress={() => handleSelectSuggestion(item)}
-            >
-              <Text>{item.description}</Text>
-            </TouchableOpacity>
-          )}
+    <TouchableWithoutFeedback
+      onPress={() => {
+        Keyboard.dismiss();
+        setSuggestions([]);
+      }}
+    >
+      <View style={styles.searchWrapper}>
+        <TextInput
+          style={styles.searchBar}
+          onFocus={() => {
+            setName('');
+          }}
+          onChangeText={(text) => {
+            setName(text);
+            setActiveField('name');
+            getAutocomplete(text);
+          }}
+          placeholder="Search shops, drinks, or cities..."
+          value={name}
         />
-      )}
-      <View style={styles.categoryContainer}>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.chipRow}
-        >
-          {categories.map((cat) => (
-            <TouchableOpacity key={cat} style={styles.chip}>
-              <Text style={styles.chipText}>{cat}</Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
-      </View>
-
-      <Text style={styles.sectionTitle}>Recently Reviewed Shops</Text>
-      <FlatList
-        data={reviews}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => {
-          const shopName = item.shop_drinks?.shops?.name;
-          const drinkName = item.shop_drinks?.drinks?.name;
-
-          return (
-            <View style={styles.reviewCard}>
-              <Text style={styles.reviewTitle}>
-                {drinkName ? `${drinkName} @ ${shopName}` : 'Review'}
-              </Text>
-              <Text style={styles.reviewRating}>⭐ {item.rating}/5</Text>
-              {item.comment && (
-                <Text style={styles.reviewComment}>{item.comment}</Text>
+        {suggestions.length > 0 && (
+          <View style={styles.suggestionsDropdown}>
+            <FlatList
+              keyboardShouldPersistTaps="handled"
+              data={suggestions}
+              keyExtractor={(item) => item.place_id}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  style={styles.suggestion}
+                  onPress={() => handleSelectSuggestion(item)}
+                >
+                  <Text style={styles.suggestionText}>{item.description}</Text>
+                </TouchableOpacity>
               )}
-              <Text style={styles.reviewDate}>
-                {new Date(item.created_at).toLocaleDateString()}
-              </Text>
-            </View>
-          );
-        }}
-      />
-    </View>
+            />
+          </View>
+        )}
+        <View style={styles.categoryContainer}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.chipRow}
+          >
+            {categories.map((cat) => (
+              <TouchableOpacity key={cat} style={styles.chip}>
+                <Text style={styles.chipText}>{cat}</Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </View>
+
+        <Text style={styles.sectionTitle}>Recently Reviewed Shops</Text>
+        <FlatList
+          data={reviews}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => {
+            const shopName = item.shop_drinks?.shops?.name;
+            const drinkName = item.shop_drinks?.drinks?.name;
+
+            return (
+              <View style={styles.reviewCard}>
+                <Text style={styles.reviewTitle}>
+                  {drinkName ? `${drinkName} @ ${shopName}` : 'Review'}
+                </Text>
+                <Text style={styles.reviewRating}>⭐ {item.rating}/5</Text>
+                {item.comment && (
+                  <Text style={styles.reviewComment}>{item.comment}</Text>
+                )}
+                <Text style={styles.reviewDate}>
+                  {new Date(item.created_at).toLocaleDateString()}
+                </Text>
+              </View>
+            );
+          }}
+        />
+      </View>
+    </TouchableWithoutFeedback>
   );
 }
 const styles = StyleSheet.create({
@@ -225,11 +237,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#D46A92',
     fontWeight: '500',
-  },
-  container: {
-    padding: 20,
-    flex: 1,
-    backgroundColor: '#fff',
   },
   reviewCard: {
     backgroundColor: '#F9F6F1',
@@ -264,14 +271,46 @@ const styles = StyleSheet.create({
     fontSize: 16,
     marginBottom: 12,
   },
+  searchWrapper: {
+    zIndex: 10,
+    position: 'relative',
+    padding: 20,
+    flex: 1,
+    backgroundColor: '#fff',
+  },
   sectionTitle: {
     fontSize: 18,
     fontWeight: '600',
     marginBottom: 8,
   },
   suggestion: {
-    padding: 10,
-    borderBottomColor: '#eee',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    backgroundColor: '#fff',
     borderBottomWidth: 1,
+    borderBottomColor: '#f2f2f2',
+  },
+  suggestionsDropdown: {
+    position: 'absolute',
+    top: 61,
+    left: 20,
+    right: 20,
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    paddingVertical: 6,
+    paddingHorizontal: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.12,
+    shadowRadius: 10,
+    elevation: 6,
+    maxHeight: 250,
+    zIndex: 10,
+    borderWidth: 1,
+    borderColor: '#eee',
+  },
+  suggestionText: {
+    fontSize: 15,
+    color: '#333',
   },
 });
