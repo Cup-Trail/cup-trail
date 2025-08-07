@@ -11,7 +11,7 @@ import {
 import { useState } from 'react';
 import * as ImagePicker from 'expo-image-picker';
 import { Button } from '@react-navigation/elements';
-import { useRoute } from '@react-navigation/native';
+import { useRoute, useNavigation } from '@react-navigation/native';
 // custom component
 import MediaPreview from '../components/media-preview';
 // backend
@@ -21,6 +21,7 @@ import { insertReview } from '../apis/reviews';
 
 export default function InsertReviewScreen() {
   const route = useRoute();
+  const navigation = useNavigation();
 
   const [review, setReview] = useState('');
   const [rating, setRating] = useState(null);
@@ -79,8 +80,21 @@ export default function InsertReviewScreen() {
       );
 
       if (result?.success) {
-        Alert.alert('Success', '✅ Review added successfully!');
-        clearForm();
+        Alert.alert(
+          'Success',
+          '✅ Review added successfully!',
+          [
+            {
+              text: 'OK',
+              // navigate back to storefront screen
+              onPress: () => {
+                clearForm();
+                navigation.goBack();
+              },
+            },
+          ],
+          { cancelable: false }
+        );
         return;
       }
     } catch (err) {
@@ -170,7 +184,7 @@ export default function InsertReviewScreen() {
       />
 
       <TouchableOpacity style={styles.photoButton} onPress={handleMediaUpload}>
-        <Text style={styles.photoButtonText}>📷 Add Photo</Text>
+        <Text style={styles.photoButtonText}>Upload Media</Text>
       </TouchableOpacity>
       <View style={styles.previewContainer}>
         <ScrollView
