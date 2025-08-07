@@ -188,7 +188,7 @@ export default function SearchScreen() {
           </ScrollView>
         </View>
 
-        <Text style={styles.sectionTitle}>Recently Reviewed Shops</Text>
+        <Text style={styles.sectionTitle}>Recently reviewed shops</Text>
         <FlatList
           data={reviews}
           keyExtractor={(item) => item.id}
