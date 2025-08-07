@@ -1,4 +1,4 @@
-import { useEffect, useCallback, useState } from 'react';
+// react
 import {
   View,
   Text,
@@ -13,6 +13,8 @@ import {
   useNavigation,
   useFocusEffect,
 } from '@react-navigation/native';
+import { useEffect, useCallback, useState } from 'react';
+// backend
 import { getHighlyRatedDrinks } from '../apis/drinks';
 
 export default function StoreFrontScreen() {
