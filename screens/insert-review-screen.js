@@ -3,7 +3,6 @@ import {
   View,
   Text,
   Alert,
-  Image,
   TextInput,
   StyleSheet,
   ScrollView,
@@ -13,9 +12,10 @@ import { useState } from 'react';
 import * as ImagePicker from 'expo-image-picker';
 import { Button } from '@react-navigation/elements';
 import { useRoute } from '@react-navigation/native';
-
+// custom component
+import MediaPreview from '../components/media-preview';
 // backend
-import { uploadPhoto } from '../apis/storage';
+import { uploadMedia } from '../apis/storage';
 import { insertReview } from '../apis/reviews';
 // import { getCurrentUserId } from '../apis/users';
 
@@ -25,18 +25,19 @@ export default function InsertReviewScreen() {
   const [review, setReview] = useState('');
   const [rating, setRating] = useState(null);
   const [drink, setDrink] = useState('');
-  const [photos, setPhotos] = useState([]);
+  const [mediaArr, setMedia] = useState([]);
 
   const { shopName, shopId } = route.params;
   const clearForm = () => {
     setDrink('');
     setRating(null);
     setReview('');
-    setPhotos([]);
+    setMedia([]);
   };
 
   const handleSubmit = async () => {
     try {
+      console.log('handle submit');
       const parsedRating = parseFloat(rating);
       if (!drink) {
         Alert.alert('Invalid drink', 'Please enter a valid drink.');
@@ -55,22 +56,26 @@ export default function InsertReviewScreen() {
       }
 
       let uploadedUrls = [];
-      for (const photo of photos) {
-        const upload = await uploadPhoto(photo);
-        if (upload.success) {
-          uploadedUrls.push(upload.url);
-        } else {
-          // console.error('Error', JSON.stringify(upload));
-          return;
+      for (const media of mediaArr) {
+        console.log('media', media);
+        try {
+          const upload = await uploadMedia(media);
+          console.log('upload', upload);
+          if (upload.success) {
+            uploadedUrls.push(upload.url);
+          }
+          // TODO: error handling
+        } catch (err) {
+          console.error('Calling uploadMedia failed', err);
         }
       }
-
+      console.log('uploadedUrls:', uploadedUrls);
       const result = await insertReview(
         shopId,
         drink,
         parsedRating,
         review,
-        uploadedUrls[0] || null
+        uploadedUrls || null
       );
 
       if (result?.success) {
@@ -83,7 +88,7 @@ export default function InsertReviewScreen() {
     }
   };
 
-  const handleImageUpload = async () => {
+  const handleMediaUpload = async () => {
     try {
       // const userResult = await getCurrentUserId();
 
@@ -96,10 +101,10 @@ export default function InsertReviewScreen() {
       if (!result.canceled) {
         let duplicateDetected = false;
 
-        setPhotos((prev) => {
-          const existingPhotoIds = new Set(prev.map((photo) => photo.assetId));
-          const newPhotos = result.assets.filter((photo) => {
-            if (existingPhotoIds.has(photo.assetId)) {
+        setMedia((prev) => {
+          const existingPhotoIds = new Set(prev.map((media) => media.assetId));
+          const newMedia = result.assets.filter((media) => {
+            if (existingPhotoIds.has(media.assetId)) {
               duplicateDetected = true;
               return false;
             }
@@ -107,11 +112,11 @@ export default function InsertReviewScreen() {
           });
           if (duplicateDetected) {
             Alert.alert(
-              'Duplicate Photo',
-              'You have already selected one or more of these photos.'
+              'Duplicate Media',
+              'You have already selected one or more of these photos/videos.'
             );
           }
-          return [...prev, ...newPhotos];
+          return [...prev, ...newMedia];
         });
       }
     } catch (err) {
@@ -119,10 +124,9 @@ export default function InsertReviewScreen() {
     }
   };
 
-  const handleRemovePhoto = (uri) => {
-    setPhotos((prev) => prev.filter((photo) => photo.uri !== uri));
+  const handleRemoveMedia = (uri) => {
+    setMedia((prev) => prev.filter((media) => media.uri !== uri));
   };
-
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Add Your Review</Text>
@@ -165,7 +169,7 @@ export default function InsertReviewScreen() {
         onChangeText={setReview}
       />
 
-      <TouchableOpacity style={styles.photoButton} onPress={handleImageUpload}>
+      <TouchableOpacity style={styles.photoButton} onPress={handleMediaUpload}>
         <Text style={styles.photoButtonText}>📷 Add Photo</Text>
       </TouchableOpacity>
       <View style={styles.previewContainer}>
@@ -174,16 +178,12 @@ export default function InsertReviewScreen() {
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.previewContainer}
         >
-          {photos.map((photo) => (
-            <View key={photo.uri} style={styles.imageWrapper}>
-              <Image source={{ uri: photo.uri }} style={styles.imagePreview} />
-              <TouchableOpacity
-                style={styles.removeButton}
-                onPress={() => handleRemovePhoto(photo.uri)}
-              >
-                <Text style={styles.removeText}>✕</Text>
-              </TouchableOpacity>
-            </View>
+          {mediaArr.map((media) => (
+            <MediaPreview
+              key={media.uri}
+              media={media}
+              onRemove={handleRemoveMedia}
+            />
           ))}
         </ScrollView>
       </View>
@@ -220,6 +220,12 @@ const styles = StyleSheet.create({
   imageWrapper: {
     position: 'relative',
   },
+  mediaPreview: {
+    width: 100,
+    height: 100,
+    borderRadius: 8,
+    backgroundColor: '#000',
+  },
   photoButton: {
     backgroundColor: '#FDDDE6',
     borderRadius: 8,
@@ -244,17 +250,22 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: -6,
     right: -6,
-    width: 18,
-    height: 18,
+    width: 20,
+    height: 20,
     backgroundColor: '#fff',
-    borderRadius: 9,
-    padding: 2,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 0.5,
+    borderColor: '#D46A92', // or '#000' for a neutral black outline
     elevation: 2,
+    zIndex: 1,
   },
+
   removeText: {
     color: '#D46A92',
     textAlign: 'center',
-    fontSize: 14,
+    fontSize: 11,
     fontWeight: 'bold',
   },
   subtitle: {
