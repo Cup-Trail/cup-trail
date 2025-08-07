@@ -190,7 +190,7 @@ export default function SearchScreen() {
               <Text style={styles.reviewTitle}>
                 {drinkName ? `${drinkName} @ ${shopName}` : 'Review'}
               </Text>
-              <Text style={styles.reviewRating}>⭐ {item.rating}/10</Text>
+              <Text style={styles.reviewRating}>⭐ {item.rating}/5</Text>
               {item.comment && (
                 <Text style={styles.reviewComment}>{item.comment}</Text>
               )}

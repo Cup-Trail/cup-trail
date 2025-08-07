@@ -75,7 +75,7 @@ export default function StoreFrontScreen() {
             )}
             <Text style={styles.drinkName}>{item.drinks.name}</Text>
             {/* <Text style={styles.drinkPrice}>${item.price}</Text> */}
-            <Text style={styles.drinkPrice}>⭐ {item.avg_rating}/10</Text>
+            <Text style={styles.drinkPrice}>⭐ {item.avg_rating}/5</Text>
           </View>
         )}
         showsHorizontalScrollIndicator={false}

@@ -44,11 +44,8 @@ export default function InsertReviewScreen() {
         Alert.alert('Invalid drink', 'Please enter a valid drink.');
         return;
       }
-      if (isNaN(parsedRating) || parsedRating < 0 || parsedRating > 10) {
-        Alert.alert(
-          'Invalid rating',
-          'Please enter a number between 0 and 10.'
-        );
+      if (isNaN(parsedRating) || parsedRating < 0 || parsedRating > 5) {
+        Alert.alert('Invalid rating', 'Please enter a number between 0 and 5.');
         return;
       }
       if (!review) {
@@ -169,7 +166,7 @@ export default function InsertReviewScreen() {
         style={styles.textArea}
         multiline
         numberOfLines={5}
-        placeholder="0 - 10"
+        placeholder="0 - 5"
         value={rating}
         onChangeText={setRating}
       />
