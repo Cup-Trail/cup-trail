@@ -139,11 +139,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#333',
   },
-  drinkTag: {
-    fontSize: 12,
-    color: '#999',
-    marginVertical: 4,
-  },
   sectionTitle: {
     fontSize: 20,
     fontWeight: '600',
@@ -154,11 +149,5 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     marginBottom: 8,
     textAlign: 'center',
-  },
-  shopImage: {
-    width: '100%',
-    height: 200,
-    borderRadius: 12,
-    marginBottom: 12,
   },
 });

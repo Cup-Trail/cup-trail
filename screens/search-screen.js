@@ -205,27 +205,9 @@ export default function SearchScreen() {
   );
 }
 const styles = StyleSheet.create({
-  container: {
-    padding: 20,
-    flex: 1,
-    backgroundColor: '#fff',
-  },
-  searchBar: {
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 10,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    fontSize: 16,
-    marginBottom: 12,
-  },
   categoryContainer: {
     height: 40,
     marginBottom: 8,
-  },
-  chipRow: {
-    alignItems: 'center',
-    paddingHorizontal: 2,
   },
   chip: {
     paddingHorizontal: 10,
@@ -235,53 +217,25 @@ const styles = StyleSheet.create({
     marginRight: 8,
     alignSelf: 'center',
   },
+  chipRow: {
+    alignItems: 'center',
+    paddingHorizontal: 2,
+  },
   chipText: {
     fontSize: 14,
     color: '#D46A92',
     fontWeight: '500',
   },
-  message: {
-    marginTop: 8,
-    fontSize: 16,
-    marginBttom: 8,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    marginBottom: 8,
-  },
-  shopCard: {
-    backgroundColor: '#F9F6F1',
-    padding: 16,
-    borderRadius: 12,
-    marginBottom: 12,
-  },
-  shopName: {
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  shopAddress: {
-    color: '#555',
-    marginTop: 4,
-  },
-  suggestion: {
-    padding: 10,
-    borderBottomColor: '#eee',
-    borderBottomWidth: 1,
+  container: {
+    padding: 20,
+    flex: 1,
+    backgroundColor: '#fff',
   },
   reviewCard: {
     backgroundColor: '#F9F6F1',
     padding: 16,
     borderRadius: 12,
     marginBottom: 12,
-  },
-  reviewTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  reviewRating: {
-    marginTop: 4,
-    fontWeight: '500',
   },
   reviewComment: {
     marginTop: 4,
@@ -292,5 +246,32 @@ const styles = StyleSheet.create({
     marginTop: 6,
     fontSize: 12,
     color: '#999',
+  },
+  reviewRating: {
+    marginTop: 4,
+    fontWeight: '500',
+  },
+  reviewTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  searchBar: {
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 10,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    fontSize: 16,
+    marginBottom: 12,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    marginBottom: 8,
+  },
+  suggestion: {
+    padding: 10,
+    borderBottomColor: '#eee',
+    borderBottomWidth: 1,
   },
 });

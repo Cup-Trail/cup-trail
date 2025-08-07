@@ -183,10 +183,18 @@ export default function InsertReviewScreen() {
         onChangeText={setReview}
       />
 
-      <TouchableOpacity style={styles.photoButton} onPress={handleMediaUpload}>
-        <Text style={styles.photoButtonText}>Upload Media</Text>
+      <TouchableOpacity
+        style={styles.uploadMediaButton}
+        onPress={handleMediaUpload}
+      >
+        <Text style={styles.uploadMediaButtonText}>Upload Media</Text>
       </TouchableOpacity>
-      <View style={styles.previewContainer}>
+      <View
+        style={[
+          styles.previewContainer,
+          { marginBottom: mediaArr.length > 0 ? 20 : 0 },
+        ]}
+      >
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
@@ -201,8 +209,7 @@ export default function InsertReviewScreen() {
           ))}
         </ScrollView>
       </View>
-
-      <View style={styles.buttonGroup}>
+      <View>
         <Button title="Add Review" onPress={handleSubmit}>
           Submit
         </Button>
@@ -212,9 +219,6 @@ export default function InsertReviewScreen() {
 }
 
 const styles = StyleSheet.create({
-  buttonGroup: {
-    gap: 12,
-  },
   container: {
     padding: 24,
     flex: 1,
@@ -226,61 +230,11 @@ const styles = StyleSheet.create({
     marginBottom: 6,
     fontSize: 16,
   },
-  imagePreview: {
-    width: 100,
-    height: 100,
-    borderRadius: 8,
-  },
-  imageWrapper: {
-    position: 'relative',
-  },
-  mediaPreview: {
-    width: 100,
-    height: 100,
-    borderRadius: 8,
-    backgroundColor: '#000',
-  },
-  photoButton: {
-    backgroundColor: '#FDDDE6',
-    borderRadius: 8,
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    alignSelf: 'flex-start',
-    marginBottom: 5,
-  },
-  photoButtonText: {
-    color: '#D46A92',
-    fontWeight: '600',
-    fontSize: 14,
-  },
   previewContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 10,
-    marginBottom: 10,
     marginTop: 10,
-  },
-  removeButton: {
-    position: 'absolute',
-    top: -6,
-    right: -6,
-    width: 20,
-    height: 20,
-    backgroundColor: '#fff',
-    borderRadius: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 0.5,
-    borderColor: '#D46A92', // or '#000' for a neutral black outline
-    elevation: 2,
-    zIndex: 1,
-  },
-
-  removeText: {
-    color: '#D46A92',
-    textAlign: 'center',
-    fontSize: 11,
-    fontWeight: 'bold',
   },
   subtitle: {
     fontSize: 16,
@@ -303,5 +257,17 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     marginBottom: 8,
     textAlign: 'center',
+  },
+  uploadMediaButton: {
+    backgroundColor: '#FDDDE6',
+    borderRadius: 8,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    alignSelf: 'flex-start',
+  },
+  uploadMediaButtonText: {
+    color: '#D46A92',
+    fontWeight: '600',
+    fontSize: 14,
   },
 });

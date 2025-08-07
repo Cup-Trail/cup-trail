@@ -1,5 +1,3 @@
-import { useEvent } from 'expo';
-import { useVideoPlayer, VideoView } from 'expo-video';
 import {
   StyleSheet,
   View,
@@ -8,6 +6,8 @@ import {
   TouchableOpacity,
   TouchableWithoutFeedback,
 } from 'react-native';
+import { useEvent } from 'expo';
+import { useVideoPlayer, VideoView } from 'expo-video';
 
 export default function MediaPreview({ media, onRemove }) {
   if (!media?.uri) return null;
