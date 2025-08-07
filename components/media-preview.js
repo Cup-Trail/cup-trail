@@ -57,10 +57,6 @@ export default function MediaPreview({ media, onRemove }) {
 }
 
 const styles = StyleSheet.create({
-  wrapper: {
-    position: 'relative',
-    marginRight: 10,
-  },
   aspectRatioBox: {
     width: 100,
     height: 100,
@@ -91,5 +87,9 @@ const styles = StyleSheet.create({
     color: '#D46A92',
     fontSize: 11,
     fontWeight: 'bold',
+  },
+  wrapper: {
+    position: 'relative',
+    marginRight: 10,
   },
 });
