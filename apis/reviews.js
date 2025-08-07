@@ -217,7 +217,10 @@ async function calculateAndUpdateAvgRating(shopDrinkId) {
       return { success: true };
     }
 
-    const avg = data.reduce((sum, r) => sum + r.rating, 0) / data.length;
+    const avg =
+      Math.round(
+        (data.reduce((sum, r) => sum + r.rating, 0) / data.length) * 100
+      ) / 100;
     return await updateShopDrink(shopDrinkId, { avg_rating: avg });
   } catch (err) {
     console.error('[calculateAndUpdateAvgRating → exception]', err.message);
