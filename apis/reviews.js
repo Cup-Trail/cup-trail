@@ -1,9 +1,9 @@
-import supabase from './supabase';
 import {
   getOrInsertDrink,
   getOrInsertShopDrink,
   updateShopDrink,
 } from './drinks';
+import supabase from './supabase';
 
 const REVIEWS_TABLE = 'reviews';
 
@@ -80,7 +80,7 @@ export async function getRecentReviews() {
             id,
             rating,
             comment,
-            photo_url,
+            media_urls,
             created_at,
             shop_drinks (
               id,
@@ -130,7 +130,7 @@ export async function getRecentReviews() {
  * @param {*} drinkName
  * @param {*} rating - up to 10
  * @param {*} comment
- * @param {*} photoUrl
+ * @param {*} mediaUrl
  * @param {*} userId
  * @returns
  */
@@ -139,7 +139,7 @@ export async function insertReview(
   drinkName,
   rating,
   comment,
-  photoUrl = null,
+  mediaUrlArr = null,
   userId = null
 ) {
   try {
@@ -157,7 +157,7 @@ export async function insertReview(
       shop_drink_id: shopDrinkResult.data.id,
       rating,
       comment,
-      photo_url: photoUrl,
+      media_urls: mediaUrlArr,
     });
     if (error) {
       console.error('[insertReview → insert]', error.message);
@@ -168,6 +168,27 @@ export async function insertReview(
       shopDrinkResult.data.id
     );
     if (!avgResult?.success) return avgResult;
+
+    if (mediaUrlArr && mediaUrlArr.length > 0) {
+      let mediaUrl = null;
+
+      // find first image from recent review
+      for (const url of mediaUrlArr) {
+        if (url.endsWith('.jpg') || url.endsWith('.jpeg')) {
+          mediaUrl = url;
+          break;
+        }
+      }
+
+      // update cover img to a photo from a recent review
+      if (mediaUrl) {
+        const uploadNewCoverPhoto = await updateShopDrink(
+          shopDrinkResult.data.id,
+          { cover_photo_url: mediaUrl }
+        );
+        if (!uploadNewCoverPhoto?.success) return uploadNewCoverPhoto;
+      }
+    }
 
     return { success: true };
   } catch (err) {
@@ -195,8 +216,11 @@ async function calculateAndUpdateAvgRating(shopDrinkId) {
       return { success: true };
     }
 
-    const avg = data.reduce((sum, r) => sum + r.rating, 0) / data.length;
-    return await updateShopDrink(shopDrinkId, avg);
+    const avg =
+      Math.round(
+        (data.reduce((sum, r) => sum + r.rating, 0) / data.length) * 10
+      ) / 10;
+    return await updateShopDrink(shopDrinkId, { avg_rating: avg });
   } catch (err) {
     console.error('[calculateAndUpdateAvgRating → exception]', err.message);
     return { success: false, source: 'exception', message: err.message };

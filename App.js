@@ -2,9 +2,9 @@
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 // screens
-import SearchScreen from './screens/searchScreen';
-import InsertReview from './screens/insertReviewScreen';
-import StoreFrontScreen from './screens/storeFrontScreen';
+import SearchScreen from './screens/search-screen';
+import InsertReview from './screens/insert-review-screen';
+import StoreFrontScreen from './screens/storefront-screen';
 
 const Stack = createNativeStackNavigator();
 function RootStack() {

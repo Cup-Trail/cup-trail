@@ -1,20 +1,20 @@
 import supabase from './supabase';
+
 const DRINKS_TABLE = 'drinks';
 const SHOP_DRINKS_TABLE = 'shop_drinks';
 const SHOP_DRINK_SELECT = `
   id,
   price,
-  notes,
   drinks (
     id,
-    name,
-    tags
+    name
   ),
   shops (
     id,
     name
   ),
-  avg_rating
+  avg_rating,
+  cover_photo_url
 `;
 
 /**
@@ -168,14 +168,7 @@ export async function getOrInsertDrink(name, tags = null) {
 /**
  * Insert a new row into shop_drinks.
  */
-export async function getOrInsertShopDrink(
-  shopId,
-  drinkId,
-  price = null,
-  imageUrl = null,
-  notes = null,
-  avgRating = null
-) {
+export async function getOrInsertShopDrink(shopId, drinkId, price = null) {
   try {
     const { data: getData, error: getError } = await supabase
       .from(SHOP_DRINKS_TABLE)
@@ -201,9 +194,6 @@ export async function getOrInsertShopDrink(
           shop_id: shopId,
           drink_id: drinkId,
           price,
-          image_url: imageUrl,
-          notes,
-          avg_rating: avgRating,
         },
       ])
       .select()
@@ -224,11 +214,11 @@ export async function getOrInsertShopDrink(
   }
 }
 
-export async function updateShopDrink(shopDrinkId, avgRating) {
+export async function updateShopDrink(shopDrinkId, updateFieldsObj) {
   try {
     const { error } = await supabase
       .from(SHOP_DRINKS_TABLE)
-      .update({ avg_rating: avgRating })
+      .update(updateFieldsObj)
       .eq('id', shopDrinkId);
     if (error) {
       console.error('[updateShopDrink → update]', error.message);
