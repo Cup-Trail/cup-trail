@@ -28,7 +28,13 @@ export async function fetchHighlyRatedDrinks(shopId: string) {
       .order('avg_rating', { ascending: false });
 
     if (error) return { success: false, source: 'supabase', message: error.message } as const;
-    if (!data?.length) return { success: false, source: 'supabase', code: 'empty', message: `No drink ratings found at ${shopId}` } as const;
+    if (!data?.length)
+      return {
+        success: false,
+        source: 'supabase',
+        code: 'empty',
+        message: `No drink ratings found at ${shopId}`,
+      } as const;
     return { success: true, data } as const;
   } catch (err: any) {
     return { success: false, source: 'exception', message: err.message } as const;
@@ -49,7 +55,8 @@ export async function getOrInsertDrink(name: string, tags: string[] | null = nul
     .insert([{ name, tags }])
     .select()
     .maybeSingle();
-  if (insertError) return { success: false, source: 'supabase', message: insertError.message } as const;
+  if (insertError)
+    return { success: false, source: 'supabase', message: insertError.message } as const;
   return { success: true, data: insertData } as const;
 }
 
@@ -72,10 +79,20 @@ export async function getOrInsertShopDrink(
 
   const { data: insertData, error: insertError } = await supabase
     .from(SHOP_DRINKS_TABLE)
-    .insert([{ shop_id: shopId, drink_id: drinkId, price, image_url: imageUrl, notes, avg_rating: avgRating }])
+    .insert([
+      {
+        shop_id: shopId,
+        drink_id: drinkId,
+        price,
+        image_url: imageUrl,
+        notes,
+        avg_rating: avgRating,
+      },
+    ])
     .select()
     .maybeSingle();
-  if (insertError) return { success: false, source: 'supabase', message: insertError.message } as const;
+  if (insertError)
+    return { success: false, source: 'supabase', message: insertError.message } as const;
   return { success: true, data: insertData } as const;
 }
 
@@ -87,5 +104,3 @@ export async function updateShopDrink(shopDrinkId: string, avgRating: number) {
   if (error) return { success: false, source: 'supabase', message: error.message } as const;
   return { success: true } as const;
 }
-
-

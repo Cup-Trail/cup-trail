@@ -21,6 +21,28 @@ npm run dev
 npm run build && npm run preview
 ```
 
+### TypeScript, Linting & Formatting
+- Type check:
+```
+npm run typecheck
+```
+
+- Lint (ESLint):
+```
+npm run lint
+npm run lint:fix
+```
+
+- Format (Prettier):
+```
+npm run format
+```
+
+Notes:
+- ESLint is configured for React + TypeScript with import ordering and React Hooks rules.
+- Auto-fix on save (VS Code): `.vscode/settings.json` enables ESLint fixes, import organize, and Prettier.
+- We’ve relaxed a few strict rules (like no-explicit-any) for easier migration; tighten later if desired.
+
 ### Deploy to GitHub Pages
 This repo includes a GitHub Actions workflow that deploys `web/dist` to GitHub Pages on pushes to `main`.
 

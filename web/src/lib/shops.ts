@@ -24,8 +24,7 @@ export async function fetchOrInsertShop(
     .insert([{ name, address, latitude, longitude, image_url, archived }])
     .select()
     .maybeSingle();
-  if (insertError) return { success: false, source: 'supabase', message: insertError.message } as const;
+  if (insertError)
+    return { success: false, source: 'supabase', message: insertError.message } as const;
   return { success: true, data: insertData } as const;
 }
-
-
