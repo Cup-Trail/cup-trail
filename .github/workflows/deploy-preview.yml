@@ -71,6 +71,67 @@ jobs:
         id: deployment
         uses: actions/deploy-pages@v4
 
+  update-pr-description:
+    runs-on: ubuntu-latest
+    needs: build
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Update PR description with latest CHANGELOG section
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+            const changelogPath = path.join(process.cwd(), 'web', 'CHANGELOG.md');
+            let text = '';
+            try {
+              text = fs.readFileSync(changelogPath, 'utf8');
+            } catch (e) {
+              core.warning('CHANGELOG.md not found, skipping PR description update');
+              return;
+            }
+            // extract topmost version section starting with "### "
+            const lines = text.split('\n');
+            let start = -1; let end = lines.length;
+            for (let i = 0; i < lines.length; i++) {
+              if (lines[i].startsWith('### ')) { start = i; break; }
+            }
+            if (start === -1) {
+              core.warning('No version section found in CHANGELOG.md');
+              return;
+            }
+            for (let i = start + 1; i < lines.length; i++) {
+              if (lines[i].startsWith('### ')) { end = i; break; }
+            }
+            const section = lines.slice(start, end).join('\n').trim();
+            const prNumber = context.payload.pull_request.number;
+            const { data: pr } = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: prNumber,
+            });
+            const body = pr.body || '';
+            const startMarker = '<!-- changelog-preview:start -->';
+            const endMarker = '<!-- changelog-preview:end -->';
+            const newBlock = `${startMarker}\n\n${section}\n\n${endMarker}`;
+            let newBody;
+            if (body.includes(startMarker) && body.includes(endMarker)) {
+              const regex = new RegExp(`${startMarker}[\\s\\S]*?${endMarker}`);
+              newBody = body.replace(regex, newBlock);
+            } else {
+              newBody = `${body ? body + '\n\n' : ''}${newBlock}`;
+            }
+            await github.rest.pulls.update({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: prNumber,
+              body: newBody,
+            });
       - name: Comment preview URL on PR
         uses: actions/github-script@v7
         with:
