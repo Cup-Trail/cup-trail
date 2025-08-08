@@ -167,7 +167,6 @@ export async function insertReview(
     const avgResult = await calculateAndUpdateAvgRating(
       shopDrinkResult.data.id
     );
-    console.log('avgResult', avgResult);
     if (!avgResult?.success) return avgResult;
 
     if (mediaUrlArr && mediaUrlArr.length > 0) {
