@@ -8,8 +8,6 @@ All notable changes to this project will be documented in this file. See [standa
 
 - add github pr comment ([7cd233c](https://github.com/katherinemwong/cup-trail/commit/7cd233c9ac05b281a292e8c7a944cacfa0ef384a))
 
-- update PR description based on changelog
-
 ### 0.0.2 (2025-08-08)
 
 ### Features
