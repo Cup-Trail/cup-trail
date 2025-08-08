@@ -48,13 +48,17 @@ jobs:
           fi
           echo "Using base: $BASE"
           npm run build -- --base=$BASE
-          touch dist/.nojekyll
-          cp dist/index.html dist/404.html
+          # Stage under a PR-specific subfolder so the preview lives at .../<repo>/${PR}/
+          rm -rf preview
+          mkdir -p preview/${PR}
+          cp -R dist/* preview/${PR}/
+          touch preview/.nojekyll
+          cp preview/${PR}/index.html preview/${PR}/404.html
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: web/dist
+          path: web/preview
 
   deploy:
     environment:
