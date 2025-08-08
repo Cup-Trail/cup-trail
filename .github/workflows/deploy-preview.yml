@@ -71,9 +71,12 @@ jobs:
         uses: actions/github-script@v7
         with:
           script: |
-            const url = `${{ steps.deployment.outputs.page_url }}`;
+            const pageUrl = `${{ steps.deployment.outputs.page_url }}`;
+            const prNum = ${{ github.event.pull_request.number }};
+            const base = pageUrl.endsWith('/') ? pageUrl : pageUrl + '/';
+            const previewUrl = `${base}pr-${prNum}/`;
             const pr = context.payload.pull_request;
-            const body = `🚀 Preview deployed: ${url}`;
+            const body = `🚀 Preview deployed: ${previewUrl}`;
             // Upsert a comment tagged with a hidden marker so updates replace previous
             const marker = '<!-- preview-url-comment -->';
             const list = await github.rest.issues.listComments({
