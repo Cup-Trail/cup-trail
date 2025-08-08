@@ -1,6 +1,18 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { Box, Chip, Divider, List, ListItemButton, ListItemText, Stack, TextField, Typography, Paper } from '@mui/material';
+import {
+  Box,
+  Chip,
+  Divider,
+  List,
+  ListItemButton,
+  ListItemText,
+  Stack,
+  TextField,
+  Typography,
+  Paper,
+} from '@mui/material';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+
 import { fetchRecentReviews } from '../lib/reviews';
 import { fetchOrInsertShop } from '../lib/shops';
 
@@ -46,7 +58,9 @@ export default function SearchPage() {
     if (name && formatted_address && lat && lng) {
       const result = await fetchOrInsertShop(name, formatted_address, lat, lng);
       if (result.success) {
-        navigate(`/shop/${result.data.id}`, { state: { shopName: name, address: formatted_address } });
+        navigate(`/shop/${result.data.id}`, {
+          state: { shopName: name, address: formatted_address },
+        });
       }
     }
     setSuggestions([]);
@@ -57,7 +71,10 @@ export default function SearchPage() {
       <TextField
         label="Search shops, drinks, or cities..."
         value={name}
-        onChange={(e) => { setName(e.target.value); fetchAutocomplete(e.target.value); }}
+        onChange={(e) => {
+          setName(e.target.value);
+          fetchAutocomplete(e.target.value);
+        }}
         size="medium"
         fullWidth
       />
@@ -94,7 +111,11 @@ export default function SearchPage() {
                 {drinkName ? `${drinkName} @ ${shopName}` : 'Review'}
               </Typography>
               <Typography mt={0.5}>⭐ {item.rating}/10</Typography>
-              {item.comment && <Typography mt={0.5} fontStyle="italic" color="text.secondary">{item.comment}</Typography>}
+              {item.comment && (
+                <Typography mt={0.5} fontStyle="italic" color="text.secondary">
+                  {item.comment}
+                </Typography>
+              )}
               <Typography mt={0.5} variant="caption" color="text.secondary">
                 {new Date(item.created_at).toLocaleDateString()}
               </Typography>
@@ -105,5 +126,3 @@ export default function SearchPage() {
     </Stack>
   );
 }
-
-

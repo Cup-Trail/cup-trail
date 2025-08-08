@@ -1,12 +1,13 @@
-import { supabase } from './supabase';
 import { getOrInsertDrink, getOrInsertShopDrink, updateShopDrink } from './drinks';
+import { supabase } from './supabase';
 
 const REVIEWS_TABLE = 'reviews';
 
 export async function fetchRecentReviews() {
   const { data, error } = await supabase
     .from(REVIEWS_TABLE)
-    .select(`
+    .select(
+      `
       id,
       rating,
       comment,
@@ -18,12 +19,19 @@ export async function fetchRecentReviews() {
         drinks ( name ),
         shops ( name )
       )
-    `)
+    `
+    )
     .order('created_at', { ascending: false })
     .limit(10);
 
   if (error) return { success: false, source: 'supabase', message: error.message } as const;
-  if (!data?.length) return { success: false, source: 'supabase', code: 'empty', message: 'No recent reviews found' } as const;
+  if (!data?.length)
+    return {
+      success: false,
+      source: 'supabase',
+      code: 'empty',
+      message: 'No recent reviews found',
+    } as const;
   return { success: true, data } as const;
 }
 
@@ -66,5 +74,3 @@ async function calculateAndUpdateAvgRating(shopDrinkId: string) {
   const avg = data.reduce((sum, r) => sum + r.rating, 0) / data.length;
   return updateShopDrink(shopDrinkId, avg);
 }
-
-
