@@ -62,6 +62,11 @@ Steps:
 
 For project pages (non-`<user>.github.io` repos), the base path is set automatically during CI, and SPA fallback is handled by copying `index.html` to `404.html`.
 
+#### PR Preview Deployments
+- Every pull request builds and deploys a preview to GitHub Pages under a PR-specific path (e.g., `/pr-123/`).
+- A bot comment is posted on the PR with the preview URL.
+- Requirements: repo secrets `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` must be set.
+
 ### Versioning & Changelog
 
 - Conventional Commits recommended (feat:, fix:, chore:, docs:, refactor:, perf:, test:)
