@@ -5,18 +5,18 @@ import {
   List,
   ListItemButton,
   ListItemText,
+  Paper,
   Stack,
   TextField,
   Typography,
-  Paper,
 } from '@mui/material';
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { fetchRecentReviews } from '../lib/reviews';
 import { fetchOrInsertShop } from '../lib/shops';
 
-const categories = ['Matcha', 'Boba', 'Coffee', 'Milk Tea', 'Fruit Tea'];
+const categories = ['Matcha', 'Coffee', 'Milk Tea', 'Fruit Tea'];
 
 export default function SearchPage() {
   const navigate = useNavigate();

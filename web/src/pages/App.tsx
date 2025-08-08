@@ -1,6 +1,5 @@
 import { AppBar, Box, Container, Toolbar, Typography } from '@mui/material';
-import React from 'react';
-import { Outlet, Link } from 'react-router-dom';
+import { Link, Outlet } from 'react-router-dom';
 
 export default function App() {
   return (

@@ -1,5 +1,5 @@
 import { Alert, Box, Button, Snackbar, Stack, TextField, Typography } from '@mui/material';
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useLocation, useParams } from 'react-router-dom';
 
 import { insertReview } from '../lib/reviews';
