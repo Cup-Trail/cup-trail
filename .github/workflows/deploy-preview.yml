@@ -37,15 +37,20 @@ jobs:
           cache: pnpm
           cache-dependency-path: pnpm-lock.yaml
 
-      - name: Install dependencies (pnpm)
-        run: pnpm install --frozen-lockfile --prefer-offline
+      - name: Install dependencies (pnpm, workspace root)
+        working-directory: .
+        run: pnpm -w install --frozen-lockfile --prefer-offline
 
       - name: Debug build artifacts
         run: |
           echo "Workspace: $GITHUB_WORKSPACE"
           ls -la
-          echo "--- apps/web dist contents ---"
+          echo "--- dist contents ---"
           ls -la dist || true
+          echo "--- index.html (first 80 lines) ---"
+          sed -n '1,80p' dist/index.html || true
+          echo "--- referenced scripts in index.html ---"
+          grep -o 'src="[^"]\+"' dist/index.html || true
 
       - name: Build (Vite) with PR base path
         env:
@@ -60,7 +65,7 @@ jobs:
             BASE="/$REPO/${PR}/"
           fi
           echo "Using base: $BASE"
-          pnpm run build -- --base=$BASE
+          VITE_BASE="$BASE" pnpm run build -- --base=$BASE
 
           # Verify dist exists
           test -d dist && test -f dist/index.html || { echo "dist/ missing or empty"; exit 1; }
