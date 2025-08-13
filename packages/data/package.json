@@ -1,0 +1,19 @@
+{
+  "name": "@cuptrail/data",
+  "version": "0.0.1",
+  "main": "index.ts",
+  "types": "index.ts",
+  "private": true,
+  "dependencies": {
+    "@supabase/supabase-js": "^2.45.0",
+    "base64-arraybuffer": "^1.0.2"
+  },
+  "peerDependencies": {
+    "expo": "*",
+    "expo-file-system": "*"
+  },
+  "peerDependenciesMeta": {
+    "expo": { "optional": true },
+    "expo-file-system": { "optional": true }
+  }
+}

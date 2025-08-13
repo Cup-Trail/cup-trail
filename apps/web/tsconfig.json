@@ -13,5 +13,6 @@
     "strict": true,
     "baseUrl": "."
   },
-  "include": ["src"]
+  "include": ["src"],
+  "extends": "../../tsconfig.base.json" 
 }

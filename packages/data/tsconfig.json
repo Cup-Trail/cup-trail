@@ -1,0 +1,9 @@
+{
+  "compilerOptions": {
+    // your existing options
+  },
+  "exclude": [
+    "**/*.mobile.ts",
+    "**/*.mobile.tsx"
+  ]
+}

@@ -13,8 +13,8 @@ import {
 import { useState, useCallback, useEffect } from 'react';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 // backend
-import { getOrInsertShop } from '../apis/shops';
-import { getRecentReviews } from '../apis/reviews';
+import { getOrInsertShop } from '@cuptrail/data/shops';
+import { getRecentReviews } from '@cuptrail/data/reviews';
 
 // mock data for now
 const categories = ['Matcha', 'Boba', 'Coffee', 'Milk Tea', 'Fruit Tea'];

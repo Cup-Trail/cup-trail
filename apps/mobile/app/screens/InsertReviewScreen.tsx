@@ -8,15 +8,14 @@ import {
   ScrollView,
   TouchableOpacity,
 } from 'react-native';
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import * as ImagePicker from 'expo-image-picker';
-import { Button } from '@react-navigation/elements';
 import { useRoute, useNavigation } from '@react-navigation/native';
 // custom component
-import MediaPreview from '../components/media-preview';
+import { MediaPreview } from '@cuptrail/ui';
 // backend
-import { uploadMedia } from '../apis/storage';
-import { insertReview } from '../apis/reviews';
+import { uploadMedia } from '@cuptrail/data';
+import { insertReview } from '@cuptrail/data/reviews';
 // import { getCurrentUserId } from '../apis/users';
 
 export default function InsertReviewScreen() {
@@ -24,56 +23,61 @@ export default function InsertReviewScreen() {
   const navigation = useNavigation();
 
   const [review, setReview] = useState('');
-  const [rating, setRating] = useState(null);
+  const [rating, setRating] = useState<string>('');
   const [drink, setDrink] = useState('');
-  const [mediaArr, setMedia] = useState([]);
+  const [mediaArr, setMedia] = useState<ImagePicker.ImagePickerAsset[]>([]);
 
-  const { shopName, shopId } = route.params;
+  const { shopName, shopId } = (route.params as any) || {
+    shopName: '',
+    shopId: '',
+  };
   const clearForm = () => {
     setDrink('');
-    setRating(null);
+    setRating('');
     setReview('');
     setMedia([]);
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = useCallback(async () => {
     try {
-      console.log('handle submit');
       const parsedRating = parseFloat(rating);
-      if (!drink) {
+      if (!drink.trim()) {
         Alert.alert('Invalid drink', 'Please enter a valid drink.');
         return;
       }
-      if (isNaN(parsedRating) || parsedRating < 0 || parsedRating > 5) {
+      if (Number.isNaN(parsedRating) || parsedRating < 0 || parsedRating > 5) {
         Alert.alert('Invalid rating', 'Please enter a number between 0 and 5.');
         return;
       }
-      if (!review) {
+      if (!review.trim()) {
         Alert.alert('Invalid review', 'Please enter a valid review.');
         return;
       }
 
-      let uploadedUrls = [];
+      const uploadedUrls: string[] = [];
       for (const media of mediaArr) {
-        console.log('media', media);
         try {
-          const upload = await uploadMedia(media);
-          console.log('upload', upload);
-          if (upload.success) {
-            uploadedUrls.push(upload.url);
+          const result = await uploadMedia({
+            uri: media.uri,
+            mimeType: media.mimeType ?? undefined,
+            fileName: media.fileName ?? undefined,
+          });
+          if ((result as any).success) {
+            uploadedUrls.push((result as any).url);
+          } else {
+            console.warn('Upload failed:', (result as any).message);
           }
-          // TODO: error handling
-        } catch (err) {
-          console.error('Calling uploadMedia failed', err);
+        } catch (e) {
+          console.error('Calling uploadMedia failed', e);
         }
       }
-      console.log('uploadedUrls:', uploadedUrls);
+
       const result = await insertReview(
         shopId,
-        drink,
+        drink.trim(),
         parsedRating,
-        review,
-        uploadedUrls || null
+        review.trim(),
+        uploadedUrls.length > 0 ? uploadedUrls : undefined
       );
 
       if (result?.success) {
@@ -83,7 +87,6 @@ export default function InsertReviewScreen() {
           [
             {
               text: 'OK',
-              // navigate back to storefront screen
               onPress: () => {
                 clearForm();
                 navigation.goBack();
@@ -94,28 +97,28 @@ export default function InsertReviewScreen() {
         );
         return;
       }
-    } catch (err) {
-      Alert.alert('Error', result.message);
+
+      Alert.alert('Error', result?.message || 'Something went wrong.');
+    } catch (err: any) {
+      console.error(err);
+      Alert.alert('Error', err?.message || 'Something went wrong.');
     }
-  };
+  }, [rating, drink, review, mediaArr, navigation, shopId]);
 
-  const handleMediaUpload = async () => {
+  const handleMediaUpload = useCallback(async () => {
     try {
-      // const userResult = await getCurrentUserId();
-
       const result = await ImagePicker.launchImageLibraryAsync({
         allowsMultipleSelection: true,
         mediaTypes: ['images', 'videos'],
-        quality: 1,
       });
 
       if (!result.canceled) {
         let duplicateDetected = false;
-
         setMedia((prev) => {
-          const existingPhotoIds = new Set(prev.map((media) => media.assetId));
-          const newMedia = result.assets.filter((media) => {
-            if (existingPhotoIds.has(media.assetId)) {
+          const existing = new Set(prev.map((m) => m.assetId || m.uri));
+          const newItems = result.assets.filter((m) => {
+            const id = m.assetId || m.uri;
+            if (existing.has(id)) {
               duplicateDetected = true;
               return false;
             }
@@ -124,18 +127,18 @@ export default function InsertReviewScreen() {
           if (duplicateDetected) {
             Alert.alert(
               'Duplicate Media',
-              'You have already selected one or more of these photos/videos.'
+              'You have already selected one or more of these items.'
             );
           }
-          return [...prev, ...newMedia];
+          return [...prev, ...newItems];
         });
       }
     } catch (err) {
       console.error('Image picker failed:', err);
     }
-  };
+  }, []);
 
-  const handleRemoveMedia = (uri) => {
+  const handleRemoveMedia = (uri: string) => {
     setMedia((prev) => prev.filter((media) => media.uri !== uri));
   };
   return (
@@ -160,13 +163,13 @@ export default function InsertReviewScreen() {
         numberOfLines={5}
         placeholder="Name of Shop"
         value={shopName}
+        editable={false}
       />
       <Text style={styles.label}>Rating</Text>
       <TextInput
         style={styles.textArea}
-        multiline
-        numberOfLines={5}
         placeholder="0 - 5"
+        keyboardType="decimal-pad"
         value={rating}
         onChangeText={setRating}
       />
@@ -206,11 +209,9 @@ export default function InsertReviewScreen() {
           ))}
         </ScrollView>
       </View>
-      <View>
-        <Button title="Add Review" onPress={handleSubmit}>
-          Submit
-        </Button>
-      </View>
+      <TouchableOpacity onPress={handleSubmit} style={styles.submitButton}>
+        <Text style={styles.submitButtonText}>Submit</Text>
+      </TouchableOpacity>
     </View>
   );
 }
@@ -266,5 +267,17 @@ const styles = StyleSheet.create({
     color: '#D46A92',
     fontWeight: '600',
     fontSize: 14,
+  },
+  submitButton: {
+    backgroundColor: '#1e90ff',
+    paddingVertical: 14,
+    borderRadius: 10,
+    alignItems: 'center',
+    marginTop: 8,
+  },
+  submitButtonText: {
+    color: 'white',
+    fontWeight: '600',
+    fontSize: 16,
   },
 });

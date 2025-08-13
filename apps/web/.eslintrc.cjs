@@ -15,11 +15,12 @@ module.exports = {
   },
   env: { browser: true, es2021: true, node: true },
   plugins: ['@typescript-eslint', 'react', 'react-hooks', 'import', 'unused-imports'],
+  // ESLint 9: use react-hooks "recommended-legacy" preset for .eslintrc (non-flat) config
   extends: [
     'eslint:recommended',
     'plugin:react/recommended',
     'plugin:@typescript-eslint/recommended',
-    'plugin:react-hooks/recommended',
+    'plugin:react-hooks/recommended-legacy',
     'plugin:import/recommended',
     'plugin:prettier/recommended',
   ],

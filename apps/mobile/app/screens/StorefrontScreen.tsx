@@ -15,7 +15,7 @@ import {
 } from '@react-navigation/native';
 import { useEffect, useCallback, useState } from 'react';
 // backend
-import { getHighlyRatedDrinks } from '../apis/drinks';
+import { getHighlyRatedDrinks } from '../../../../packages/data/drinks';
 
 export default function StoreFrontScreen() {
   const route = useRoute();

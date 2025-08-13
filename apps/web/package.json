@@ -1,5 +1,5 @@
 {
-  "name": "cup-trail-web",
+  "name": "@cuptrail/web",
   "private": true,
   "version": "0.0.4",
   "type": "module",
@@ -17,6 +17,8 @@
     "release:major": "standard-version --release-as major"
   },
   "dependencies": {
+    "@cuptrail/data": "workspace:*",
+    "@cuptrail/ui": "workspace:*",
     "@emotion/react": "^11.11.4",
     "@emotion/styled": "^11.11.5",
     "@mui/icons-material": "^5.15.20",
@@ -29,16 +31,16 @@
   "devDependencies": {
     "@types/react": "^18.3.5",
     "@types/react-dom": "^18.3.0",
-    "@typescript-eslint/eslint-plugin": "^6.21.0",
-    "@typescript-eslint/parser": "^6.21.0",
+    "@typescript-eslint/eslint-plugin": "^8.9.0",
+    "@typescript-eslint/parser": "^8.9.0",
     "@vitejs/plugin-react": "^4.3.1",
-    "eslint": "^8.57.0",
+    "eslint": "^9.33.0",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-import": "^2.29.1",
     "eslint-plugin-prettier": "^5.2.1",
     "eslint-plugin-react": "^7.35.0",
-    "eslint-plugin-react-hooks": "^4.6.2",
-    "eslint-plugin-unused-imports": "^3.2.0",
+    "eslint-plugin-react-hooks": "^5.2.0",
+    "eslint-plugin-unused-imports": "^4.1.4",
     "prettier": "^3.3.3",
     "standard-version": "^9.5.0",
     "typescript": "^5.5.4",
