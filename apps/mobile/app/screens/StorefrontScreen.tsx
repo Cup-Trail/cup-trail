@@ -13,16 +13,32 @@ import {
   useNavigation,
   useFocusEffect,
 } from '@react-navigation/native';
-import { useEffect, useCallback, useState } from 'react';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import type { RouteProp } from '@react-navigation/native';
+import { useEffect, useCallback, useState, JSX } from 'react';
 // backend
 import { getHighlyRatedDrinks } from '../../../../packages/data/drinks';
 
-export default function StoreFrontScreen() {
-  const route = useRoute();
-  const navigation = useNavigation();
+// --- Types ---
+type RootStackParamList = {
+  Storefront: { shopName: string; address: string; shopId: string };
+  'Add Review': { shopName: string; shopId: string | number };
+};
+
+type DrinkItem = {
+  id: string | number;
+  cover_photo_url?: string | null;
+  avg_rating: number;
+  drinks: { name: string };
+};
+
+export default function StoreFrontScreen(): JSX.Element {
+  const route = useRoute<RouteProp<RootStackParamList, 'Storefront'>>();
+  const navigation =
+    useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const { shopName, address, shopId } = route.params;
-  const [shopAddress, setShopAddress] = useState('');
-  const [drinks, setDrinks] = useState([]);
+  const [shopAddress, setShopAddress] = useState<string>('');
+  const [drinks, setDrinks] = useState<DrinkItem[]>([]);
 
   useEffect(() => {
     if (address) setShopAddress(address);
@@ -34,7 +50,7 @@ export default function StoreFrontScreen() {
         console.warn('Error getting ratings:', result?.message);
         return;
       }
-      setDrinks(result.data);
+      setDrinks(result.data as DrinkItem[]);
     };
 
     getDrinks();
@@ -50,7 +66,7 @@ export default function StoreFrontScreen() {
           console.warn('Error reloading ratings:', result?.message);
           return;
         }
-        setDrinks(result.data);
+        setDrinks(result.data as DrinkItem[]);
       };
       reloadDrinks();
     }, [shopId])
@@ -62,10 +78,10 @@ export default function StoreFrontScreen() {
       <Text style={styles.address}>{shopAddress}</Text>
       {/* Menu Section */}
       <Text style={styles.sectionTitle}>Popular Drinks</Text>
-      <FlatList
+      <FlatList<DrinkItem>
         data={drinks}
         horizontal
-        keyExtractor={(item) => item.id}
+        keyExtractor={(item) => String(item.id)}
         renderItem={({ item }) => (
           <View style={styles.drinkCard}>
             {item.cover_photo_url && (

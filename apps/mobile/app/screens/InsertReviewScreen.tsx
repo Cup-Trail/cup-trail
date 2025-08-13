@@ -234,6 +234,18 @@ const styles = StyleSheet.create({
     gap: 10,
     marginTop: 10,
   },
+  submitButton: {
+    backgroundColor: '#1e90ff',
+    paddingVertical: 14,
+    borderRadius: 10,
+    alignItems: 'center',
+    marginTop: 8,
+  },
+  submitButtonText: {
+    color: 'white',
+    fontWeight: '600',
+    fontSize: 16,
+  },
   subtitle: {
     fontSize: 16,
     marginBottom: 32,
@@ -267,17 +279,5 @@ const styles = StyleSheet.create({
     color: '#D46A92',
     fontWeight: '600',
     fontSize: 14,
-  },
-  submitButton: {
-    backgroundColor: '#1e90ff',
-    paddingVertical: 14,
-    borderRadius: 10,
-    alignItems: 'center',
-    marginTop: 8,
-  },
-  submitButtonText: {
-    color: 'white',
-    fontWeight: '600',
-    fontSize: 16,
   },
 });

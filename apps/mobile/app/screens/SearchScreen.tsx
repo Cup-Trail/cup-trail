@@ -10,8 +10,9 @@ import {
   TouchableOpacity,
   TouchableWithoutFeedback,
 } from 'react-native';
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, JSX } from 'react';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 // backend
 import { getOrInsertShop } from '@cuptrail/data/shops';
 import { getRecentReviews } from '@cuptrail/data/reviews';
@@ -19,14 +20,54 @@ import { getRecentReviews } from '@cuptrail/data/reviews';
 // mock data for now
 const categories = ['Matcha', 'Boba', 'Coffee', 'Milk Tea', 'Fruit Tea'];
 
-export default function SearchScreen() {
-  const [reviews, setReviews] = useState([]);
-  const [name, setName] = useState('');
-  const [suggestions, setSuggestions] = useState([]);
-  const [activeField, setActiveField] = useState(null);
-  const navigation = useNavigation();
+// --- Types ---
+type Prediction = {
+  place_id: string;
+  description: string;
+};
 
-  const getAutocomplete = async (input) => {
+type PlaceDetailsAPIResponse = {
+  status?: string;
+  result?: {
+    name?: string;
+    formatted_address?: string;
+    geometry?: {
+      location?: {
+        lat: number;
+        lng: number;
+      };
+    };
+  };
+};
+
+type Review = {
+  id: string;
+  rating: number;
+  comment?: string | null;
+  created_at: string;
+  shop_drinks?: {
+    shops?: { name?: string | null } | null;
+    drinks?: { name?: string | null } | null;
+  } | null;
+};
+
+type RootStackParamList = {
+  Storefront: {
+    shopName: string;
+    address: string;
+    shopId: string;
+  };
+};
+
+export default function SearchScreen(): JSX.Element {
+  const [reviews, setReviews] = useState<Review[]>([]);
+  const [name, setName] = useState<string>('');
+  const [suggestions, setSuggestions] = useState<Prediction[]>([]);
+  const [activeField, setActiveField] = useState<'name' | null>(null);
+  const navigation =
+    useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+
+  const getAutocomplete = async (input: string): Promise<void> => {
     if (!input) {
       setSuggestions([]);
       setName('');
@@ -47,7 +88,7 @@ export default function SearchScreen() {
         }
       );
       console.log(response);
-      const json = await response.json();
+      const json: { predictions?: Prediction[] } = await response.json();
 
       if (json.predictions) {
         setSuggestions(json.predictions);
@@ -61,7 +102,9 @@ export default function SearchScreen() {
     }
   };
 
-  const handleSelectSuggestion = async (suggestion) => {
+  const handleSelectSuggestion = async (
+    suggestion: Prediction
+  ): Promise<void> => {
     try {
       const response = await fetch(
         `${
@@ -75,32 +118,42 @@ export default function SearchScreen() {
           },
         }
       );
-      const data = await response.json();
+      const data: PlaceDetailsAPIResponse = await response.json();
 
       if (data.status === 'OK') {
-        const { name, formatted_address, geometry } = data.result || {};
+        const {
+          name: placeName,
+          formatted_address,
+          geometry,
+        } = data.result || {};
         const lat = geometry?.location?.lat;
         const lng = geometry?.location?.lng;
         console.log(formatted_address);
 
-        if (activeField === 'name' && name) setName(name);
-        if (name && formatted_address && lat && lng) {
+        if (activeField === 'name' && placeName) setName(placeName);
+        if (
+          placeName &&
+          formatted_address &&
+          typeof lat === 'number' &&
+          typeof lng === 'number'
+        ) {
           const result = await getOrInsertShop(
-            name,
+            placeName,
             formatted_address,
             lat,
             lng
           );
           if (result.success) {
             console.log('Shop row:', result.data);
+            const shopId = String(result.data?.id ?? '');
+            navigation.navigate('Storefront', {
+              shopName: placeName,
+              address: formatted_address,
+              shopId: shopId,
+            });
           } else {
             console.warn('Failed to get or create shop:', result.message);
           }
-          navigation.navigate('Storefront', {
-            shopName: name,
-            address: formatted_address,
-            shopId: result.data.id,
-          });
         }
       } else {
         console.warn('Place Details failed:', data.status);
@@ -149,7 +202,7 @@ export default function SearchScreen() {
           onFocus={() => {
             setName('');
           }}
-          onChangeText={(text) => {
+          onChangeText={(text: string) => {
             setName(text);
             setActiveField('name');
             getAutocomplete(text);
@@ -159,7 +212,7 @@ export default function SearchScreen() {
         />
         {suggestions.length > 0 && (
           <View style={styles.suggestionsDropdown}>
-            <FlatList
+            <FlatList<Prediction>
               keyboardShouldPersistTaps="handled"
               data={suggestions}
               keyExtractor={(item) => item.place_id}
@@ -189,9 +242,9 @@ export default function SearchScreen() {
         </View>
 
         <Text style={styles.sectionTitle}>Recently reviewed shops</Text>
-        <FlatList
+        <FlatList<Review>
           data={reviews}
-          keyExtractor={(item) => item.id}
+          keyExtractor={(item) => String(item.id)}
           renderItem={({ item }) => {
             const shopName = item.shop_drinks?.shops?.name;
             const drinkName = item.shop_drinks?.drinks?.name;
