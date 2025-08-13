@@ -1,4 +1,12 @@
 {
-  "extends": "../../tsconfig.base.json",
-  "compilerOptions": { "types": ["react-native", "expo"] }
+  "extends": "expo/tsconfig.base",
+  "compilerOptions": {
+    "target": "ES2020",
+    "moduleResolution": "bundler",
+    "jsx": "react-jsx",
+    "types": ["react", "react-native"],
+    "strict": true,
+    "skipLibCheck": true
+  },
+  "include": ["app", "src", "index.tsx", "global.d.ts"]
 }
