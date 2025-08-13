@@ -2,7 +2,7 @@ import { Box, Button, Paper, Stack, Typography } from '@mui/material';
 import { useEffect, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 
-import { fetchHighlyRatedDrinks } from '../lib/drinks';
+import { getHighlyRatedDrinks } from '@cuptrail/data/drinks';
 
 export default function StorefrontPage() {
   const { shopId } = useParams();
@@ -15,7 +15,7 @@ export default function StorefrontPage() {
   useEffect(() => {
     if (!shopId) return;
     (async () => {
-      const result = await fetchHighlyRatedDrinks(shopId);
+      const result = await getHighlyRatedDrinks(shopId);
       if (result.success) setDrinks(result.data);
     })();
   }, [shopId]);

@@ -11,61 +11,133 @@ import {
   Typography,
 } from '@mui/material';
 import { useEffect, useState } from 'react';
+import type { JSX } from 'react';
 import { useNavigate } from 'react-router-dom';
-
-import { fetchRecentReviews } from '../lib/reviews';
-import { fetchOrInsertShop } from '../lib/shops';
+// backend
+import { getRecentReviews, getOrInsertShop } from '@cuptrail/data';
 
 const categories = ['Matcha', 'Coffee', 'Milk Tea', 'Fruit Tea'];
 
-export default function SearchPage() {
-  const navigate = useNavigate();
-  const [name, setName] = useState('');
-  const [suggestions, setSuggestions] = useState<any[]>([]);
-  const [reviews, setReviews] = useState<any[]>([]);
+// --- Types ---
+type Prediction = {
+  place_id: string;
+  description: string;
+};
 
+type PlaceDetailsAPIResponse = {
+  status?: string;
+  result?: {
+    name?: string;
+    formatted_address?: string;
+    geometry?: {
+      location?: {
+        lat: number;
+        lng: number;
+      };
+    };
+  };
+};
+
+type Review = {
+  id: string | number;
+  rating: number;
+  comment?: string | null;
+  created_at: string;
+  shop_drinks?: {
+    shops?: { name?: string | null } | null;
+    drinks?: { name?: string | null } | null;
+  } | null;
+};
+
+export default function SearchPage(): JSX.Element {
+  const navigate = useNavigate();
+  const [name, setName] = useState<string>('');
+  const [suggestions, setSuggestions] = useState<Prediction[]>([]);
+  const [reviews, setReviews] = useState<Review[]>([]);
+  const [activeField, setActiveField] = useState<'name' | null>(null);
   useEffect(() => {
     (async () => {
-      const result = await fetchRecentReviews();
-      if (result.success) setReviews(result.data);
+      const result = await getRecentReviews();
+      if (result.success) setReviews(result.data as Review[]);
     })();
   }, []);
 
-  async function fetchAutocomplete(input: string) {
-    if (!input) {
+  async function getAutocomplete(input: string): Promise<void> {
+    try {
+      const baseUrl = import.meta.env.VITE_SUPABASE_URL ?? import.meta.env.EXPO_PUBLIC_SUPABASE_URL;
+      const anonKey =
+        import.meta.env.VITE_SUPABASE_ANON_KEY ?? import.meta.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
+      const response = await fetch(
+        `${baseUrl}/functions/v1/maps?type=autocomplete&input=${encodeURIComponent(input)}`,
+        {
+          headers: {
+            Authorization: `Bearer ${anonKey}`,
+          },
+        }
+      );
+      console.log(response);
+      const json: { predictions?: Prediction[] } = await response.json();
+
+      if (json.predictions) {
+        setSuggestions(json.predictions);
+      } else {
+        console.warn('No predictions returned from edge function');
+        setSuggestions([]);
+      }
+    } catch (err) {
+      console.error('Autocomplete fetch error:', err);
       setSuggestions([]);
-      setName('');
-      return;
     }
-    const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/maps?type=autocomplete&input=${encodeURIComponent(input)}`;
-    const res = await fetch(url, {
-      headers: { Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}` },
-    });
-    const json = await res.json();
-    setSuggestions(json.predictions ?? []);
   }
 
-  async function handleSelectSuggestion(suggestion: any) {
-    const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/maps?type=details&place_id=${encodeURIComponent(suggestion.place_id)}`;
-    const res = await fetch(url, {
-      headers: { Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}` },
-    });
-    const data = await res.json();
-    if (data.status !== 'OK') return;
-    const { name, formatted_address, geometry } = data.result || {};
-    const lat = geometry?.location?.lat;
-    const lng = geometry?.location?.lng;
-    if (name && formatted_address && lat && lng) {
-      const result = await fetchOrInsertShop(name, formatted_address, lat, lng);
-      if (result.success) {
-        navigate(`/shop/${result.data.id}`, {
-          state: { shopName: name, address: formatted_address },
-        });
+  async function handleSelectSuggestion(suggestion: Prediction): Promise<void> {
+    try {
+      const baseUrl = import.meta.env.VITE_SUPABASE_URL ?? import.meta.env.EXPO_PUBLIC_SUPABASE_URL;
+      const anonKey =
+        import.meta.env.VITE_SUPABASE_ANON_KEY ?? import.meta.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
+      const response = await fetch(
+        `${baseUrl}/functions/v1/maps?type=details&place_id=${encodeURIComponent(suggestion.place_id)}`,
+        {
+          headers: {
+            Authorization: `Bearer ${anonKey}`,
+          },
+        }
+      );
+      const data: PlaceDetailsAPIResponse = await response.json();
+
+      if (data.status === 'OK') {
+        const { name: placeName, formatted_address, geometry } = data.result || {};
+        const lat = geometry?.location?.lat;
+        const lng = geometry?.location?.lng;
+        console.log(formatted_address);
+
+        if (activeField === 'name' && placeName) setName(placeName);
+        if (placeName && formatted_address && typeof lat === 'number' && typeof lng === 'number') {
+          const result = await getOrInsertShop(placeName, formatted_address, lat, lng);
+          if (result.success) {
+            console.log('Shop row:', result.data);
+            const shopId = result.data?.id ?? '';
+            if (shopId == null) {
+              console.warn('Missing shop id from getOrInsertShop result.');
+              setSuggestions([]);
+              return;
+            }
+            // Navigate on web: push to a path, pass extras in state
+            navigate(`/storefront/${shopId}`, {
+              state: { shopName: placeName, address: formatted_address, shopId: String(shopId) },
+            });
+          } else {
+            console.warn('Failed to get or create shop:', result.message);
+          }
+        }
+      } else {
+        console.warn('Place Details failed:', data.status);
       }
+    } catch (error) {
+      console.error('Failed to get place details:', error);
     }
     setSuggestions([]);
   }
-
   return (
     <Stack gap={2}>
       <TextField
@@ -73,7 +145,8 @@ export default function SearchPage() {
         value={name}
         onChange={(e) => {
           setName(e.target.value);
-          fetchAutocomplete(e.target.value);
+          setActiveField('name');
+          getAutocomplete(e.target.value);
         }}
         size="medium"
         fullWidth

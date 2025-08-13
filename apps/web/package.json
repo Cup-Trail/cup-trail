@@ -18,14 +18,13 @@
   },
   "dependencies": {
     "@cuptrail/data": "workspace:*",
-    "@cuptrail/ui": "workspace:*",
     "@emotion/react": "^11.11.4",
     "@emotion/styled": "^11.11.5",
     "@mui/icons-material": "^5.15.20",
     "@mui/material": "^5.15.20",
     "@supabase/supabase-js": "^2.45.3",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
+    "react": "19.0.0",
+    "react-dom": "19.0.0",
     "react-router-dom": "^6.26.2"
   },
   "devDependencies": {

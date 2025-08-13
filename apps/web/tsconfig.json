@@ -11,8 +11,9 @@
     "noEmit": true,
     "jsx": "react-jsx",
     "strict": true,
-    "baseUrl": "."
+    "baseUrl": ".",
+    "moduleSuffixes": [".web", ""]
   },
   "include": ["src"],
-  "extends": "../../tsconfig.base.json" 
+  "extends": "../../tsconfig.base.json"
 }

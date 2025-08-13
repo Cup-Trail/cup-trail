@@ -1,8 +1,7 @@
 import { Alert, Box, Button, Snackbar, Stack, TextField, Typography } from '@mui/material';
 import { useState } from 'react';
 import { useLocation, useParams } from 'react-router-dom';
-
-import { insertReview } from '../lib/reviews';
+import { insertReview } from '@cuptrail/data';
 
 export default function InsertReviewPage() {
   const { shopId } = useParams();

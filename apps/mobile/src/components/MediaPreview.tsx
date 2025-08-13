@@ -8,8 +8,14 @@ import {
 } from 'react-native';
 import { useEvent } from 'expo';
 import { useVideoPlayer, VideoView } from 'expo-video';
+import type { ImagePickerAsset } from 'expo-image-picker';
 
-export default function MediaPreview({ media, onRemove }) {
+export interface MediaPreviewProps {
+  media: ImagePickerAsset;
+  onRemove?: (uri: string) => void;
+}
+
+export default function MediaPreview({ media, onRemove }: MediaPreviewProps) {
   if (!media?.uri) return null;
 
   const isVideo = media.type === 'video';
@@ -34,7 +40,7 @@ export default function MediaPreview({ media, onRemove }) {
           {isVideo ? (
             <VideoView
               player={player}
-              resizeMode="cover"
+              contentFit="cover"
               style={StyleSheet.absoluteFill}
               allowsFullscreen
               allowsPictureInPicture
@@ -48,7 +54,7 @@ export default function MediaPreview({ media, onRemove }) {
       {/* ✕ Remove Button */}
       <TouchableOpacity
         style={styles.removeButton}
-        onPress={() => onRemove(media.uri)}
+        onPress={() => onRemove?.(media.uri)}
       >
         <Text style={styles.removeText}>✕</Text>
       </TouchableOpacity>

@@ -12,7 +12,7 @@ import { useState, useCallback } from 'react';
 import * as ImagePicker from 'expo-image-picker';
 import { useRoute, useNavigation } from '@react-navigation/native';
 // custom component
-import { MediaPreview } from '@cuptrail/ui';
+import MediaPreview from '../components/MediaPreview';
 // backend
 import { uploadMedia } from '@cuptrail/data';
 import { insertReview } from '@cuptrail/data/reviews';

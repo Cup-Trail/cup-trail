@@ -17,7 +17,7 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RouteProp } from '@react-navigation/native';
 import { useEffect, useCallback, useState, JSX } from 'react';
 // backend
-import { getHighlyRatedDrinks } from '../../../../packages/data/drinks';
+import { getHighlyRatedDrinks } from '@cuptrail/data/drinks';
 
 // --- Types ---
 type RootStackParamList = {
