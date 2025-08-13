@@ -42,7 +42,7 @@ importers:
         version: 0.79.5(@babel/core@7.28.0)(@react-native-community/cli@13.6.9)(@types/react@19.0.14)(react@19.0.0)
     devDependencies:
       '@types/react':
-        specifier: ~19.0.10
+        specifier: ~19.0.14
         version: 19.0.14
       typescript:
         specifier: ~5.8.3
