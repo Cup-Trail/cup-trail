@@ -47,7 +47,7 @@ jobs:
           REPO="${{ github.event.repository.name }}"
           PR="pr-${{ github.event.pull_request.number }}"
 
-          # Project Pages vs User/Org Pages base
+          # Base path for GitHub Pages previews
           if [[ "$REPO" == *.github.io ]]; then
             BASE="/${PR}/"
           else
@@ -57,19 +57,22 @@ jobs:
 
           pnpm run build -- --base="$BASE"
 
-          # Stage under a PR-specific subfolder so preview lives at .../<repo>/${PR}/
-          rm -rf preview
-          mkdir -p "preview/${PR}"
-          cp -R dist/* "preview/${PR}/"
+          # Stage to repo-root so Pages serves /<repo>/<PR>/
+          PREVIEW_ROOT="$GITHUB_WORKSPACE/preview"
+          PR_DIR="$PREVIEW_ROOT/${PR}"
+
+          rm -rf "$PR_DIR"
+          mkdir -p "$PR_DIR"
+          cp -R dist/* "$PR_DIR/"
 
           # GitHub Pages niceties
-          touch preview/.nojekyll
-          cp "preview/${PR}/index.html" "preview/${PR}/404.html"
+          touch "$PREVIEW_ROOT/.nojekyll"
+          cp "$PR_DIR/index.html" "$PR_DIR/404.html"
 
-      - name: Upload Pages artifact
+      - name: Upload Pages artifact (repo-root preview)
         uses: actions/upload-pages-artifact@v3
         with:
-          path: apps/web/preview
+          path: preview
 
   deploy:
     environment:
