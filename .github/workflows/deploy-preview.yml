@@ -52,16 +52,16 @@ jobs:
           echo "Using base: $BASE"
           pnpm -F @cuptrail/web run build -- --base="$BASE"
           # Stage under a PR-specific subfolder so the preview lives at .../<repo>/${PR}/
-          rm -rf web/preview
-          mkdir -p web/preview/${PR}
-          cp -R web/dist/* web/preview/${PR}/
-          touch web/preview/.nojekyll
-          cp web/preview/${PR}/index.html web/preview/${PR}/404.html
+          rm -rf apps/web/preview
+          mkdir -p apps/web/preview/${PR}
+          cp -R apps/web/dist/* apps/web/preview/${PR}/
+          touch apps/web/preview/.nojekyll
+          cp apps/web/preview/${PR}/index.html apps/web/preview/${PR}/404.html
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: web/preview
+          path: apps/web/preview
 
   deploy:
     environment:
