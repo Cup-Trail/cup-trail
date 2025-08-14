@@ -34,7 +34,7 @@ export default function StorefrontPage() {
         {drinks.map((item) => (
           <Paper key={item.id} variant="outlined" sx={{ p: 2, minWidth: 200 }}>
             <Typography fontWeight={600}>{item.drinks.name}</Typography>
-            <Typography mt={0.5}>⭐ {item.avg_rating}/10</Typography>
+            <Typography mt={0.5}>⭐ {item.avg_rating}/5</Typography>
           </Paper>
         ))}
       </Stack>

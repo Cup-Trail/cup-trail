@@ -196,7 +196,7 @@ export default function SearchPage(): JSX.Element {
               <Typography fontWeight={600}>
                 {drinkName ? `${drinkName} @ ${shopName}` : 'Review'}
               </Typography>
-              <Typography mt={0.5}>⭐ {item.rating}/10</Typography>
+              <Typography mt={0.5}>⭐ {item.rating}/5</Typography>
               {item.comment && (
                 <Typography mt={0.5} fontStyle="italic" color="text.secondary">
                   {item.comment}
