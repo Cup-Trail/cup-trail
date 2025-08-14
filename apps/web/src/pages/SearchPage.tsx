@@ -72,6 +72,7 @@ export default function SearchPage(): JSX.Element {
         {
           headers: {
             Authorization: `Bearer ${anonKey}`,
+            'Content-Type': 'application/json',
           },
         }
       );
@@ -100,6 +101,7 @@ export default function SearchPage(): JSX.Element {
         {
           headers: {
             Authorization: `Bearer ${anonKey}`,
+            'Content-Type': 'application/json',
           },
         }
       );
@@ -114,20 +116,31 @@ export default function SearchPage(): JSX.Element {
         if (activeField === 'name' && placeName) setName(placeName);
         if (placeName && formatted_address && typeof lat === 'number' && typeof lng === 'number') {
           const result = await getOrInsertShop(placeName, formatted_address, lat, lng);
-          if (result.success) {
-            console.log('Shop row:', result.data);
-            const shopId = result.data?.id ?? '';
-            if (shopId == null) {
-              console.warn('Missing shop id from getOrInsertShop result.');
-              setSuggestions([]);
-              return;
-            }
-            // Navigate on web: push to a path, pass extras in state
-            navigate(`/storefront/${shopId}`, {
-              state: { shopName: placeName, address: formatted_address, shopId: String(shopId) },
-            });
-          } else {
+          if (!result?.success) {
             console.warn('Failed to get or create shop');
+            setSuggestions([]);
+            return;
+          }
+
+          const rawId = (result.data as any)?.id;
+          // Accept numeric or string ids; coerce to non-empty string
+          const shopId =
+            rawId != null && String(rawId).trim().length > 0 ? String(rawId).trim() : '';
+          if (!shopId) {
+            console.warn('Missing or invalid shop id from getOrInsertShop result.', result);
+            setSuggestions([]);
+            return;
+          }
+
+          // Clear suggestions before navigation to avoid re-click race conditions
+          setSuggestions([]);
+
+          try {
+            navigate(`/shop/${encodeURIComponent(shopId)}`, {
+              state: { shopName: placeName, address: formatted_address, shopId },
+            });
+          } catch (navErr) {
+            console.error('Navigation error to storefront route:', navErr);
           }
         }
       } else {
