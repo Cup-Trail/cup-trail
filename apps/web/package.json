@@ -28,8 +28,6 @@
     "react-router-dom": "^6.26.2"
   },
   "devDependencies": {
-    "@types/react": "^18.3.5",
-    "@types/react-dom": "^18.3.0",
     "@typescript-eslint/eslint-plugin": "^8.9.0",
     "@typescript-eslint/parser": "^8.9.0",
     "@vitejs/plugin-react": "^4.3.1",

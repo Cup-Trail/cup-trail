@@ -5,16 +5,7 @@
   "main": "index.ts",
   "types": "index.ts",
   "dependencies": {
-    "@supabase/supabase-js": "^2.55.0",
-    "base64-arraybuffer": "^1.0.2"
-  },
-  "peerDependencies": {
-    "expo": ">=53.0.0",
-    "expo-file-system": ">=18.1.0"
-  },
-  "peerDependenciesMeta": {
-    "expo": { "optional": true },
-    "expo-file-system": { "optional": true }
+    "@supabase/supabase-js": "^2.55.0"
   },
   "devDependencies": {
     "typescript": "^5.8.0",

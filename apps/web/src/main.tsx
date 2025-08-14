@@ -1,5 +1,5 @@
-import React from 'react';
-import ReactDOM from 'react-dom/client';
+import { StrictMode } from 'react';
+import { createRoot } from 'react-dom/client';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 
 import App from './pages/App';
@@ -22,8 +22,11 @@ const router = createBrowserRouter(
   { basename: import.meta.env.BASE_URL }
 );
 
-ReactDOM.createRoot(document.getElementById('root')!).render(
-  <React.StrictMode>
+const rootEl = document.getElementById('root');
+if (!rootEl) throw new Error('Root element #root not found');
+
+createRoot(rootEl).render(
+  <StrictMode>
     <RouterProvider router={router} />
-  </React.StrictMode>
+  </StrictMode>
 );

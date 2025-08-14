@@ -127,7 +127,7 @@ export default function SearchPage(): JSX.Element {
               state: { shopName: placeName, address: formatted_address, shopId: String(shopId) },
             });
           } else {
-            console.warn('Failed to get or create shop:', result.message);
+            console.warn('Failed to get or create shop');
           }
         }
       } else {

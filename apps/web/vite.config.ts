@@ -4,6 +4,7 @@ import path from 'path';
 
 export default defineConfig({
   plugins: [react()],
+  envPrefix: ['VITE_', 'EXPO_PUBLIC_'],
   resolve: {
     alias: {
       '@cuptrail/data': path.resolve(__dirname, '../../packages/data'),
@@ -12,7 +13,7 @@ export default defineConfig({
       '.web.tsx',
       '.web.ts',
       '.web.jsx',
-      '.web.js', 
+      '.web.js',
       '.ts',
       '.tsx',
       '.js',
