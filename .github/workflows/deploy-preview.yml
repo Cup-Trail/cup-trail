@@ -17,17 +17,14 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: apps/web
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup pnpm
+      - name: Setup PNPM
         uses: pnpm/action-setup@v4
         with:
-          version: 10.14.0
+          version: 9
           run_install: false
 
       - name: Setup Node.js
@@ -37,26 +34,8 @@ jobs:
           cache: pnpm
           cache-dependency-path: pnpm-lock.yaml
 
-      - name: Install dependencies (pnpm, workspace root)
-        working-directory: ${{ github.workspace }}
-        run: pnpm -w install --frozen-lockfile --prefer-offline
-
-      - name: Debug build artifacts
-        run: |
-          echo "Workspace: $GITHUB_WORKSPACE"
-          ls -la
-          echo "--- which pnpm ---"
-          which pnpm || true
-          echo "--- pnpm -w list --depth=0 ---"
-          pnpm -w list --depth=0 || true
-          echo "--- contents of node_modules/.bin (apps/web) ---"
-          ls -la node_modules/.bin || true
-          echo "--- dist contents ---"
-          ls -la dist || true
-          echo "--- index.html (first 80 lines) ---"
-          sed -n '1,80p' dist/index.html || true
-          echo "--- referenced scripts in index.html ---"
-          grep -o 'src="[^"]\+"' dist/index.html || true
+      - name: Install dependencies (workspace)
+        run: pnpm install --frozen-lockfile --prefer-offline
 
       - name: Build (Vite) with PR base path
         env:
@@ -71,34 +50,18 @@ jobs:
             BASE="/$REPO/${PR}/"
           fi
           echo "Using base: $BASE"
-          VITE_BASE="$BASE" pnpm --filter @cuptrail/web run build -- --base=$BASE
-
-          # Verify dist exists
-          test -d dist && test -f dist/index.html || { echo "dist/ missing or empty"; exit 1; }
-
+          pnpm -F @cuptrail/web run build -- --base="$BASE"
           # Stage under a PR-specific subfolder so the preview lives at .../<repo>/${PR}/
-          rm -rf preview
-          mkdir -p preview/${PR}
-          cp -R dist/* preview/${PR}/
-          # SPA support
-          touch preview/.nojekyll
-          cp preview/${PR}/index.html preview/${PR}/404.html
-          # Helpful root index to avoid a blank page at artifact root
-          cat > preview/index.html <<EOF
-          <!doctype html>
-          <meta charset="utf-8"/>
-          <meta name="viewport" content="width=device-width, initial-scale=1"/>
-          <title>Preview Index</title>
-          <body style="font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial; padding: 2rem;">
-          <h1>Preview for ${PR}</h1>
-          <p><a href="${PR}/">Open ${PR}</a></p>
-          </body>
-          EOF
+          rm -rf web/preview
+          mkdir -p web/preview/${PR}
+          cp -R web/dist/* web/preview/${PR}/
+          touch web/preview/.nojekyll
+          cp web/preview/${PR}/index.html web/preview/${PR}/404.html
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: apps/web/preview
+          path: web/preview
 
   deploy:
     environment:
