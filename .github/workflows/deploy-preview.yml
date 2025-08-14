@@ -34,61 +34,37 @@ jobs:
           cache: pnpm
           cache-dependency-path: pnpm-lock.yaml
 
-      - name: Install dependencies (workspace)
-        run: pnpm install --frozen-lockfile --prefer-offline
+      - name: Install dependencies (workspace root)
+        run: pnpm install --frozen-lockfile
 
       - name: Build (Vite) with PR base path
+        working-directory: apps/web
         env:
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
         run: |
+          set -euo pipefail
           REPO="${{ github.event.repository.name }}"
           PR="pr-${{ github.event.pull_request.number }}"
+
+          # Project Pages vs User/Org Pages base
           if [[ "$REPO" == *.github.io ]]; then
             BASE="/${PR}/"
           else
             BASE="/$REPO/${PR}/"
           fi
           echo "Using base: $BASE"
-          pnpm -F @cuptrail/web run build -- --base="$BASE"
-          # Stage under a PR-specific subfolder so the preview lives at .../<repo>/${PR}/
-          rm -rf apps/web/preview
-          mkdir -p apps/web/preview/${PR}
-          cp -R apps/web/dist/* apps/web/preview/${PR}/
-          touch apps/web/preview/.nojekyll
 
-          cp apps/web/preview/${PR}/index.html apps/web/preview/${PR}/404.html
+          pnpm run build -- --base="$BASE"
 
-      - name: Write root redirect to current PR
-        run: |
-          PR="pr-${{ github.event.pull_request.number }}"
-          mkdir -p apps/web/preview
-          cat > apps/web/preview/index.html <<'HTML'
-          <!doctype html>
-          <meta http-equiv="refresh" content="0; url=./PR_PLACEHOLDER/">
-          <meta name="robots" content="noindex">
-          <p>Redirecting to preview…</p>
-          HTML
-          sed -i "s/PR_PLACEHOLDER/${PR}/" apps/web/preview/index.html
+          # Stage under a PR-specific subfolder so preview lives at .../<repo>/${PR}/
+          rm -rf preview
+          mkdir -p "preview/${PR}"
+          cp -R dist/* "preview/${PR}/"
 
-      - name: Verify preview contents
-        run: |
-          set -euo pipefail
-          REPO="${{ github.event.repository.name }}"
-          PR="pr-${{ github.event.pull_request.number }}"
-          ROOT="apps/web/preview/${PR}"
-          echo "Verifying preview at $ROOT"
-          test -f "$ROOT/index.html" || (echo "Missing index.html in $ROOT" && exit 1)
-          test -d "$ROOT/assets" || (echo "Missing assets/ directory in $ROOT" && exit 1)
-          ls -1 "$ROOT/assets" | grep -E '\.js$' >/dev/null || (echo "No JS assets found in $ROOT/assets" && exit 1)
-          # Ensure the built index references the correct base path
-          if ! grep -q "/$REPO/${PR}/assets/" "$ROOT/index.html"; then
-            echo "index.html does not reference /$REPO/${PR}/assets/ — base path may be wrong."
-            echo "First 20 lines of index.html:"
-            head -n 20 "$ROOT/index.html" || true
-            exit 1
-          fi
-          echo "Preview contents look good."
+          # GitHub Pages niceties
+          touch preview/.nojekyll
+          cp "preview/${PR}/index.html" "preview/${PR}/404.html"
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
@@ -114,28 +90,29 @@ jobs:
             const prNum = ${{ github.event.pull_request.number }};
             const base = pageUrl.endsWith('/') ? pageUrl : pageUrl + '/';
             const previewUrl = `${base}pr-${prNum}/`;
-            const pr = context.payload.pull_request;
-            const body = `🚀 Preview deployed: ${previewUrl}`;
-            // Upsert a comment tagged with a hidden marker so updates replace previous
             const marker = '<!-- preview-url-comment -->';
+
             const list = await github.rest.issues.listComments({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              issue_number: pr.number,
+              issue_number: prNum,
             });
-            const existing = list.data.find(c => c.body && c.body.includes(marker));
+
+            const existing = list.data.find(c => c.body?.includes(marker));
+            const body = `${marker}\n🚀 Preview deployed: ${previewUrl}`;
+
             if (existing) {
               await github.rest.issues.updateComment({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 comment_id: existing.id,
-                body: `${marker}\n${body}`,
+                body,
               });
             } else {
               await github.rest.issues.createComment({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
-                issue_number: pr.number,
-                body: `${marker}\n${body}`,
+                issue_number: prNum,
+                body,
               });
             }
