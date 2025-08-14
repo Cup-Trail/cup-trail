@@ -56,7 +56,39 @@ jobs:
           mkdir -p apps/web/preview/${PR}
           cp -R apps/web/dist/* apps/web/preview/${PR}/
           touch apps/web/preview/.nojekyll
+
           cp apps/web/preview/${PR}/index.html apps/web/preview/${PR}/404.html
+
+      - name: Write root redirect to current PR
+        run: |
+          PR="pr-${{ github.event.pull_request.number }}"
+          mkdir -p apps/web/preview
+          cat > apps/web/preview/index.html <<'HTML'
+          <!doctype html>
+          <meta http-equiv="refresh" content="0; url=./PR_PLACEHOLDER/">
+          <meta name="robots" content="noindex">
+          <p>Redirecting to preview…</p>
+          HTML
+          sed -i "s/PR_PLACEHOLDER/${PR}/" apps/web/preview/index.html
+
+      - name: Verify preview contents
+        run: |
+          set -euo pipefail
+          REPO="${{ github.event.repository.name }}"
+          PR="pr-${{ github.event.pull_request.number }}"
+          ROOT="apps/web/preview/${PR}"
+          echo "Verifying preview at $ROOT"
+          test -f "$ROOT/index.html" || (echo "Missing index.html in $ROOT" && exit 1)
+          test -d "$ROOT/assets" || (echo "Missing assets/ directory in $ROOT" && exit 1)
+          ls -1 "$ROOT/assets" | grep -E '\.js$' >/dev/null || (echo "No JS assets found in $ROOT/assets" && exit 1)
+          # Ensure the built index references the correct base path
+          if ! grep -q "/$REPO/${PR}/assets/" "$ROOT/index.html"; then
+            echo "index.html does not reference /$REPO/${PR}/assets/ — base path may be wrong."
+            echo "First 20 lines of index.html:"
+            head -n 20 "$ROOT/index.html" || true
+            exit 1
+          fi
+          echo "Preview contents look good."
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
