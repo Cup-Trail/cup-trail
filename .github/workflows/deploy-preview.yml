@@ -73,6 +73,10 @@ jobs:
         uses: actions/upload-pages-artifact@v3
         with:
           path: preview
+      - name: List workspace contents
+        run: |
+          echo "=== Workspace root ==="
+          ls -R $GITHUB_WORKSPACE
 
   deploy:
     environment:
