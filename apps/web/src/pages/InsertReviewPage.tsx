@@ -61,7 +61,7 @@ export default function InsertReviewPage() {
       <TextField label="Drink" value={drink} onChange={(e) => setDrink(e.target.value)} fullWidth />
       <TextField label="Shop" value={shopName} fullWidth disabled />
       <TextField
-        label="Rating (0 - 10)"
+        label="Rating (0 - 5)"
         value={rating}
         onChange={(e) => setRating(e.target.value)}
         fullWidth
