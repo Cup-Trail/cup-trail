@@ -1,9 +1,10 @@
 // react imports
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+
 // screens
-import SearchScreen from './src/screens/SearchScreen';
 import InsertReview from './src/screens/InsertReviewScreen';
+import SearchScreen from './src/screens/SearchScreen';
 import StorefrontScreen from './src/screens/StorefrontScreen';
 
 const Stack = createNativeStackNavigator();

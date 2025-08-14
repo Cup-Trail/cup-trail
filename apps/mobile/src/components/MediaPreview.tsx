@@ -1,3 +1,6 @@
+import { useEvent } from 'expo';
+import type { ImagePickerAsset } from 'expo-image-picker';
+import { useVideoPlayer, VideoView } from 'expo-video';
 import {
   StyleSheet,
   View,
@@ -6,32 +9,37 @@ import {
   TouchableOpacity,
   TouchableWithoutFeedback,
 } from 'react-native';
-import { useEvent } from 'expo';
-import { useVideoPlayer, VideoView } from 'expo-video';
-import type { ImagePickerAsset } from 'expo-image-picker';
 
 export interface MediaPreviewProps {
   media: ImagePickerAsset;
-  onRemove?: (uri: string) => void;
+  onRemove?: () => void;
 }
 
 export default function MediaPreview({ media, onRemove }: MediaPreviewProps) {
-  if (!media?.uri) return null;
-
+  // Always call hooks first, before any conditional returns
   const isVideo = media.type === 'video';
-  const player = useVideoPlayer(media.uri, (player) => {
-    player.loop = true;
-    player.play();
-    player.muted = true;
+
+  // Always call hooks, even if we don't use them
+  const player = useVideoPlayer(media.uri, player => {
+    if (player) {
+      player.loop = true;
+      player.play();
+      player.muted = true;
+    }
   });
+
   const { isPlaying } = useEvent(player, 'playingChange', {
     isPlaying: player?.playing,
   });
+
   const handlePress = () => {
     if (player) {
       isPlaying ? player.pause() : player.play();
     }
   };
+
+  // Now we can have conditional returns
+  if (!media?.uri) return null;
 
   return (
     <View style={styles.wrapper}>
@@ -54,7 +62,7 @@ export default function MediaPreview({ media, onRemove }: MediaPreviewProps) {
       {/* ✕ Remove Button */}
       <TouchableOpacity
         style={styles.removeButton}
-        onPress={() => onRemove?.(media.uri)}
+        onPress={() => onRemove?.()}
       >
         <Text style={styles.removeText}>✕</Text>
       </TouchableOpacity>

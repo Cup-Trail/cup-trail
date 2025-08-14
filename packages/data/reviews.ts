@@ -49,7 +49,9 @@ const REVIEW_SELECT = `
 ` as const;
 
 function normalizeReview(row: any): ReviewRow {
-  const sd = Array.isArray(row.shop_drinks) ? row.shop_drinks[0] : row.shop_drinks;
+  const sd = Array.isArray(row.shop_drinks)
+    ? row.shop_drinks[0]
+    : row.shop_drinks;
   const d = sd?.drinks && Array.isArray(sd.drinks) ? sd.drinks[0] : sd?.drinks;
   const s = sd?.shops && Array.isArray(sd.shops) ? sd.shops[0] : sd?.shops;
   return {
@@ -92,7 +94,7 @@ export async function getReviewsByShopAndDrink(
       .order('created_at', { ascending: false });
 
     if (error) {
-      console.error('[Supabase Read Error]', error.message);
+      // Silently handle supabase error
       return {
         success: false,
         source: 'supabase',
@@ -101,7 +103,7 @@ export async function getReviewsByShopAndDrink(
     }
 
     if (!data || data.length === 0) {
-      console.warn(`No reviews found for ${drinkName} at ${shopName}`);
+      // Silently handle no reviews found
       return {
         success: false,
         source: 'supabase',
@@ -113,7 +115,14 @@ export async function getReviewsByShopAndDrink(
 
     return { success: true, data: normalized } satisfies Ok<ReviewRow[]>;
   } catch (err) {
-    console.error('[Exception]', (err as any)?.message);
+    // Log for debugging in development
+    if (
+      typeof process !== 'undefined' &&
+      process.env.NODE_ENV === 'development'
+    ) {
+      console.error('[Reviews] Exception:', err);
+    }
+
     return {
       success: false,
       source: 'exception',
@@ -132,10 +141,9 @@ export async function getRecentReviews(): Promise<Result<ReviewRow[]>> {
       .select(REVIEW_SELECT)
       .order('created_at', { ascending: false })
       .limit(10);
-    console.log('[Supabase response]', { data, error });
-
+    // console.log('[Supabase response]', { data, error }); // Removed for production
     if (error) {
-      console.error('[Supabase Read Error]', error.message);
+      // Silently handle supabase error
       return {
         success: false,
         source: 'supabase',
@@ -144,7 +152,7 @@ export async function getRecentReviews(): Promise<Result<ReviewRow[]>> {
     }
 
     if (!data || data.length === 0) {
-      console.warn(`No recent reviews found.`);
+      // Silently handle no recent reviews
       return {
         success: false,
         source: 'supabase',
@@ -156,8 +164,12 @@ export async function getRecentReviews(): Promise<Result<ReviewRow[]>> {
 
     return { success: true, data: normalized } satisfies Ok<ReviewRow[]>;
   } catch (err) {
-    console.error('[Exception]', (err as any)?.message);
-    return { success: false, source: 'exception', message: (err as any)?.message ?? 'Unknown error' } satisfies Err<ReviewRow[]>;
+    // Silently handle exception
+    return {
+      success: false,
+      source: 'exception',
+      message: (err as any)?.message ?? 'Unknown error',
+    } satisfies Err<ReviewRow[]>;
   }
 }
 /**
@@ -181,13 +193,15 @@ export async function insertReview(
 ): Promise<Result<ReviewRow>> {
   try {
     const drinkResult = await getOrInsertDrink(drinkName);
-    if (!drinkResult?.success) return (drinkResult as any) satisfies Err<ReviewRow>;
+    if (!drinkResult?.success)
+      return drinkResult as any satisfies Err<ReviewRow>;
 
     const shopDrinkResult = await getOrInsertShopDrink(
       shopId,
       drinkResult.data.id
     );
-    if (!shopDrinkResult?.success) return (shopDrinkResult as any) satisfies Err<ReviewRow>;
+    if (!shopDrinkResult?.success)
+      return shopDrinkResult as any satisfies Err<ReviewRow>;
 
     const { data: inserted, error } = await supabase
       .from(REVIEWS_TABLE)
@@ -201,14 +215,18 @@ export async function insertReview(
       .select()
       .single();
     if (error) {
-      console.error('[insertReview → insert]', error.message);
-      return { success: false, source: 'supabase', message: error.message } satisfies Err<ReviewRow>;
+      // Silently handle insert error
+      return {
+        success: false,
+        source: 'supabase',
+        message: error.message,
+      } satisfies Err<ReviewRow>;
     }
 
     const avgResult = await calculateAndUpdateAvgRating(
       shopDrinkResult.data.id
     );
-    if (!avgResult?.success) return (avgResult as any) satisfies Err<ReviewRow>;
+    if (!avgResult?.success) return avgResult as any satisfies Err<ReviewRow>;
 
     if (mediaUrlArr && mediaUrlArr.length > 0) {
       let mediaUrl = null;
@@ -227,14 +245,26 @@ export async function insertReview(
           shopDrinkResult.data.id,
           { cover_photo_url: mediaUrl }
         );
-        if (!uploadNewCoverPhoto?.success) return (uploadNewCoverPhoto as any) satisfies Err<ReviewRow>;
+        if (!uploadNewCoverPhoto?.success)
+          return uploadNewCoverPhoto as any satisfies Err<ReviewRow>;
       }
     }
 
     return { success: true, data: inserted } satisfies Ok<ReviewRow>;
   } catch (err) {
-    console.error('[insertReview → exception]', (err as any)?.message);
-    return { success: false, source: 'exception', message: (err as any)?.message ?? 'Unknown error' } satisfies Err<ReviewRow>;
+    // Log for debugging in development
+    if (
+      typeof process !== 'undefined' &&
+      process.env.NODE_ENV === 'development'
+    ) {
+      console.error('[Reviews] Insert exception:', err);
+    }
+
+    return {
+      success: false,
+      source: 'exception',
+      message: (err as any)?.message ?? 'Unknown error',
+    } satisfies Err<ReviewRow>;
   }
 }
 
@@ -246,14 +276,12 @@ async function calculateAndUpdateAvgRating(shopDrinkId: string) {
       .eq('shop_drink_id', shopDrinkId);
 
     if (error) {
-      console.error('[calculateAndUpdateAvgRating → get]', error.message);
+      // Silently handle supabase error
       return { success: false, source: 'supabase', message: error.message };
     }
 
     if (!data?.length) {
-      console.warn(
-        `[calculateAndUpdateAvgRating] No ratings for ${shopDrinkId}`
-      );
+      // Silently handle no ratings
       return { success: true };
     }
 
@@ -263,7 +291,18 @@ async function calculateAndUpdateAvgRating(shopDrinkId: string) {
       ) / 10;
     return await updateShopDrink(shopDrinkId, { avg_rating: avg });
   } catch (err) {
-    console.error('[calculateAndUpdateAvgRating → exception]', (err as any)?.message);
-    return { success: false, source: 'exception', message: (err as any)?.message ?? 'Unknown error' };
+    // Log for debugging in development
+    if (
+      typeof process !== 'undefined' &&
+      process.env.NODE_ENV === 'development'
+    ) {
+      console.error('[Reviews] Calculate avg rating exception:', err);
+    }
+
+    return {
+      success: false,
+      source: 'exception',
+      message: (err as any)?.message ?? 'Unknown error',
+    };
   }
 }

@@ -62,7 +62,14 @@ export async function getOrInsertShop(
 
     return { success: true, data: insertData as ShopRow } satisfies Ok<ShopRow>;
   } catch (err) {
-    console.error('[Exception]', (err as any)?.message);
+    // Log for debugging in development
+    if (
+      typeof process !== 'undefined' &&
+      process.env.NODE_ENV === 'development'
+    ) {
+      console.error('[Shops] Exception:', err);
+    }
+
     return {
       success: false,
       source: 'exception',
@@ -84,11 +91,21 @@ export async function archiveShop(name: string): Promise<Result<ShopRow>> {
       .maybeSingle();
 
     if (error) {
-      console.error('[Supabase Update Error]', error.message);
-      return { success: false, source: 'supabase', message: error.message } satisfies Err<ShopRow>;    }
+      // Silently handle supabase error
+      return {
+        success: false,
+        source: 'supabase',
+        message: error.message,
+      } satisfies Err<ShopRow>;
+    }
 
-    return { success: true, data: data as ShopRow } satisfies Ok<ShopRow>;  } catch (err) {
-    console.error('[Exception]', (err as any)?.message);
-    return { success: false, source: 'exception', message: (err as any)?.message ?? 'Unknown error' } satisfies Err<ShopRow>;
+    return { success: true, data: data as ShopRow } satisfies Ok<ShopRow>;
+  } catch (err) {
+    // Silently handle exception
+    return {
+      success: false,
+      source: 'exception',
+      message: (err as any)?.message ?? 'Unknown error',
+    } satisfies Err<ShopRow>;
   }
 }

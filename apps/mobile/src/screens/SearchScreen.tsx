@@ -1,4 +1,8 @@
-// react
+import { getRecentReviews } from '@cuptrail/data/reviews';
+import { getOrInsertShop } from '@cuptrail/data/shops';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { useState, useCallback, useEffect, JSX } from 'react';
 import {
   View,
   Text,
@@ -10,12 +14,6 @@ import {
   TouchableOpacity,
   TouchableWithoutFeedback,
 } from 'react-native';
-import { useState, useCallback, useEffect, JSX } from 'react';
-import { useNavigation, useFocusEffect } from '@react-navigation/native';
-import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-// backend
-import { getOrInsertShop } from '@cuptrail/data/shops';
-import { getRecentReviews } from '@cuptrail/data/reviews';
 
 // mock data for now
 const categories = ['Matcha', 'Boba', 'Coffee', 'Milk Tea', 'Fruit Tea'];
@@ -87,17 +85,16 @@ export default function SearchScreen(): JSX.Element {
           },
         }
       );
-      console.log(response);
       const json: { predictions?: Prediction[] } = await response.json();
 
       if (json.predictions) {
         setSuggestions(json.predictions);
       } else {
-        console.warn('No predictions returned from edge function');
+        // Silently handle no predictions
         setSuggestions([]);
       }
-    } catch (err) {
-      console.error('Autocomplete fetch error:', err);
+    } catch {
+      // Silently handle fetch error
       setSuggestions([]);
     }
   };
@@ -128,7 +125,7 @@ export default function SearchScreen(): JSX.Element {
         } = data.result || {};
         const lat = geometry?.location?.lat;
         const lng = geometry?.location?.lng;
-        console.log(formatted_address);
+        // console.log(formatted_address); // Removed for production
 
         if (activeField === 'name' && placeName) setName(placeName);
         if (
@@ -144,7 +141,7 @@ export default function SearchScreen(): JSX.Element {
             lng
           );
           if (result.success) {
-            console.log('Shop row:', result.data);
+            // console.log('Shop row:', result.data); // Removed for production
             const shopId = String(result.data?.id ?? '');
             navigation.navigate('Storefront', {
               shopName: placeName,
@@ -152,23 +149,23 @@ export default function SearchScreen(): JSX.Element {
               shopId: shopId,
             });
           } else {
-            console.warn('Failed to get or create shop:', result.message);
+            // console.warn('Failed to get or create shop:', result.message); // Removed for production
           }
         }
       } else {
-        console.warn('Place Details failed:', data.status);
+        // console.warn('Place Details failed:', data.status); // Removed for production
       }
-    } catch (error) {
-      console.error('Failed to get place details:', error);
+    } catch {
+      // Silently handle place details error
     }
     setSuggestions([]);
   };
   useEffect(() => {
     const getReviews = async () => {
       const result = await getRecentReviews();
-      console.log('[SearchScreen] useEffect result:', result);
+      // console.log('[SearchScreen] useEffect result:', result); // Removed for production
       if (!result?.success) {
-        console.warn('Error getting reviews:', result?.message);
+        // console.warn('Error getting reviews:', result?.message); // Removed for production
         return;
       }
       setReviews(result.data);
@@ -179,9 +176,9 @@ export default function SearchScreen(): JSX.Element {
     useCallback(() => {
       const reloadReviews = async () => {
         const result = await getRecentReviews();
-        console.log('[SearchScreen] useFocusEffect result:', result);
+        // console.log('[SearchScreen] useFocusEffect result:', result); // Removed for production
         if (!result?.success) {
-          console.warn('Error reloading reviews:', result?.message);
+          // console.warn('Error reloading reviews:', result?.message); // Removed for production
           return;
         }
         setReviews(result.data);
@@ -215,7 +212,7 @@ export default function SearchScreen(): JSX.Element {
             <FlatList<Prediction>
               keyboardShouldPersistTaps="handled"
               data={suggestions}
-              keyExtractor={(item) => item.place_id}
+              keyExtractor={item => item.place_id}
               renderItem={({ item }) => (
                 <TouchableOpacity
                   style={styles.suggestion}
@@ -233,7 +230,7 @@ export default function SearchScreen(): JSX.Element {
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.chipRow}
           >
-            {categories.map((cat) => (
+            {categories.map(cat => (
               <TouchableOpacity key={cat} style={styles.chip}>
                 <Text style={styles.chipText}>{cat}</Text>
               </TouchableOpacity>
@@ -244,7 +241,7 @@ export default function SearchScreen(): JSX.Element {
         <Text style={styles.sectionTitle}>Recently reviewed shops</Text>
         <FlatList<Review>
           data={reviews}
-          keyExtractor={(item) => String(item.id)}
+          keyExtractor={item => String(item.id)}
           renderItem={({ item }) => {
             const shopName = item.shop_drinks?.shops?.name;
             const drinkName = item.shop_drinks?.drinks?.name;

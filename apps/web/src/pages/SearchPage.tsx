@@ -1,3 +1,4 @@
+import { getRecentReviews, getOrInsertShop } from '@cuptrail/data';
 import {
   Box,
   Chip,
@@ -13,8 +14,8 @@ import {
 import { useEffect, useState } from 'react';
 import type { JSX } from 'react';
 import { useNavigate } from 'react-router-dom';
+
 // backend
-import { getRecentReviews, getOrInsertShop } from '@cuptrail/data';
 
 const categories = ['Matcha', 'Coffee', 'Milk Tea', 'Fruit Tea'];
 
@@ -76,17 +77,17 @@ export default function SearchPage(): JSX.Element {
           },
         }
       );
-      console.log(response);
+      // console.log(response); // Removed for production
       const json: { predictions?: Prediction[] } = await response.json();
 
       if (json.predictions) {
         setSuggestions(json.predictions);
       } else {
-        console.warn('No predictions returned from edge function');
+        // Silently handle no predictions
         setSuggestions([]);
       }
-    } catch (err) {
-      console.error('Autocomplete fetch error:', err);
+    } catch {
+      // Silently handle fetch error
       setSuggestions([]);
     }
   }
@@ -108,46 +109,57 @@ export default function SearchPage(): JSX.Element {
       const data: PlaceDetailsAPIResponse = await response.json();
 
       if (data.status === 'OK') {
-        const { name: placeName, formatted_address, geometry } = data.result || {};
-        const lat = geometry?.location?.lat;
-        const lng = geometry?.location?.lng;
-        console.log(formatted_address);
+        try {
+          const { name: placeName, formatted_address, geometry } = data.result || {};
+          const lat = geometry?.location?.lat;
+          const lng = geometry?.location?.lng;
+          // console.log(formatted_address); // Removed for production
 
-        if (activeField === 'name' && placeName) setName(placeName);
-        if (placeName && formatted_address && typeof lat === 'number' && typeof lng === 'number') {
-          const result = await getOrInsertShop(placeName, formatted_address, lat, lng);
-          if (!result?.success) {
-            console.warn('Failed to get or create shop');
+          if (activeField === 'name' && placeName) setName(placeName);
+          if (
+            placeName &&
+            formatted_address &&
+            typeof lat === 'number' &&
+            typeof lng === 'number'
+          ) {
+            const result = await getOrInsertShop(placeName, formatted_address, lat, lng);
+            if (!result?.success) {
+              // Silently handle shop creation failure
+              setSuggestions([]);
+              return;
+            }
+
+            const rawId = (result.data as any)?.id;
+            // Accept numeric or string ids; coerce to non-empty string
+            const shopId =
+              rawId != null && String(rawId).trim().length > 0 ? String(rawId).trim() : '';
+            if (!shopId) {
+              // Silently handle missing shop id
+              setSuggestions([]);
+              return;
+            }
+
+            // Clear suggestions before navigation to avoid re-click race conditions
             setSuggestions([]);
-            return;
-          }
 
-          const rawId = (result.data as any)?.id;
-          // Accept numeric or string ids; coerce to non-empty string
-          const shopId =
-            rawId != null && String(rawId).trim().length > 0 ? String(rawId).trim() : '';
-          if (!shopId) {
-            console.warn('Missing or invalid shop id from getOrInsertShop result.', result);
-            setSuggestions([]);
-            return;
+            try {
+              navigate(`/shop/${encodeURIComponent(shopId)}`, {
+                state: { shopName: placeName, address: formatted_address, shopId },
+              });
+            } catch {
+              // Silently handle navigation error
+            }
+          } else {
+            // Silently handle place details failure
           }
-
-          // Clear suggestions before navigation to avoid re-click race conditions
-          setSuggestions([]);
-
-          try {
-            navigate(`/shop/${encodeURIComponent(shopId)}`, {
-              state: { shopName: placeName, address: formatted_address, shopId },
-            });
-          } catch (navErr) {
-            console.error('Navigation error to storefront route:', navErr);
-          }
+        } catch {
+          // Silently handle place details error
         }
       } else {
-        console.warn('Place Details failed:', data.status);
+        // Silently handle place details failure
       }
-    } catch (error) {
-      console.error('Failed to get place details:', error);
+    } catch {
+      // Silently handle place details error
     }
     setSuggestions([]);
   }
@@ -167,7 +179,7 @@ export default function SearchPage(): JSX.Element {
       {suggestions.length > 0 && (
         <Paper variant="outlined">
           <List dense>
-            {suggestions.map((s) => (
+            {suggestions.map((s: Prediction) => (
               <ListItemButton key={s.place_id} onClick={() => handleSelectSuggestion(s)}>
                 <ListItemText primary={s.description} />
               </ListItemButton>
@@ -188,7 +200,7 @@ export default function SearchPage(): JSX.Element {
 
       <Typography variant="h6">Recently Reviewed Shops</Typography>
       <Stack gap={1}>
-        {reviews.map((item) => {
+        {reviews.map((item: Review) => {
           const shopName = item.shop_drinks?.shops?.name;
           const drinkName = item.shop_drinks?.drinks?.name;
           return (

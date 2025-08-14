@@ -1,6 +1,6 @@
 /**
  * Common result type for data layer functions.
- * 
+ *
  */
 export type Result<T> =
   | { success: true; data: T }

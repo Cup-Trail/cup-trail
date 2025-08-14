@@ -1,12 +1,16 @@
+import { insertReview } from '@cuptrail/data';
 import { Alert, Box, Button, Snackbar, Stack, TextField, Typography } from '@mui/material';
 import { useState } from 'react';
 import { useLocation, useParams } from 'react-router-dom';
-import { insertReview } from '@cuptrail/data';
+
+type LocationState = {
+  shopName: string;
+};
 
 export default function InsertReviewPage() {
   const { shopId } = useParams();
-  const location = useLocation() as any;
-  const shopName = location.state?.shopName ?? '';
+  const location = useLocation();
+  const shopName = (location.state as LocationState)?.shopName ?? '';
   // no navigation needed here
 
   const [drink, setDrink] = useState('');
@@ -84,10 +88,10 @@ export default function InsertReviewPage() {
       <Snackbar
         open={snack.open}
         autoHideDuration={3000}
-        onClose={() => setSnack((s) => ({ ...s, open: false }))}
+        onClose={() => setSnack((s: typeof snack) => ({ ...s, open: false }))}
       >
         <Alert
-          onClose={() => setSnack((s) => ({ ...s, open: false }))}
+          onClose={() => setSnack((s: typeof snack) => ({ ...s, open: false }))}
           severity={snack.severity}
           variant="filled"
           sx={{ width: '100%' }}

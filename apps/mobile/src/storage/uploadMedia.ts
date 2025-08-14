@@ -4,7 +4,6 @@ import type * as ExpoFileSystem from 'expo-file-system';
 
 let FileSystem: typeof ExpoFileSystem | null = null;
 try {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
   FileSystem = require('expo-file-system');
 } catch {
   FileSystem = null;

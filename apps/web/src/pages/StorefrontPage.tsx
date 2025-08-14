@@ -1,8 +1,8 @@
+import { getHighlyRatedDrinks } from '@cuptrail/data/drinks';
+import type { ShopDrinkRow } from '@cuptrail/data/drinks';
 import { Box, Button, Paper, Stack, Typography } from '@mui/material';
 import { useEffect, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
-
-import { getHighlyRatedDrinks } from '@cuptrail/data/drinks';
 
 export default function StorefrontPage() {
   const { shopId } = useParams();
@@ -10,7 +10,7 @@ export default function StorefrontPage() {
   const location = useLocation() as any;
   const shopName = location.state?.shopName ?? 'Shop';
   const address = location.state?.address ?? '';
-  const [drinks, setDrinks] = useState<any[]>([]);
+  const [drinks, setDrinks] = useState<ShopDrinkRow[]>([]);
 
   useEffect(() => {
     if (!shopId) return;
@@ -31,7 +31,7 @@ export default function StorefrontPage() {
 
       <Typography variant="h6">Popular Drinks</Typography>
       <Stack direction="row" spacing={2} sx={{ overflowX: 'auto', pb: 1 }}>
-        {drinks.map((item) => (
+        {drinks.map((item: ShopDrinkRow) => (
           <Paper key={item.id} variant="outlined" sx={{ p: 2, minWidth: 200 }}>
             <Typography fontWeight={600}>{item.drinks.name}</Typography>
             <Typography mt={0.5}>⭐ {item.avg_rating}/5</Typography>

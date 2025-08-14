@@ -11,6 +11,7 @@
     "lint:fix": "eslint . --ext .ts,.tsx --fix",
     "format": "prettier --write .",
     "typecheck": "tsc --noEmit",
+    "clean": "rm -rf dist",
     "release": "standard-version",
     "release:patch": "standard-version --release-as patch",
     "release:minor": "standard-version --release-as minor",
@@ -28,6 +29,8 @@
     "react-router-dom": "^6.26.2"
   },
   "devDependencies": {
+    "@types/react": "^19.0.14",
+    "@types/react-dom": "^19.1.7",
     "@typescript-eslint/eslint-plugin": "^8.9.0",
     "@typescript-eslint/parser": "^8.9.0",
     "@vitejs/plugin-react": "^4.3.1",

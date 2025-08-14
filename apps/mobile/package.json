@@ -5,7 +5,12 @@
     "start": "expo start",
     "dev": "expo start",
     "android": "expo run:android",
-    "ios": "expo run:ios"
+    "ios": "expo run:ios",
+    "lint": "eslint . --ext .ts,.tsx",
+    "lint:fix": "eslint . --ext .ts,.tsx --fix",
+    "typecheck": "tsc --noEmit",
+    "build": "tsc --noEmit",
+    "clean": "rm -rf dist"
   },
   "dependencies": {
     "@cuptrail/data": "workspace:*",
@@ -20,6 +25,7 @@
     "react-native": "0.79.5"
   },
   "devDependencies": {
-    "typescript": "~5.8.3"
+    "typescript": "~5.8.3",
+    "@types/react": "^19.0.0"
   }
 }

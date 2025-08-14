@@ -1,4 +1,12 @@
-// react
+import { getHighlyRatedDrinks } from '@cuptrail/data/drinks';
+import {
+  useRoute,
+  useNavigation,
+  useFocusEffect,
+} from '@react-navigation/native';
+import type { RouteProp } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { useEffect, useCallback, useState, JSX } from 'react';
 import {
   View,
   Text,
@@ -8,16 +16,6 @@ import {
   TouchableOpacity,
   ScrollView,
 } from 'react-native';
-import {
-  useRoute,
-  useNavigation,
-  useFocusEffect,
-} from '@react-navigation/native';
-import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import type { RouteProp } from '@react-navigation/native';
-import { useEffect, useCallback, useState, JSX } from 'react';
-// backend
-import { getHighlyRatedDrinks } from '@cuptrail/data/drinks';
 
 // --- Types ---
 type RootStackParamList = {
@@ -43,11 +41,11 @@ export default function StoreFrontScreen(): JSX.Element {
   useEffect(() => {
     if (address) setShopAddress(address);
     const getDrinks = async () => {
-      console.log(`shopId = ${shopId}`);
+      // console.log(`shopId = ${shopId}`); // Removed for production
       const result = await getHighlyRatedDrinks(shopId);
-      console.log('[StoreFrontScreen] useEffect result:', result);
+      // console.log('[StoreFrontScreen] useEffect result:', result); // Removed for production
       if (!result?.success) {
-        console.warn('Error getting ratings:', result?.message);
+        // console.warn('Error getting ratings:', result?.message); // Removed for production
         return;
       }
       setDrinks(result.data as DrinkItem[]);
@@ -61,9 +59,7 @@ export default function StoreFrontScreen(): JSX.Element {
       const reloadDrinks = async () => {
         // reload drinks and store details
         const result = await getHighlyRatedDrinks(shopId);
-        console.log('[StoreFrontScreen] useFocusEffect result:', result);
         if (!result?.success) {
-          console.warn('Error reloading ratings:', result?.message);
           return;
         }
         setDrinks(result.data as DrinkItem[]);
@@ -81,7 +77,7 @@ export default function StoreFrontScreen(): JSX.Element {
       <FlatList<DrinkItem>
         data={drinks}
         horizontal
-        keyExtractor={(item) => String(item.id)}
+        keyExtractor={item => String(item.id)}
         renderItem={({ item }) => (
           <View style={styles.drinkCard}>
             {item.cover_photo_url && (

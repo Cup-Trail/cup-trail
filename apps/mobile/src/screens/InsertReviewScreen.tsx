@@ -1,4 +1,7 @@
-// react & expo
+import { insertReview } from '@cuptrail/data/reviews';
+import { useRoute, useNavigation } from '@react-navigation/native';
+import * as ImagePicker from 'expo-image-picker';
+import { useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -8,15 +11,15 @@ import {
   ScrollView,
   TouchableOpacity,
 } from 'react-native';
-import { useState, useCallback } from 'react';
-import * as ImagePicker from 'expo-image-picker';
-import { useRoute, useNavigation } from '@react-navigation/native';
-// custom component
+
 import MediaPreview from '../components/MediaPreview';
-// backend
-import { uploadMedia } from '@cuptrail/data';
-import { insertReview } from '@cuptrail/data/reviews';
+import { uploadMedia } from '../storage/uploadMedia';
 // import { getCurrentUserId } from '../apis/users';
+
+type RouteParams = {
+  shopName: string;
+  shopId: string;
+};
 
 export default function InsertReviewScreen() {
   const route = useRoute();
@@ -27,7 +30,7 @@ export default function InsertReviewScreen() {
   const [drink, setDrink] = useState('');
   const [mediaArr, setMedia] = useState<ImagePicker.ImagePickerAsset[]>([]);
 
-  const { shopName, shopId } = (route.params as any) || {
+  const { shopName, shopId } = (route.params as RouteParams) || {
     shopName: '',
     shopId: '',
   };
@@ -62,45 +65,64 @@ export default function InsertReviewScreen() {
             mimeType: media.mimeType ?? undefined,
             fileName: media.fileName ?? undefined,
           });
-          if ((result as any).success) {
-            uploadedUrls.push((result as any).url);
+          if (result.success) {
+            uploadedUrls.push(result.url);
           } else {
-            console.warn('Upload failed:', (result as any).message);
+            // Silently handle upload failure
+            // Could add user notification here if needed
           }
-        } catch (e) {
-          console.error('Calling uploadMedia failed', e);
+        } catch (error) {
+          // Log for debugging in development
+          if (__DEV__) {
+            console.error('Media upload failed:', error);
+          }
+
+          // Show user-friendly error message
+          Alert.alert(
+            'Upload Failed',
+            'Failed to upload media. Please try again.',
+            [{ text: 'OK', style: 'default' }]
+          );
         }
       }
 
-      const result = await insertReview(
-        shopId,
-        drink.trim(),
-        parsedRating,
-        review.trim(),
-        uploadedUrls.length > 0 ? uploadedUrls : undefined
-      );
-
-      if (result?.success) {
-        Alert.alert(
-          'Success',
-          '✅ Review added successfully!',
-          [
-            {
-              text: 'OK',
-              onPress: () => {
-                clearForm();
-                navigation.goBack();
-              },
-            },
-          ],
-          { cancelable: false }
+      try {
+        const result = await insertReview(
+          shopId,
+          drink.trim(),
+          parsedRating,
+          review.trim(),
+          uploadedUrls.length > 0 ? uploadedUrls : undefined
         );
-        return;
-      }
 
-      Alert.alert('Error', result?.message || 'Something went wrong.');
+        if (result?.success) {
+          Alert.alert(
+            'Success',
+            '✅ Review added successfully!',
+            [
+              {
+                text: 'OK',
+                onPress: () => {
+                  clearForm();
+                  navigation.goBack();
+                },
+              },
+            ],
+            { cancelable: false }
+          );
+          return;
+        }
+
+        Alert.alert('Error', result?.message || 'Something went wrong.');
+      } catch (error) {
+        // Log for debugging in development
+        if (__DEV__) {
+          console.error('Review submission failed:', error);
+        }
+
+        Alert.alert('Error', 'Failed to submit review. Please try again.');
+      }
     } catch (err: any) {
-      console.error(err);
       Alert.alert('Error', err?.message || 'Something went wrong.');
     }
   }, [rating, drink, review, mediaArr, navigation, shopId]);
@@ -114,16 +136,20 @@ export default function InsertReviewScreen() {
 
       if (!result.canceled) {
         let duplicateDetected = false;
-        setMedia((prev) => {
-          const existing = new Set(prev.map((m) => m.assetId || m.uri));
-          const newItems = result.assets.filter((m) => {
-            const id = m.assetId || m.uri;
-            if (existing.has(id)) {
-              duplicateDetected = true;
-              return false;
+        setMedia((prev: ImagePicker.ImagePickerAsset[]) => {
+          const existing = new Set(
+            prev.map((m: ImagePicker.ImagePickerAsset) => m.assetId || m.uri)
+          );
+          const newItems = result.assets.filter(
+            (m: ImagePicker.ImagePickerAsset) => {
+              const id = m.assetId || m.uri;
+              if (existing.has(id)) {
+                duplicateDetected = true;
+                return false;
+              }
+              return true;
             }
-            return true;
-          });
+          );
           if (duplicateDetected) {
             Alert.alert(
               'Duplicate Media',
@@ -133,13 +159,20 @@ export default function InsertReviewScreen() {
           return [...prev, ...newItems];
         });
       }
-    } catch (err) {
-      console.error('Image picker failed:', err);
+    } catch (error) {
+      // Log for debugging in development
+      if (__DEV__) {
+        console.error('Image picker failed:', error);
+      }
+
+      Alert.alert('Error', 'Failed to open image picker. Please try again.');
     }
   }, []);
 
   const handleRemoveMedia = (uri: string) => {
-    setMedia((prev) => prev.filter((media) => media.uri !== uri));
+    setMedia((prev: ImagePicker.ImagePickerAsset[]) =>
+      prev.filter((media: ImagePicker.ImagePickerAsset) => media.uri !== uri)
+    );
   };
   return (
     <View style={styles.container}>
@@ -200,11 +233,11 @@ export default function InsertReviewScreen() {
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.previewContainer}
         >
-          {mediaArr.map((media) => (
+          {mediaArr.map((media: ImagePicker.ImagePickerAsset) => (
             <MediaPreview
               key={media.uri}
               media={media}
-              onRemove={handleRemoveMedia}
+              onRemove={() => handleRemoveMedia(media.uri)}
             />
           ))}
         </ScrollView>

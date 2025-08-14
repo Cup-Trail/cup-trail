@@ -59,7 +59,9 @@ function normalizeShopDrink(row: any): ShopDrinkRow {
   } as ShopDrinkRow;
 }
 
-export async function getHighlyRatedDrinks(shopId: string): Promise<Result<ShopDrinkRow[]>> {
+export async function getHighlyRatedDrinks(
+  shopId: string
+): Promise<Result<ShopDrinkRow[]>> {
   try {
     const { data, error } = await supabase
       .from(SHOP_DRINKS_TABLE)
@@ -69,7 +71,11 @@ export async function getHighlyRatedDrinks(shopId: string): Promise<Result<ShopD
       .limit(10);
 
     if (error) {
-      return { success: false, source: 'supabase', message: error.message } satisfies Err<ShopDrinkRow[]>;
+      return {
+        success: false,
+        source: 'supabase',
+        message: error.message,
+      } satisfies Err<ShopDrinkRow[]>;
     }
 
     if (!data || data.length === 0) {
@@ -83,7 +89,11 @@ export async function getHighlyRatedDrinks(shopId: string): Promise<Result<ShopD
     const normalized = (data as any[]).map(normalizeShopDrink);
     return { success: true, data: normalized } satisfies Ok<ShopDrinkRow[]>;
   } catch (err) {
-    return { success: false, source: 'exception', message: (err as any)?.message ?? 'Unknown error' } satisfies Err<ShopDrinkRow[]>;
+    return {
+      success: false,
+      source: 'exception',
+      message: (err as any)?.message ?? 'Unknown error',
+    } satisfies Err<ShopDrinkRow[]>;
   }
 }
 
@@ -94,20 +104,26 @@ export async function getShopDrinkByName(
   try {
     const { data, error } = await supabase
       .from(SHOP_DRINKS_TABLE)
-      .select(`
+      .select(
+        `
         id,
         price,
         drinks (id, name),
         shops (id, name),
         avg_rating,
         cover_photo_url
-      `)
+      `
+      )
       .eq('drinks.name', drinkName)
       .eq('shops.name', shopName)
       .maybeSingle();
 
     if (error) {
-      return { success: false, source: 'supabase', message: error.message } satisfies Err<ShopDrinkRow>;
+      return {
+        success: false,
+        source: 'supabase',
+        message: error.message,
+      } satisfies Err<ShopDrinkRow>;
     }
 
     if (!data) {
@@ -121,11 +137,18 @@ export async function getShopDrinkByName(
     const normalized = normalizeShopDrink(data);
     return { success: true, data: normalized } satisfies Ok<ShopDrinkRow>;
   } catch (err) {
-    return { success: false, source: 'exception', message: (err as any)?.message ?? 'Unknown error' } satisfies Err<ShopDrinkRow>;
+    return {
+      success: false,
+      source: 'exception',
+      message: (err as any)?.message ?? 'Unknown error',
+    } satisfies Err<ShopDrinkRow>;
   }
 }
 
-export async function getOrInsertDrink(name: string, tags: string[] | null = null): Promise<Result<DrinkRow>> {
+export async function getOrInsertDrink(
+  name: string,
+  tags: string[] | null = null
+): Promise<Result<DrinkRow>> {
   try {
     const { data: getData, error: getError } = await supabase
       .from(DRINKS_TABLE)
@@ -134,7 +157,11 @@ export async function getOrInsertDrink(name: string, tags: string[] | null = nul
       .maybeSingle();
 
     if (getError) {
-      return { success: false, source: 'supabase', message: getError.message } satisfies Err<DrinkRow>;
+      return {
+        success: false,
+        source: 'supabase',
+        message: getError.message,
+      } satisfies Err<DrinkRow>;
     }
 
     if (getData) {
@@ -148,12 +175,23 @@ export async function getOrInsertDrink(name: string, tags: string[] | null = nul
       .maybeSingle();
 
     if (insertError) {
-      return { success: false, source: 'supabase', message: insertError.message } satisfies Err<DrinkRow>;
+      return {
+        success: false,
+        source: 'supabase',
+        message: insertError.message,
+      } satisfies Err<DrinkRow>;
     }
 
-    return { success: true, data: insertData as DrinkRow } satisfies Ok<DrinkRow>;
+    return {
+      success: true,
+      data: insertData as DrinkRow,
+    } satisfies Ok<DrinkRow>;
   } catch (err) {
-    return { success: false, source: 'exception', message: (err as any)?.message ?? 'Unknown error' } satisfies Err<DrinkRow>;
+    return {
+      success: false,
+      source: 'exception',
+      message: (err as any)?.message ?? 'Unknown error',
+    } satisfies Err<DrinkRow>;
   }
 }
 
@@ -171,11 +209,18 @@ export async function getOrInsertShopDrink(
       .maybeSingle();
 
     if (getError) {
-      return { success: false, source: 'supabase', message: getError.message } satisfies Err<ShopDrinkRow>;
+      return {
+        success: false,
+        source: 'supabase',
+        message: getError.message,
+      } satisfies Err<ShopDrinkRow>;
     }
 
     if (getData) {
-      return { success: true, data: normalizeShopDrink(getData) } satisfies Ok<ShopDrinkRow>;
+      return {
+        success: true,
+        data: normalizeShopDrink(getData),
+      } satisfies Ok<ShopDrinkRow>;
     }
 
     const { data: insertData, error: insertError } = await supabase
@@ -185,18 +230,32 @@ export async function getOrInsertShopDrink(
       .maybeSingle();
 
     if (insertError) {
-      return { success: false, source: 'supabase', message: insertError.message } satisfies Err<ShopDrinkRow>;
+      return {
+        success: false,
+        source: 'supabase',
+        message: insertError.message,
+      } satisfies Err<ShopDrinkRow>;
     }
 
-    return { success: true, data: normalizeShopDrink(insertData) } satisfies Ok<ShopDrinkRow>;
+    return {
+      success: true,
+      data: normalizeShopDrink(insertData),
+    } satisfies Ok<ShopDrinkRow>;
   } catch (err) {
-    return { success: false, source: 'exception', message: (err as any)?.message ?? 'Unknown error' } satisfies Err<ShopDrinkRow>;
+    return {
+      success: false,
+      source: 'exception',
+      message: (err as any)?.message ?? 'Unknown error',
+    } satisfies Err<ShopDrinkRow>;
   }
 }
 
 export async function updateShopDrink(
   shopDrinkId: string,
-  updateFieldsObj: Partial<Pick<ShopDrinkRow, 'price' | 'avg_rating' | 'cover_photo_url'>> & Record<string, any>
+  updateFieldsObj: Partial<
+    Pick<ShopDrinkRow, 'price' | 'avg_rating' | 'cover_photo_url'>
+  > &
+    Record<string, any>
 ): Promise<Result<ShopDrinkRow>> {
   try {
     const { data, error } = await supabase
@@ -207,11 +266,22 @@ export async function updateShopDrink(
       .maybeSingle();
 
     if (error) {
-      return { success: false, source: 'supabase', message: error.message } satisfies Err<ShopDrinkRow>;
+      return {
+        success: false,
+        source: 'supabase',
+        message: error.message,
+      } satisfies Err<ShopDrinkRow>;
     }
 
-    return { success: true, data: normalizeShopDrink(data) } satisfies Ok<ShopDrinkRow>;
+    return {
+      success: true,
+      data: normalizeShopDrink(data),
+    } satisfies Ok<ShopDrinkRow>;
   } catch (err) {
-    return { success: false, source: 'exception', message: (err as any)?.message ?? 'Unknown error' } satisfies Err<ShopDrinkRow>;
+    return {
+      success: false,
+      source: 'exception',
+      message: (err as any)?.message ?? 'Unknown error',
+    } satisfies Err<ShopDrinkRow>;
   }
 }
