@@ -1,9 +1,10 @@
 import { getHighlyRatedDrinks } from '@cuptrail/data/drinks';
 import type { ShopDrinkRow } from '@cuptrail/data/drinks';
+import { RATING_SCALE } from '@cuptrail/shared';
+import type { LocationState } from '@cuptrail/shared';
 import { Box, Button, Paper, Stack, Typography } from '@mui/material';
 import { useEffect, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
-import type { LocationState } from '../types';
 
 export default function StorefrontPage() {
   const { shopId } = useParams();
@@ -35,7 +36,10 @@ export default function StorefrontPage() {
         {drinks.map((item: ShopDrinkRow) => (
           <Paper key={item.id} variant="outlined" sx={{ p: 2, minWidth: 200 }}>
             <Typography fontWeight={600}>{item.drinks.name}</Typography>
-            <Typography mt={0.5}>⭐ {item.avg_rating}/5</Typography>
+            <Typography mt={0.5}>
+              ⭐ {item.avg_rating}
+              {RATING_SCALE.DISPLAY_SUFFIX}
+            </Typography>
           </Paper>
         ))}
       </Stack>
@@ -45,7 +49,9 @@ export default function StorefrontPage() {
           variant="contained"
           color="secondary"
           onClick={() =>
-            navigate(`/shop/${shopId}/review`, { state: { shopName } as LocationState })
+            navigate(`/shop/${shopId}/review`, {
+              state: { shopName } as LocationState,
+            })
           }
         >
           Write a Review

@@ -1,5 +1,16 @@
 import { getRecentReviews, getOrInsertShop } from '@cuptrail/data';
 import {
+  DRINK_CATEGORIES,
+  API_ENDPOINTS,
+  RATING_SCALE,
+} from '@cuptrail/shared';
+import type {
+  Prediction,
+  PlaceDetailsAPIResponse,
+  Review,
+  LocationState,
+} from '@cuptrail/shared';
+import {
   Box,
   Chip,
   Divider,
@@ -12,14 +23,9 @@ import {
   Typography,
 } from '@mui/material';
 import { useEffect, useState } from 'react';
-import type { JSX } from 'react';
 import { useNavigate } from 'react-router-dom';
-import type { Prediction, PlaceDetailsAPIResponse, Review, LocationState } from '../types';
-import { DRINK_CATEGORIES } from '../types';
 
-// backend
-
-export default function SearchPage(): JSX.Element {
+export default function SearchPage() {
   const navigate = useNavigate();
   const [name, setName] = useState<string>('');
   const [suggestions, setSuggestions] = useState<Prediction[]>([]);
@@ -34,101 +40,89 @@ export default function SearchPage(): JSX.Element {
 
   async function getAutocomplete(input: string): Promise<void> {
     try {
-      const baseUrl = import.meta.env.VITE_SUPABASE_URL ?? import.meta.env.EXPO_PUBLIC_SUPABASE_URL;
-      const anonKey =
-        import.meta.env.VITE_SUPABASE_ANON_KEY ?? import.meta.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
       const response = await fetch(
-        `${baseUrl}/functions/v1/maps?type=autocomplete&input=${encodeURIComponent(input)}`,
+        `${import.meta.env.VITE_SUPABASE_URL}${API_ENDPOINTS.MAPS_AUTOCOMPLETE}&input=${encodeURIComponent(input)}`,
         {
           headers: {
-            Authorization: `Bearer ${anonKey}`,
+            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
             'Content-Type': 'application/json',
           },
         }
       );
-      // console.log(response); // Removed for production
-      const json: { predictions?: Prediction[] } = await response.json();
 
-      if (json.predictions) {
-        setSuggestions(json.predictions);
-      } else {
-        // Silently handle no predictions
-        setSuggestions([]);
-      }
+      const json: { predictions?: Prediction[] } = await response.json();
+      setSuggestions(json.predictions ?? []);
     } catch {
-      // Silently handle fetch error
       setSuggestions([]);
     }
   }
 
   async function handleSelectSuggestion(suggestion: Prediction): Promise<void> {
     try {
-      const baseUrl = import.meta.env.VITE_SUPABASE_URL ?? import.meta.env.EXPO_PUBLIC_SUPABASE_URL;
-      const anonKey =
-        import.meta.env.VITE_SUPABASE_ANON_KEY ?? import.meta.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
       const response = await fetch(
-        `${baseUrl}/functions/v1/maps?type=details&place_id=${encodeURIComponent(suggestion.place_id)}`,
+        `${import.meta.env.VITE_SUPABASE_URL}${API_ENDPOINTS.MAPS_DETAILS}&place_id=${encodeURIComponent(suggestion.place_id)}`,
         {
           headers: {
-            Authorization: `Bearer ${anonKey}`,
+            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
             'Content-Type': 'application/json',
           },
         }
       );
+
       const data: PlaceDetailsAPIResponse = await response.json();
+      if (data.status !== 'OK') return;
 
-      if (data.status === 'OK') {
-        try {
-          const { name: placeName, formatted_address, geometry } = data.result || {};
-          const lat = geometry?.location?.lat;
-          const lng = geometry?.location?.lng;
-          // console.log(formatted_address); // Removed for production
+      const {
+        name: placeName,
+        formatted_address,
+        geometry,
+      } = data.result || {};
+      const lat = geometry?.location?.lat;
+      const lng = geometry?.location?.lng;
 
-          if (activeField === 'name' && placeName) setName(placeName);
-          if (
-            placeName &&
-            formatted_address &&
-            typeof lat === 'number' &&
-            typeof lng === 'number'
-          ) {
-            const result = await getOrInsertShop(placeName, formatted_address, lat, lng);
-            if (!result?.success) {
-              // Silently handle shop creation failure
-              setSuggestions([]);
-              return;
-            }
+      if (activeField === 'name' && placeName) setName(placeName);
 
-            const rawId = (result.data as any)?.id;
-            // Accept numeric or string ids; coerce to non-empty string
-            const shopId =
-              rawId != null && String(rawId).trim().length > 0 ? String(rawId).trim() : '';
-            if (!shopId) {
-              // Silently handle missing shop id
-              setSuggestions([]);
-              return;
-            }
-
-            // Clear suggestions before navigation to avoid re-click race conditions
-            setSuggestions([]);
-
-            try {
-              navigate(`/shop/${encodeURIComponent(shopId)}`, {
-                state: { shopName: placeName, address: formatted_address, shopId } as LocationState,
-              });
-            } catch {
-              // Silently handle navigation error
-            }
-          } else {
-            // Silently handle place details failure
-          }
-        } catch {
-          // Silently handle place details error
-        }
-      } else {
-        // Silently handle place details failure
+      if (
+        !placeName ||
+        !formatted_address ||
+        typeof lat !== 'number' ||
+        typeof lng !== 'number'
+      ) {
+        setSuggestions([]);
+        return;
       }
+
+      const result = await getOrInsertShop(
+        placeName,
+        formatted_address,
+        lat,
+        lng
+      );
+      if (!result?.success) {
+        setSuggestions([]);
+        return;
+      }
+
+      const rawId = result.data?.id;
+      const shopId =
+        rawId != null && String(rawId).trim().length > 0
+          ? String(rawId).trim()
+          : '';
+      if (!shopId) {
+        setSuggestions([]);
+        return;
+      }
+
+      setSuggestions([]);
+      navigate(`/shop/${encodeURIComponent(shopId)}`, {
+        state: {
+          shopName: placeName,
+          address: formatted_address,
+          shopId,
+        } as LocationState,
+      });
     } catch {
-      // Silently handle place details error
+      // Silently handle errors
     }
     setSuggestions([]);
   }
@@ -137,7 +131,7 @@ export default function SearchPage(): JSX.Element {
       <TextField
         label="Search shops, drinks, or cities..."
         value={name}
-        onChange={(e) => {
+        onChange={e => {
           setName(e.target.value);
           setActiveField('name');
           getAutocomplete(e.target.value);
@@ -149,7 +143,10 @@ export default function SearchPage(): JSX.Element {
         <Paper variant="outlined">
           <List dense>
             {suggestions.map((s: Prediction) => (
-              <ListItemButton key={s.place_id} onClick={() => handleSelectSuggestion(s)}>
+              <ListItemButton
+                key={s.place_id}
+                onClick={() => handleSelectSuggestion(s)}
+              >
                 <ListItemText primary={s.description} />
               </ListItemButton>
             ))}
@@ -159,7 +156,7 @@ export default function SearchPage(): JSX.Element {
 
       <Box>
         <Stack direction="row" spacing={1} sx={{ overflowX: 'auto', pb: 1 }}>
-          {DRINK_CATEGORIES.map((c) => (
+          {DRINK_CATEGORIES.map(c => (
             <Chip key={c} label={c} color="secondary" variant="outlined" />
           ))}
         </Stack>
@@ -177,7 +174,10 @@ export default function SearchPage(): JSX.Element {
               <Typography fontWeight={600}>
                 {drinkName ? `${drinkName} @ ${shopName}` : 'Review'}
               </Typography>
-              <Typography mt={0.5}>⭐ {item.rating}/5</Typography>
+              <Typography mt={0.5}>
+                ⭐ {item.rating}
+                {RATING_SCALE.DISPLAY_SUFFIX}
+              </Typography>
               {item.comment && (
                 <Typography mt={0.5} fontStyle="italic" color="text.secondary">
                   {item.comment}

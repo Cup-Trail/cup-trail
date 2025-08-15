@@ -53,6 +53,9 @@ importers:
       '@cuptrail/data':
         specifier: workspace:*
         version: link:../../packages/data
+      '@cuptrail/shared':
+        specifier: workspace:*
+        version: link:../../packages/shared
       '@react-navigation/native':
         specifier: ^7.1.17
         version: 7.1.17(react-native@0.79.5(@babel/core@7.28.0)(@react-native-community/cli@13.6.9)(@types/react@19.0.14)(react@19.0.0))(react@19.0.0)
@@ -93,6 +96,9 @@ importers:
       '@cuptrail/data':
         specifier: workspace:*
         version: link:../../packages/data
+      '@cuptrail/shared':
+        specifier: workspace:*
+        version: link:../../packages/shared
       '@emotion/react':
         specifier: ^11.11.4
         version: 11.14.0(@types/react@19.0.14)(react@19.0.0)
@@ -176,6 +182,12 @@ importers:
       '@types/node':
         specifier: ^20.0.0
         version: 20.19.10
+      typescript:
+        specifier: ^5.8.0
+        version: 5.8.3
+
+  packages/shared:
+    devDependencies:
       typescript:
         specifier: ^5.8.0
         version: 5.8.3

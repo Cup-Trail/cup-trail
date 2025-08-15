@@ -1,8 +1,19 @@
 import { insertReview } from '@cuptrail/data';
-import { Alert, Box, Button, Snackbar, Stack, TextField, Typography } from '@mui/material';
+import { RATING_SCALE } from '@cuptrail/shared';
+import type { LocationState } from '@cuptrail/shared';
+import {
+  Alert,
+  Box,
+  Button,
+  Snackbar,
+  Stack,
+  TextField,
+  Typography,
+} from '@mui/material';
 import { useState } from 'react';
 import { useLocation, useParams } from 'react-router-dom';
-import type { LocationState, SnackState } from '../types';
+
+import type { SnackState } from '../types';
 
 export default function InsertReviewPage() {
   const { shopId } = useParams();
@@ -12,36 +23,60 @@ export default function InsertReviewPage() {
   const [drink, setDrink] = useState('');
   const [rating, setRating] = useState('');
   const [review, setReview] = useState('');
-  const [snack, setSnack] = useState<SnackState>({ open: false, message: '', severity: 'success' });
+  const [snack, setSnack] = useState<SnackState>({
+    open: false,
+    message: '',
+    severity: 'success',
+  });
 
   async function handleSubmit() {
     const parsed = parseFloat(rating);
-    if (Number.isNaN(parsed) || parsed < 0 || parsed > 5) {
+    if (
+      Number.isNaN(parsed) ||
+      parsed < RATING_SCALE.MIN ||
+      parsed > RATING_SCALE.MAX
+    ) {
       setSnack({
         open: true,
-        message: 'Please enter a rating between 0 and 5.',
+        message: `Please enter a rating between ${RATING_SCALE.MIN} and ${RATING_SCALE.MAX}.`,
         severity: 'error',
       });
       return;
     }
     if (!review) {
-      setSnack({ open: true, message: 'Please enter a valid review.', severity: 'error' });
+      setSnack({
+        open: true,
+        message: 'Please enter a valid review.',
+        severity: 'error',
+      });
       return;
     }
     if (!drink) {
-      setSnack({ open: true, message: 'Please enter a valid drink.', severity: 'error' });
+      setSnack({
+        open: true,
+        message: 'Please enter a valid drink.',
+        severity: 'error',
+      });
       return;
     }
     if (!shopId) return;
 
     const result = await insertReview(shopId, drink, parsed, review);
     if (result.success) {
-      setSnack({ open: true, message: 'Review added successfully!', severity: 'success' });
+      setSnack({
+        open: true,
+        message: 'Review added successfully!',
+        severity: 'success',
+      });
       setDrink('');
       setRating('');
       setReview('');
     } else {
-      setSnack({ open: true, message: 'Failed to add review.', severity: 'error' });
+      setSnack({
+        open: true,
+        message: 'Failed to add review.',
+        severity: 'error',
+      });
     }
   }
 
@@ -54,18 +89,23 @@ export default function InsertReviewPage() {
         Track your favorite drinks from each shop!
       </Typography>
 
-      <TextField label="Drink" value={drink} onChange={(e) => setDrink(e.target.value)} fullWidth />
+      <TextField
+        label="Drink"
+        value={drink}
+        onChange={e => setDrink(e.target.value)}
+        fullWidth
+      />
       <TextField label="Shop" value={shopName} fullWidth disabled />
       <TextField
-        label="Rating (0 - 5)"
+        label={`Rating (${RATING_SCALE.MIN} - ${RATING_SCALE.MAX})`}
         value={rating}
-        onChange={(e) => setRating(e.target.value)}
+        onChange={e => setRating(e.target.value)}
         fullWidth
       />
       <TextField
         label="Your Review"
         value={review}
-        onChange={(e) => setReview(e.target.value)}
+        onChange={e => setReview(e.target.value)}
         fullWidth
         multiline
         minRows={4}

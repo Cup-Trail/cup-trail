@@ -177,7 +177,7 @@ export async function getRecentReviews(): Promise<Result<ReviewRow[]>> {
  * insert a row into the shop_drinks table.
  * @param {*} shopId
  * @param {*} drinkName
- * @param {*} rating - up to 10
+ * @param {*} rating - up to 5
  * @param {*} comment
  * @param {*} mediaUrlArr
  * @param {*} userId
