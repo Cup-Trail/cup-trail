@@ -3,13 +3,14 @@ import type { ShopDrinkRow } from '@cuptrail/data/drinks';
 import { Box, Button, Paper, Stack, Typography } from '@mui/material';
 import { useEffect, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import type { LocationState } from '../types';
 
 export default function StorefrontPage() {
   const { shopId } = useParams();
   const navigate = useNavigate();
-  const location = useLocation() as any;
-  const shopName = location.state?.shopName ?? 'Shop';
-  const address = location.state?.address ?? '';
+  const location = useLocation();
+  const shopName = (location.state as LocationState)?.shopName ?? 'Shop';
+  const address = (location.state as LocationState)?.address ?? '';
   const [drinks, setDrinks] = useState<ShopDrinkRow[]>([]);
 
   useEffect(() => {
@@ -43,7 +44,9 @@ export default function StorefrontPage() {
         <Button
           variant="contained"
           color="secondary"
-          onClick={() => navigate(`/shop/${shopId}/review`, { state: { shopName } })}
+          onClick={() =>
+            navigate(`/shop/${shopId}/review`, { state: { shopName } as LocationState })
+          }
         >
           Write a Review
         </Button>

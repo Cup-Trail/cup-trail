@@ -2,32 +2,24 @@ import { insertReview } from '@cuptrail/data';
 import { Alert, Box, Button, Snackbar, Stack, TextField, Typography } from '@mui/material';
 import { useState } from 'react';
 import { useLocation, useParams } from 'react-router-dom';
-
-type LocationState = {
-  shopName: string;
-};
+import type { LocationState, SnackState } from '../types';
 
 export default function InsertReviewPage() {
   const { shopId } = useParams();
   const location = useLocation();
   const shopName = (location.state as LocationState)?.shopName ?? '';
-  // no navigation needed here
 
   const [drink, setDrink] = useState('');
   const [rating, setRating] = useState('');
   const [review, setReview] = useState('');
-  const [snack, setSnack] = useState<{
-    open: boolean;
-    message: string;
-    severity: 'success' | 'error';
-  }>({ open: false, message: '', severity: 'success' });
+  const [snack, setSnack] = useState<SnackState>({ open: false, message: '', severity: 'success' });
 
   async function handleSubmit() {
     const parsed = parseFloat(rating);
-    if (Number.isNaN(parsed) || parsed < 0 || parsed > 10) {
+    if (Number.isNaN(parsed) || parsed < 0 || parsed > 5) {
       setSnack({
         open: true,
-        message: 'Please enter a rating between 0 and 10.',
+        message: 'Please enter a rating between 0 and 5.',
         severity: 'error',
       });
       return;

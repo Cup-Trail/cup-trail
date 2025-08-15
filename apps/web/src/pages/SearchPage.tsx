@@ -14,41 +14,10 @@ import {
 import { useEffect, useState } from 'react';
 import type { JSX } from 'react';
 import { useNavigate } from 'react-router-dom';
+import type { Prediction, PlaceDetailsAPIResponse, Review, LocationState } from '../types';
+import { DRINK_CATEGORIES } from '../types';
 
 // backend
-
-const categories = ['Matcha', 'Coffee', 'Milk Tea', 'Fruit Tea'];
-
-// --- Types ---
-type Prediction = {
-  place_id: string;
-  description: string;
-};
-
-type PlaceDetailsAPIResponse = {
-  status?: string;
-  result?: {
-    name?: string;
-    formatted_address?: string;
-    geometry?: {
-      location?: {
-        lat: number;
-        lng: number;
-      };
-    };
-  };
-};
-
-type Review = {
-  id: string | number;
-  rating: number;
-  comment?: string | null;
-  created_at: string;
-  shop_drinks?: {
-    shops?: { name?: string | null } | null;
-    drinks?: { name?: string | null } | null;
-  } | null;
-};
 
 export default function SearchPage(): JSX.Element {
   const navigate = useNavigate();
@@ -144,7 +113,7 @@ export default function SearchPage(): JSX.Element {
 
             try {
               navigate(`/shop/${encodeURIComponent(shopId)}`, {
-                state: { shopName: placeName, address: formatted_address, shopId },
+                state: { shopName: placeName, address: formatted_address, shopId } as LocationState,
               });
             } catch {
               // Silently handle navigation error
@@ -190,7 +159,7 @@ export default function SearchPage(): JSX.Element {
 
       <Box>
         <Stack direction="row" spacing={1} sx={{ overflowX: 'auto', pb: 1 }}>
-          {categories.map((c) => (
+          {DRINK_CATEGORIES.map((c) => (
             <Chip key={c} label={c} color="secondary" variant="outlined" />
           ))}
         </Stack>
