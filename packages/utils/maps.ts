@@ -36,9 +36,11 @@ export async function getAutocomplete(input: string): Promise<Prediction[]> {
   }
 
   const { baseUrl, apiKey } = getMapsConfig();
-  
+
   if (!baseUrl || !apiKey) {
-    throw new Error('Maps configuration not found. Make sure environment variables are set.');
+    throw new Error(
+      'Maps configuration not found. Make sure environment variables are set.'
+    );
   }
 
   try {
@@ -69,15 +71,19 @@ export async function getAutocomplete(input: string): Promise<Prediction[]> {
  * @param placeId - Google Places place_id
  * @returns Promise with place details
  */
-export async function getPlaceDetails(placeId: string): Promise<PlaceDetailsAPIResponse | null> {
+export async function getPlaceDetails(
+  placeId: string
+): Promise<PlaceDetailsAPIResponse | null> {
   if (!placeId) {
     return null;
   }
 
   const { baseUrl, apiKey } = getMapsConfig();
-  
+
   if (!baseUrl || !apiKey) {
-    throw new Error('Maps configuration not found. Make sure environment variables are set.');
+    throw new Error(
+      'Maps configuration not found. Make sure environment variables are set.'
+    );
   }
 
   try {

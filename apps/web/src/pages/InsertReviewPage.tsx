@@ -16,7 +16,7 @@ import { useLocation, useParams } from 'react-router-dom';
 import type { SnackState } from '../types';
 
 export default function InsertReviewPage() {
-  const { shopId } = useParams();
+  const { shopId } = useParams<{ shopId: string }>();
   const location = useLocation();
   const shopName = (location.state as LocationState)?.shopName ?? '';
 

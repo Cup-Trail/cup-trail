@@ -1,7 +1,7 @@
 import { getHighlyRatedDrinks } from '@cuptrail/core';
 import type { ShopDrinkRow } from '@cuptrail/core';
-import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import {
   View,
@@ -20,38 +20,32 @@ export default function StoreFrontScreen() {
     shopId: string;
     latitude: string;
     longitude: string;
-    refresh?: string;
   }>();
 
-  const { shopName, address, shopId, latitude, longitude, refresh } = params;
+  const { shopName, address, shopId, latitude, longitude } = params;
   const router = useRouter();
   const [shopAddress, setShopAddress] = useState<string>('');
   const [drinks, setDrinks] = useState<ShopDrinkRow[]>([]);
 
+  const loadDrinks = useCallback(async () => {
+    const result = await getHighlyRatedDrinks(shopId);
+    if (!result?.success) {
+      return;
+    }
+    setDrinks(result.data as ShopDrinkRow[]);
+  }, [shopId]);
+
+  // Initial load and when dependencies change
   useEffect(() => {
     if (address) setShopAddress(address);
-    const getDrinks = async () => {
-      const result = await getHighlyRatedDrinks(shopId);
-      if (!result?.success) {
-        return;
-      }
-      setDrinks(result.data as ShopDrinkRow[]);
-    };
+    loadDrinks();
+  }, [address, shopId, loadDrinks]);
 
-    getDrinks();
-  }, [address, shopId]);
+  // Reload when screen comes into focus
   useFocusEffect(
     useCallback(() => {
-      const reloadDrinks = async () => {
-        // reload drinks and store details
-        const result = await getHighlyRatedDrinks(shopId);
-        if (!result?.success) {
-          return;
-        }
-        setDrinks(result.data as ShopDrinkRow[]);
-      };
-      reloadDrinks();
-    }, [shopId])
+      loadDrinks();
+    }, [loadDrinks])
   );
   return (
     <ScrollView contentContainerStyle={styles.container}>

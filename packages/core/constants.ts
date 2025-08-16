@@ -14,4 +14,9 @@ export const RATING_SCALE = {
 } as const;
 
 // Drink categories
-export const DRINK_CATEGORIES = ['Matcha', 'Coffee', 'Milk Tea', 'Fruit Tea'] as const;
+export const DRINK_CATEGORIES = [
+  'Matcha',
+  'Coffee',
+  'Milk Tea',
+  'Fruit Tea',
+] as const;

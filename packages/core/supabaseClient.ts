@@ -22,12 +22,16 @@ export function createSupabaseClient(): SupabaseClient {
   }
 
   if (!url) {
-    throw new Error('Supabase URL not found. Make sure VITE_SUPABASE_URL or EXPO_PUBLIC_SUPABASE_URL is set.');
+    throw new Error(
+      'Supabase URL not found. Make sure VITE_SUPABASE_URL or EXPO_PUBLIC_SUPABASE_URL is set.'
+    );
   }
   if (!anonKey) {
-    throw new Error('Supabase anon key not found. Make sure VITE_SUPABASE_ANON_KEY or EXPO_PUBLIC_SUPABASE_ANON_KEY is set.');
+    throw new Error(
+      'Supabase anon key not found. Make sure VITE_SUPABASE_ANON_KEY or EXPO_PUBLIC_SUPABASE_ANON_KEY is set.'
+    );
   }
-  
+
   return createClient(url, anonKey);
 }
 

@@ -18,8 +18,8 @@
     "release:major": "standard-version --release-as major"
   },
   "dependencies": {
-    "@cuptrail/utils": "workspace:*",
     "@cuptrail/core": "workspace:*",
+    "@cuptrail/utils": "workspace:*",
     "@emotion/react": "^11.11.4",
     "@emotion/styled": "^11.11.5",
     "@mui/icons-material": "^5.15.20",
@@ -30,8 +30,7 @@
     "react-router-dom": "^6.26.2"
   },
   "devDependencies": {
-    "@types/react": "^19.0.14",
-    "@types/react-dom": "^19.1.7",
+    "@types/react-dom": "^19.0.4",
     "@typescript-eslint/eslint-plugin": "^8.9.0",
     "@typescript-eslint/parser": "^8.9.0",
     "@vitejs/plugin-react": "^4.3.1",

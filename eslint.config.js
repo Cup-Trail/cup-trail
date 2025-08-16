@@ -228,6 +228,7 @@ module.exports = [
         exports: 'readonly',
         global: 'readonly',
         console: 'readonly',
+        fetch: 'readonly',
       },
     },
   },

@@ -1,8 +1,5 @@
 import { insertReview } from '@cuptrail/core';
 import { RATING_SCALE } from '@cuptrail/core';
-import { getReviewsByShopAndDrink } from '@cuptrail/core';
-import type { ReviewRow } from '@cuptrail/core';
-import { useFocusEffect } from '@react-navigation/native';
 import * as ImagePicker from 'expo-image-picker';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState, useCallback } from 'react';
@@ -14,7 +11,6 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  ActivityIndicator,
 } from 'react-native';
 
 import MediaPreview from '../../components/MediaPreview';
@@ -37,8 +33,6 @@ export default function InsertReviewScreen() {
   const [rating, setRating] = useState<string>('');
   const [drink, setDrink] = useState('');
   const [mediaArr, setMedia] = useState<ImagePicker.ImagePickerAsset[]>([]);
-  const [reviews, setReviews] = useState<ReviewRow[]>([]);
-  const [reviewsLoading, setReviewsLoading] = useState(false);
 
   const clearForm = () => {
     setDrink('');
@@ -46,30 +40,6 @@ export default function InsertReviewScreen() {
     setReview('');
     setMedia([]);
   };
-
-  useFocusEffect(
-    useCallback(() => {
-      let isActive = true;
-      const fetchReviews = async () => {
-        setReviewsLoading(true);
-        if (shopName && drink) {
-          const result = await getReviewsByShopAndDrink(shopName, drink);
-          if (isActive && result.success) {
-            setReviews(result.data);
-          } else if (isActive) {
-            setReviews([]);
-          }
-        } else {
-          setReviews([]);
-        }
-        setReviewsLoading(false);
-      };
-      fetchReviews();
-      return () => {
-        isActive = false;
-      };
-    }, [shopName, drink])
-  );
 
   const handleSubmit = useCallback(async () => {
     try {
