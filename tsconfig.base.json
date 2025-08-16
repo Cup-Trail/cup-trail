@@ -13,8 +13,10 @@
     "noEmit": true,
     "baseUrl": ".",
     "paths": {
-      "@cuptrail/data": ["packages/data"],
-      "@cuptrail/data/*": ["packages/data/*"]
+      "@cuptrail/core": ["packages/core"],
+      "@cuptrail/core/*": ["packages/core/*"],
+      "@cuptrail/utils": ["packages/utils"],
+      "@cuptrail/utils/*": ["packages/utils/*"]
     }
   }
 }

@@ -4,27 +4,9 @@ import {
   updateShopDrink,
 } from './drinks';
 import { supabase } from './supabaseClient';
-import type { Result, Ok, Err } from './types';
+import type { Result, Ok, Err, ReviewRow } from './types';
 
-export interface ReviewRow {
-  id: string;
-  rating: number;
-  comment: string | null;
-  media_urls: string[] | null;
-  created_at: string;
-  shop_drinks: {
-    id: string;
-    price: number | null;
-    drinks: {
-      id?: string;
-      name: string;
-    };
-    shops: {
-      id?: string;
-      name: string;
-    };
-  };
-}
+// ReviewRow type is now imported from ./types
 const REVIEWS_TABLE = 'reviews';
 
 // Centralize the nested select and normalization so both queries stay in sync

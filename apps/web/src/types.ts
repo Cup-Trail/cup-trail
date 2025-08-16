@@ -1,5 +1,5 @@
 // Web app specific types only
-// Most types are now imported from @cuptrail/shared
+// Most types are now imported from @cuptrail/core
 
 // Web-specific snackbar state type
 export type SnackState = {

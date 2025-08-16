@@ -1,5 +1,5 @@
 import { supabase } from './supabaseClient';
-import type { Result, Ok, Err } from './types';
+import type { Result, Ok, Err, DrinkRow, ShopDrinkRow } from './types';
 
 const DRINKS_TABLE = 'drinks';
 const SHOP_DRINKS_TABLE = 'shop_drinks';
@@ -18,26 +18,7 @@ const SHOP_DRINK_SELECT = `
   cover_photo_url
 `;
 
-export interface DrinkRow {
-  id: string;
-  name: string;
-  tags?: string[] | null;
-}
-
-export interface ShopDrinkRow {
-  id: string;
-  price: number | null;
-  avg_rating: number | null;
-  cover_photo_url: string | null;
-  drinks: {
-    id?: string;
-    name: string;
-  };
-  shops: {
-    id?: string;
-    name: string;
-  };
-}
+// DrinkRow and ShopDrinkRow types are now imported from ./types
 
 // Normalize Supabase nested array relations into single objects
 function normalizeShopDrink(row: any): ShopDrinkRow {

@@ -1,22 +1,8 @@
 import { supabase } from './supabaseClient';
 const SHOPS_TABLE = 'shops';
-import type { Result, Ok, Err } from './types';
+import type { Result, Ok, Err, ShopRow } from './types';
 
-/**
- * Minimal shape of a row in the `shops` table.
- * Add/adjust fields if your schema includes more columns.
- */
-export interface ShopRow {
-  id?: string | number;
-  name: string;
-  address: string;
-  latitude: number;
-  longitude: number;
-  image_url: string | null;
-  archived: boolean;
-  created_at?: string;
-  updated_at?: string;
-}
+// ShopRow type is now imported from ./types
 
 export async function getOrInsertShop(
   name: string,

@@ -14,7 +14,4 @@ export const RATING_SCALE = {
 } as const;
 
 // Drink categories
-export const DRINK_CATEGORIES: readonly DrinkCategory[] = ['Matcha', 'Coffee', 'Milk Tea', 'Fruit Tea'] as const;
-
-// Import the type for the constants
-import type { DrinkCategory } from './types';
+export const DRINK_CATEGORIES = ['Matcha', 'Coffee', 'Milk Tea', 'Fruit Tea'] as const;

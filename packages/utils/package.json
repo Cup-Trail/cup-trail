@@ -1,0 +1,16 @@
+{
+  "name": "@cuptrail/utils",
+  "version": "1.0.0",
+  "description": "Shared utility functions for CupTrail apps",
+  "main": "index.ts",
+  "types": "index.ts",
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@cuptrail/core": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "~5.8.3"
+  }
+}

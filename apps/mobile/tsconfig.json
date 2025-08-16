@@ -4,6 +4,6 @@
     "types": ["react-native"],
     "moduleSuffixes": [".native", ""]
   },
-  "include": ["src", "index.tsx", "global.d.ts"],
+  "include": ["app", "index.tsx", "global.d.ts", "components", "constants", "types", "storage"],
   "exclude": ["node_modules", "dist"]
 }
