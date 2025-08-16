@@ -1,0 +1,9 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "types": ["react-native"],
+    "moduleSuffixes": [".native", ""]
+  },
+  "include": ["app", "index.tsx", "global.d.ts", "components", "constants", "types", "storage"],
+  "exclude": ["node_modules", "dist"]
+}

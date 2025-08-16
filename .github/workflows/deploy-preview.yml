@@ -1,4 +1,4 @@
-name: Preview website for Pull Requests
+name: Preview website for Pull Requests (pnpm monorepo)
 
 on:
   pull_request:
@@ -17,28 +17,32 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: web
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.14.0
+          run_install: false
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: npm
-          cache-dependency-path: web/package-lock.json
+          cache: 'pnpm'
+          cache-dependency-path: pnpm-lock.yaml
 
-      - name: Install dependencies
-        run: npm ci --no-fund --no-audit
+      - name: Install dependencies (workspace)
+        run: pnpm install --frozen-lockfile --prefer-offline
 
-      - name: Build (Vite) with PR base path
+      - name: Build @cuptrail/web (Vite) with PR base path
         env:
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
         run: |
+          set -euo pipefail
           REPO="${{ github.event.repository.name }}"
           PR="pr-${{ github.event.pull_request.number }}"
           if [[ "$REPO" == *.github.io ]]; then
@@ -47,18 +51,21 @@ jobs:
             BASE="/$REPO/${PR}/"
           fi
           echo "Using base: $BASE"
-          npm run build -- --base=$BASE
+          # Build the Vite app inside apps/web, using the workspace filter
+          pnpm -F @cuptrail/web build -- --base="$BASE"
+
           # Stage under a PR-specific subfolder so the preview lives at .../<repo>/${PR}/
           rm -rf preview
           mkdir -p preview/${PR}
-          cp -R dist/* preview/${PR}/
+          cp -R apps/web/dist/* preview/${PR}/
+          # SPA fallback + Pages quirks
           touch preview/.nojekyll
           cp preview/${PR}/index.html preview/${PR}/404.html
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: web/preview
+          path: preview
 
   deploy:
     environment:
@@ -81,7 +88,6 @@ jobs:
             const previewUrl = `${base}pr-${prNum}/`;
             const pr = context.payload.pull_request;
             const body = `🚀 Preview deployed: ${previewUrl}`;
-            // Upsert a comment tagged with a hidden marker so updates replace previous
             const marker = '<!-- preview-url-comment -->';
             const list = await github.rest.issues.listComments({
               owner: context.repo.owner,
@@ -104,5 +110,3 @@ jobs:
                 body: `${marker}\n${body}`,
               });
             }
-
-
