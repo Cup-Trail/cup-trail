@@ -1,15 +1,11 @@
-import { getRecentReviews, getOrInsertShop } from '@cuptrail/data';
+import { getRecentReviews, getOrInsertShop } from '@cuptrail/core';
+import { DRINK_CATEGORIES, RATING_SCALE } from '@cuptrail/core';
+import type { Prediction, ReviewRow, LocationState } from '@cuptrail/core';
 import {
-  DRINK_CATEGORIES,
-  API_ENDPOINTS,
-  RATING_SCALE,
-} from '@cuptrail/shared';
-import type {
-  Prediction,
-  PlaceDetailsAPIResponse,
-  Review,
-  LocationState,
-} from '@cuptrail/shared';
+  getAutocomplete,
+  getPlaceDetails,
+  extractLocationData,
+} from '@cuptrail/utils';
 import {
   Box,
   Chip,
@@ -29,29 +25,24 @@ export default function SearchPage() {
   const navigate = useNavigate();
   const [name, setName] = useState<string>('');
   const [suggestions, setSuggestions] = useState<Prediction[]>([]);
-  const [reviews, setReviews] = useState<Review[]>([]);
+  const [reviews, setReviews] = useState<ReviewRow[]>([]);
   const [activeField, setActiveField] = useState<'name' | null>(null);
   useEffect(() => {
     (async () => {
       const result = await getRecentReviews();
-      if (result.success) setReviews(result.data as Review[]);
+      if (result.success) setReviews(result.data);
     })();
   }, []);
 
-  async function getAutocomplete(input: string): Promise<void> {
-    try {
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}${API_ENDPOINTS.MAPS_AUTOCOMPLETE}&input=${encodeURIComponent(input)}`,
-        {
-          headers: {
-            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-            'Content-Type': 'application/json',
-          },
-        }
-      );
+  async function handleAutocomplete(input: string): Promise<void> {
+    if (!input) {
+      setSuggestions([]);
+      return;
+    }
 
-      const json: { predictions?: Prediction[] } = await response.json();
-      setSuggestions(json.predictions ?? []);
+    try {
+      const predictions = await getAutocomplete(input);
+      setSuggestions(predictions);
     } catch {
       setSuggestions([]);
     }
@@ -59,68 +50,62 @@ export default function SearchPage() {
 
   async function handleSelectSuggestion(suggestion: Prediction): Promise<void> {
     try {
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}${API_ENDPOINTS.MAPS_DETAILS}&place_id=${encodeURIComponent(suggestion.place_id)}`,
-        {
-          headers: {
-            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-            'Content-Type': 'application/json',
-          },
-        }
-      );
+      const data = await getPlaceDetails(suggestion.place_id);
 
-      const data: PlaceDetailsAPIResponse = await response.json();
-      if (data.status !== 'OK') return;
+      if (!data) {
+        setSuggestions([]);
+        return;
+      }
 
-      const {
-        name: placeName,
-        formatted_address,
-        geometry,
-      } = data.result || {};
-      const lat = geometry?.location?.lat;
-      const lng = geometry?.location?.lng;
+      const locationData = extractLocationData(data);
+
+      if (!locationData) {
+        setSuggestions([]);
+        return;
+      }
+
+      const { name: placeName, address, latitude, longitude } = locationData;
 
       if (activeField === 'name' && placeName) setName(placeName);
 
       if (
-        !placeName ||
-        !formatted_address ||
-        typeof lat !== 'number' ||
-        typeof lng !== 'number'
+        activeField === 'name' &&
+        placeName &&
+        address &&
+        latitude &&
+        longitude
       ) {
-        setSuggestions([]);
-        return;
-      }
+        const result = await getOrInsertShop(
+          placeName,
+          address,
+          latitude,
+          longitude
+        );
 
-      const result = await getOrInsertShop(
-        placeName,
-        formatted_address,
-        lat,
-        lng
-      );
-      if (!result?.success) {
-        setSuggestions([]);
-        return;
-      }
+        if (!result?.success) {
+          setSuggestions([]);
+          return;
+        }
 
-      const rawId = result.data?.id;
-      const shopId =
-        rawId != null && String(rawId).trim().length > 0
-          ? String(rawId).trim()
-          : '';
-      if (!shopId) {
-        setSuggestions([]);
-        return;
-      }
+        const rawId = result.data?.id;
+        const shopId =
+          rawId != null && String(rawId).trim().length > 0
+            ? String(rawId).trim()
+            : '';
+        if (!shopId) {
+          setSuggestions([]);
+          return;
+        }
 
-      setSuggestions([]);
-      navigate(`/shop/${encodeURIComponent(shopId)}`, {
-        state: {
-          shopName: placeName,
-          address: formatted_address,
-          shopId,
-        } as LocationState,
-      });
+        setSuggestions([]);
+        navigate(`/shop/${encodeURIComponent(shopId)}`, {
+          state: {
+            shopName: placeName,
+            address: address,
+            shopId,
+          } as LocationState,
+        });
+      }
     } catch {
       // Silently handle errors
     }
@@ -134,7 +119,7 @@ export default function SearchPage() {
         onChange={e => {
           setName(e.target.value);
           setActiveField('name');
-          getAutocomplete(e.target.value);
+          handleAutocomplete(e.target.value);
         }}
         size="medium"
         fullWidth
@@ -166,7 +151,7 @@ export default function SearchPage() {
 
       <Typography variant="h6">Recently Reviewed Shops</Typography>
       <Stack gap={1}>
-        {reviews.map((item: Review) => {
+        {reviews.map((item: ReviewRow) => {
           const shopName = item.shop_drinks?.shops?.name;
           const drinkName = item.shop_drinks?.drinks?.name;
           return (

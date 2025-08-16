@@ -1,7 +1,7 @@
-import { getHighlyRatedDrinks } from '@cuptrail/data/drinks';
-import type { ShopDrinkRow } from '@cuptrail/data/drinks';
-import { RATING_SCALE } from '@cuptrail/shared';
-import type { LocationState } from '@cuptrail/shared';
+import { getHighlyRatedDrinks } from '@cuptrail/core';
+import { RATING_SCALE } from '@cuptrail/core';
+import type { ShopDrinkRow } from '@cuptrail/core';
+import type { LocationState } from '@cuptrail/core';
 import { Box, Button, Paper, Stack, Typography } from '@mui/material';
 import { useEffect, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';

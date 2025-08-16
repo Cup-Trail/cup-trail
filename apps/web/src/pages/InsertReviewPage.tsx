@@ -1,6 +1,6 @@
-import { insertReview } from '@cuptrail/data';
-import { RATING_SCALE } from '@cuptrail/shared';
-import type { LocationState } from '@cuptrail/shared';
+import { insertReview } from '@cuptrail/core';
+import { RATING_SCALE } from '@cuptrail/core';
+import type { LocationState } from '@cuptrail/core';
 import {
   Alert,
   Box,
