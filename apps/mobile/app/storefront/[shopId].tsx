@@ -1,12 +1,8 @@
-import { getHighlyRatedDrinks } from '@cuptrail/data/drinks';
-import {
-  useRoute,
-  useNavigation,
-  useFocusEffect,
-} from '@react-navigation/native';
-import type { RouteProp } from '@react-navigation/native';
-import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { useEffect, useCallback, useState, JSX } from 'react';
+import { getHighlyRatedDrinks } from '@cuptrail/core';
+import type { ShopDrinkRow } from '@cuptrail/core';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useFocusEffect } from '@react-navigation/native';
+import { useCallback, useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -17,43 +13,33 @@ import {
   ScrollView,
 } from 'react-native';
 
-// --- Types ---
-type RootStackParamList = {
-  Storefront: { shopName: string; address: string; shopId: string };
-  'Add Review': { shopName: string; shopId: string | number };
-};
+export default function StoreFrontScreen() {
+  const params = useLocalSearchParams<{
+    shopName: string;
+    address: string;
+    shopId: string;
+    latitude: string;
+    longitude: string;
+    refresh?: string;
+  }>();
 
-type DrinkItem = {
-  id: string | number;
-  cover_photo_url?: string | null;
-  avg_rating: number;
-  drinks: { name: string };
-};
-
-export default function StoreFrontScreen(): JSX.Element {
-  const route = useRoute<RouteProp<RootStackParamList, 'Storefront'>>();
-  const navigation =
-    useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-  const { shopName, address, shopId } = route.params;
+  const { shopName, address, shopId, latitude, longitude, refresh } = params;
+  const router = useRouter();
   const [shopAddress, setShopAddress] = useState<string>('');
-  const [drinks, setDrinks] = useState<DrinkItem[]>([]);
+  const [drinks, setDrinks] = useState<ShopDrinkRow[]>([]);
 
   useEffect(() => {
     if (address) setShopAddress(address);
     const getDrinks = async () => {
-      // console.log(`shopId = ${shopId}`); // Removed for production
       const result = await getHighlyRatedDrinks(shopId);
-      // console.log('[StoreFrontScreen] useEffect result:', result); // Removed for production
       if (!result?.success) {
-        // console.warn('Error getting ratings:', result?.message); // Removed for production
         return;
       }
-      setDrinks(result.data as DrinkItem[]);
+      setDrinks(result.data as ShopDrinkRow[]);
     };
 
     getDrinks();
-  }, [address]);
-
+  }, [address, shopId]);
   useFocusEffect(
     useCallback(() => {
       const reloadDrinks = async () => {
@@ -62,7 +48,7 @@ export default function StoreFrontScreen(): JSX.Element {
         if (!result?.success) {
           return;
         }
-        setDrinks(result.data as DrinkItem[]);
+        setDrinks(result.data as ShopDrinkRow[]);
       };
       reloadDrinks();
     }, [shopId])
@@ -74,7 +60,7 @@ export default function StoreFrontScreen(): JSX.Element {
       <Text style={styles.address}>{shopAddress}</Text>
       {/* Menu Section */}
       <Text style={styles.sectionTitle}>Popular Drinks</Text>
-      <FlatList<DrinkItem>
+      <FlatList<ShopDrinkRow>
         data={drinks}
         horizontal
         keyExtractor={item => String(item.id)}
@@ -88,7 +74,6 @@ export default function StoreFrontScreen(): JSX.Element {
               />
             )}
             <Text style={styles.drinkName}>{item.drinks.name}</Text>
-            {/* <Text style={styles.drinkPrice}>${item.price}</Text> */}
             <Text style={styles.drinkPrice}>⭐ {item.avg_rating}/5</Text>
           </View>
         )}
@@ -98,7 +83,12 @@ export default function StoreFrontScreen(): JSX.Element {
       {/* Actions */}
       <TouchableOpacity
         style={styles.button}
-        onPress={() => navigation.navigate('Add Review', { shopName, shopId })}
+        onPress={() =>
+          router.push({
+            pathname: '/review/[shopId]',
+            params: { shopName, shopId, address, latitude, longitude },
+          })
+        }
       >
         <Text style={styles.buttonText}>Write a Review</Text>
       </TouchableOpacity>

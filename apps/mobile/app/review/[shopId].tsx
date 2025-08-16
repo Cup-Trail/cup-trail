@@ -1,6 +1,10 @@
-import { insertReview } from '@cuptrail/data/reviews';
-import { useRoute, useNavigation } from '@react-navigation/native';
+import { insertReview } from '@cuptrail/core';
+import { RATING_SCALE } from '@cuptrail/core';
+import { getReviewsByShopAndDrink } from '@cuptrail/core';
+import type { ReviewRow } from '@cuptrail/core';
+import { useFocusEffect } from '@react-navigation/native';
 import * as ImagePicker from 'expo-image-picker';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState, useCallback } from 'react';
 import {
   View,
@@ -10,36 +14,62 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
+  ActivityIndicator,
 } from 'react-native';
 
-import MediaPreview from '../components/MediaPreview';
-import { uploadMedia } from '../storage/uploadMedia';
-// import { getCurrentUserId } from '../apis/users';
-
-type RouteParams = {
-  shopName: string;
-  shopId: string;
-};
+import MediaPreview from '../../components/MediaPreview';
+import { MEDIA_CONFIG } from '../../constants';
+import { uploadMedia } from '../../storage/uploadMedia';
 
 export default function InsertReviewScreen() {
-  const route = useRoute();
-  const navigation = useNavigation();
+  const params = useLocalSearchParams<{
+    shopName: string;
+    shopId: string;
+    address: string;
+    latitude: string;
+    longitude: string;
+  }>();
+
+  const { shopName, shopId } = params;
+  const router = useRouter();
 
   const [review, setReview] = useState('');
   const [rating, setRating] = useState<string>('');
   const [drink, setDrink] = useState('');
   const [mediaArr, setMedia] = useState<ImagePicker.ImagePickerAsset[]>([]);
+  const [reviews, setReviews] = useState<ReviewRow[]>([]);
+  const [reviewsLoading, setReviewsLoading] = useState(false);
 
-  const { shopName, shopId } = (route.params as RouteParams) || {
-    shopName: '',
-    shopId: '',
-  };
   const clearForm = () => {
     setDrink('');
     setRating('');
     setReview('');
     setMedia([]);
   };
+
+  useFocusEffect(
+    useCallback(() => {
+      let isActive = true;
+      const fetchReviews = async () => {
+        setReviewsLoading(true);
+        if (shopName && drink) {
+          const result = await getReviewsByShopAndDrink(shopName, drink);
+          if (isActive && result.success) {
+            setReviews(result.data);
+          } else if (isActive) {
+            setReviews([]);
+          }
+        } else {
+          setReviews([]);
+        }
+        setReviewsLoading(false);
+      };
+      fetchReviews();
+      return () => {
+        isActive = false;
+      };
+    }, [shopName, drink])
+  );
 
   const handleSubmit = useCallback(async () => {
     try {
@@ -48,8 +78,15 @@ export default function InsertReviewScreen() {
         Alert.alert('Invalid drink', 'Please enter a valid drink.');
         return;
       }
-      if (Number.isNaN(parsedRating) || parsedRating < 0 || parsedRating > 5) {
-        Alert.alert('Invalid rating', 'Please enter a number between 0 and 5.');
+      if (
+        Number.isNaN(parsedRating) ||
+        parsedRating < RATING_SCALE.MIN ||
+        parsedRating > RATING_SCALE.MAX
+      ) {
+        Alert.alert(
+          'Invalid rating',
+          `Please enter a number between ${RATING_SCALE.MIN} and ${RATING_SCALE.MAX}.`
+        );
         return;
       }
       if (!review.trim()) {
@@ -104,7 +141,7 @@ export default function InsertReviewScreen() {
                 text: 'OK',
                 onPress: () => {
                   clearForm();
-                  navigation.goBack();
+                  router.back();
                 },
               },
             ],
@@ -125,12 +162,21 @@ export default function InsertReviewScreen() {
     } catch (err: any) {
       Alert.alert('Error', err?.message || 'Something went wrong.');
     }
-  }, [rating, drink, review, mediaArr, navigation, shopId]);
+  }, [rating, drink, review, mediaArr, router, shopId, params]);
 
   const handleMediaUpload = useCallback(async () => {
     try {
+      if (mediaArr.length >= MEDIA_CONFIG.MAX_FILES) {
+        Alert.alert(
+          'Limit reached',
+          `You can only upload up to ${MEDIA_CONFIG.MAX_FILES} files.`
+        );
+        return;
+      }
       const result = await ImagePicker.launchImageLibraryAsync({
         allowsMultipleSelection: true,
+        quality: MEDIA_CONFIG.IMAGE_QUALITY,
+        aspect: MEDIA_CONFIG.ASPECT_RATIO,
         mediaTypes: ['images', 'videos'],
       });
 
@@ -167,19 +213,21 @@ export default function InsertReviewScreen() {
 
       Alert.alert('Error', 'Failed to open image picker. Please try again.');
     }
-  }, []);
+  }, [mediaArr.length]);
 
   const handleRemoveMedia = (uri: string) => {
     setMedia((prev: ImagePicker.ImagePickerAsset[]) =>
       prev.filter((media: ImagePicker.ImagePickerAsset) => media.uri !== uri)
     );
   };
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Add Your Review</Text>
       <Text style={styles.subtitle}>
         Track your favorite drinks from each shop!
       </Text>
+
       <Text style={styles.label}>Drink</Text>
       <TextInput
         style={styles.textArea}
@@ -189,6 +237,7 @@ export default function InsertReviewScreen() {
         value={drink}
         onChangeText={setDrink}
       />
+
       <Text style={styles.label}>Shop</Text>
       <TextInput
         style={styles.textArea}
@@ -198,6 +247,7 @@ export default function InsertReviewScreen() {
         value={shopName}
         editable={false}
       />
+
       <Text style={styles.label}>Rating</Text>
       <TextInput
         style={styles.textArea}
@@ -206,6 +256,7 @@ export default function InsertReviewScreen() {
         value={rating}
         onChangeText={setRating}
       />
+
       <Text style={styles.label}>Your Review</Text>
       <TextInput
         style={styles.textArea}
@@ -222,25 +273,23 @@ export default function InsertReviewScreen() {
       >
         <Text style={styles.uploadMediaButtonText}>Upload Media</Text>
       </TouchableOpacity>
-      <View
-        style={[
-          styles.previewContainer,
-          { marginBottom: mediaArr.length > 0 ? 20 : 0 },
-        ]}
-      >
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.previewContainer}
-        >
-          {mediaArr.map((media: ImagePicker.ImagePickerAsset) => (
-            <MediaPreview
-              key={media.uri}
-              media={media}
-              onRemove={() => handleRemoveMedia(media.uri)}
-            />
-          ))}
-        </ScrollView>
+
+      <View style={{ marginBottom: mediaArr.length > 0 ? 16 : 0 }}>
+        {mediaArr.length > 0 && (
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.previewScrollContainer}
+          >
+            {mediaArr.map((media: ImagePicker.ImagePickerAsset) => (
+              <MediaPreview
+                key={media.uri}
+                media={media}
+                onRemove={() => handleRemoveMedia(media.uri)}
+              />
+            ))}
+          </ScrollView>
+        )}
       </View>
       <TouchableOpacity onPress={handleSubmit} style={styles.submitButton}>
         <Text style={styles.submitButtonText}>Submit</Text>
@@ -256,34 +305,22 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start',
     backgroundColor: '#F3FBF7',
   },
-  label: {
-    fontWeight: '600',
-    marginBottom: 6,
-    fontSize: 16,
-  },
-  previewContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 10,
-    marginTop: 10,
-  },
-  submitButton: {
-    backgroundColor: '#1e90ff',
-    paddingVertical: 14,
-    borderRadius: 10,
-    alignItems: 'center',
-    marginTop: 8,
-  },
-  submitButtonText: {
-    color: 'white',
-    fontWeight: '600',
-    fontSize: 16,
+  title: {
+    fontSize: 20,
+    fontWeight: '700',
+    marginBottom: 8,
+    textAlign: 'center',
   },
   subtitle: {
     fontSize: 16,
     marginBottom: 32,
     textAlign: 'center',
     color: '#555',
+  },
+  label: {
+    fontWeight: '600',
+    marginBottom: 6,
+    fontSize: 16,
   },
   textArea: {
     borderWidth: 1,
@@ -295,22 +332,50 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     marginBottom: 16,
   },
-  title: {
-    fontSize: 20,
-    fontWeight: '700',
-    marginBottom: 8,
-    textAlign: 'center',
-  },
   uploadMediaButton: {
     backgroundColor: '#FDDDE6',
     borderRadius: 8,
     paddingVertical: 10,
     paddingHorizontal: 16,
     alignSelf: 'flex-start',
+    marginBottom: 16,
   },
   uploadMediaButtonText: {
     color: '#D46A92',
     fontWeight: '600',
     fontSize: 14,
+  },
+  previewScrollContainer: {
+    paddingVertical: 7,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+  },
+  submitButton: {
+    backgroundColor: '#1e90ff',
+    paddingVertical: 14,
+    borderRadius: 10,
+    alignItems: 'center',
+    marginTop: 3,
+  },
+  submitButtonText: {
+    color: 'white',
+    fontWeight: '600',
+    fontSize: 16,
+  },
+  reviewCard: {
+    backgroundColor: '#F9F6F1',
+    padding: 12,
+    borderRadius: 10,
+    marginBottom: 10,
+  },
+  reviewRating: {
+    fontWeight: '600',
+    marginBottom: 2,
+  },
+  reviewDate: {
+    fontSize: 12,
+    color: '#999',
+    marginTop: 4,
   },
 });

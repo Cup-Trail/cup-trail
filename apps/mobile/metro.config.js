@@ -15,7 +15,8 @@ config.resolver.nodeModulesPaths = [
   path.resolve(workspaceRoot, 'node_modules'),
 ];
 
-// Optional: allow extra extensions if needed
-config.resolver.sourceExts.push('cjs');
+// Ensure proper resolution for Expo Router
+config.resolver.platforms = ['ios', 'android', 'native', 'web'];
+config.resolver.sourceExts = ['js', 'jsx', 'json', 'ts', 'tsx', 'cjs'];
 
 module.exports = config;
