@@ -1,4 +1,4 @@
-import { supabase } from '@cuptrail/core';
+import { supabase } from '@cuptrail/utils';
 import { decode } from 'base64-arraybuffer';
 import type * as ExpoFileSystem from 'expo-file-system';
 
