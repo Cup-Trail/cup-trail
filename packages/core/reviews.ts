@@ -268,10 +268,12 @@ async function calculateAndUpdateAvgRating(shopDrinkId: string) {
       return { success: true };
     }
 
-    const avg =
-      Math.round(
-        (data.reduce((sum, r) => sum + r.rating, 0) / data.length) * 10
-      ) / 10;
+    const rows = data as Array<{ rating: number }>;
+    const total = rows.reduce(
+      (sum: number, r: { rating: number }) => sum + r.rating,
+      0
+    );
+    const avg = Math.round((total / rows.length) * 10) / 10;
     return await updateShopDrink(shopDrinkId, { avg_rating: avg });
   } catch (err) {
     // Log for debugging in development
