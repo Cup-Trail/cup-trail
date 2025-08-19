@@ -1,9 +1,10 @@
+import { supabase } from '@cuptrail/utils';
+
 import {
   getOrInsertDrink,
   getOrInsertShopDrink,
   updateShopDrink,
 } from './drinks';
-import { supabase } from '@cuptrail/utils';
 import type { Result, Ok, Err, ReviewRow } from './types';
 
 // ReviewRow type is now imported from ./types
