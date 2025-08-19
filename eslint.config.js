@@ -162,12 +162,16 @@ module.exports = [
         version: 'detect',
       },
       'import/resolver': {
-        node: {
-          extensions: ['.js', '.jsx', '.ts', '.tsx'],
-        },
         typescript: {
           alwaysTryTypes: true,
-          project: './tsconfig.base.json',
+          project: [
+            './tsconfig.base.json',
+            './packages/*/tsconfig.json',
+            './apps/*/tsconfig.json',
+          ],
+        },
+        node: {
+          extensions: ['.js', '.jsx', '.ts', '.tsx'],
         },
       },
     },
