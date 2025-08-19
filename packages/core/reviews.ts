@@ -3,7 +3,7 @@ import {
   getOrInsertShopDrink,
   updateShopDrink,
 } from './drinks';
-import { supabase } from './supabaseClient';
+import { supabase } from '@cuptrail/utils';
 import type { Result, Ok, Err, ReviewRow } from './types';
 
 // ReviewRow type is now imported from ./types

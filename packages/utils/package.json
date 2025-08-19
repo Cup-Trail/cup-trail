@@ -10,7 +10,8 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@cuptrail/core": "workspace:*"
+    "@cuptrail/core": "workspace:*",
+    "@supabase/supabase-js": "^2.55.0"
   },
   "devDependencies": {
     "typescript": "~5.8.3"

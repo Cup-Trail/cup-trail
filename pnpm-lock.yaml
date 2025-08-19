@@ -186,10 +186,6 @@ importers:
         version: 5.4.19(@types/node@20.19.11)(lightningcss@1.27.0)(terser@5.43.1)
 
   packages/core:
-    dependencies:
-      '@supabase/supabase-js':
-        specifier: ^2.55.0
-        version: 2.55.0
     devDependencies:
       '@types/node':
         specifier: ^20.0.0
@@ -203,6 +199,9 @@ importers:
       '@cuptrail/core':
         specifier: workspace:*
         version: link:../core
+      '@supabase/supabase-js':
+        specifier: ^2.55.0
+        version: 2.55.0
     devDependencies:
       typescript:
         specifier: ~5.8.3
