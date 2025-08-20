@@ -68,7 +68,7 @@ git clone https://github.com/Cup-Trail/cup-trail.git
 cd cup-trail
 ```
 2. **Install dependencies**
-## Prerequisites
+Prerequisites:
 - Node 18+
 - pnpm 10+
 - Supabase project (URL + anon key)
