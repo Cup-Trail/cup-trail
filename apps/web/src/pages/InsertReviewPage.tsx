@@ -1,10 +1,14 @@
-import { insertReview } from '@cuptrail/core';
-import { RATING_SCALE } from '@cuptrail/core';
-import type { LocationState } from '@cuptrail/core';
+import {
+  insertReview,
+  RATING_SCALE,
+  LocationState,
+  setShopDrinkCategories,
+} from '@cuptrail/core';
 import {
   Alert,
   Box,
   Button,
+  Chip,
   Snackbar,
   Stack,
   TextField,
@@ -12,7 +16,7 @@ import {
 } from '@mui/material';
 import { useState } from 'react';
 import { useLocation, useParams } from 'react-router-dom';
-
+import { suggestCategoriesByKeyword, slugToLabel } from '@cuptrail/utils';
 import type { SnackState } from '../types';
 
 export default function InsertReviewPage() {
@@ -28,6 +32,7 @@ export default function InsertReviewPage() {
     message: '',
     severity: 'success',
   });
+  const [suggestedCategories, setSuggestedCategories] = useState<string[]>([]);
 
   async function handleSubmit() {
     const parsed = parseFloat(rating);
@@ -43,7 +48,7 @@ export default function InsertReviewPage() {
       });
       return;
     }
-    if (!review) {
+    if (!review.trim()) {
       setSnack({
         open: true,
         message: 'Please enter a valid review.',
@@ -51,7 +56,7 @@ export default function InsertReviewPage() {
       });
       return;
     }
-    if (!drink) {
+    if (!drink.trim()) {
       setSnack({
         open: true,
         message: 'Please enter a valid drink.',
@@ -61,8 +66,32 @@ export default function InsertReviewPage() {
     }
     if (!shopId) return;
 
+    // add review
+
     const result = await insertReview(shopId, drink, parsed, review);
     if (result.success) {
+      const shopDrinkId = result.data.shop_drinks?.id;
+      if (shopDrinkId && suggestedCategories.length > 0) {
+        // add categories to shop drink
+        const catResult = await setShopDrinkCategories(
+          result.data.shop_drinks?.id,
+          suggestedCategories
+        );
+        if (catResult.success) {
+          setSnack({
+            open: true,
+            message: 'Categories added successfully!',
+            severity: 'success',
+          });
+        } else {
+          console.error('setShopDrinkCategories failed:', catResult.message);
+          setSnack({
+            open: true,
+            message: 'Failed to add categories.',
+            severity: 'error',
+          });
+        }
+      }
       setSnack({
         open: true,
         message: 'Review added successfully!',
@@ -71,6 +100,7 @@ export default function InsertReviewPage() {
       setDrink('');
       setRating('');
       setReview('');
+      setSuggestedCategories([]);
     } else {
       setSnack({
         open: true,
@@ -93,13 +123,34 @@ export default function InsertReviewPage() {
         label="Drink"
         value={drink}
         onChange={e => setDrink(e.target.value)}
+        onBlur={() =>
+          setSuggestedCategories(suggestCategoriesByKeyword(drink.trim()))
+        }
         fullWidth
       />
+      {/* Suggested categories */}
+      {suggestedCategories.length > 0 && (
+        <Stack direction="row" gap={1} flexWrap="wrap">
+          {suggestedCategories.map(cat => (
+            <Chip
+              key={cat}
+              label={slugToLabel(cat)}
+              onDelete={() =>
+                setSuggestedCategories(prev => prev.filter(c => c !== cat))
+              }
+              variant="outlined"
+              size="small"
+            />
+          ))}
+        </Stack>
+      )}
       <TextField label="Shop" value={shopName} fullWidth disabled />
       <TextField
+        type="number"
         label={`Rating (${RATING_SCALE.MIN} - ${RATING_SCALE.MAX})`}
         value={rating}
         onChange={e => setRating(e.target.value)}
+        inputProps={{ min: RATING_SCALE.MIN, max: RATING_SCALE.MAX }}
         fullWidth
       />
       <TextField

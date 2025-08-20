@@ -33,13 +33,12 @@ export interface ShopRow {
 export interface DrinkRow {
   id: string;
   name: string;
-  tags?: string[] | null;
 }
 
 export interface ShopDrinkRow {
   id: string;
   price: number | null;
-  avg_rating: number | null;
+  avg_rating: number;
   cover_photo_url: string | null;
   drinks: {
     id?: string;
@@ -71,6 +70,33 @@ export interface ReviewRow {
   };
 }
 
+export interface ShopDrinkCategoryRow {
+  shop_drinks: {
+    id: string;
+    price: number | null;
+    drinks: {
+      id?: string;
+      name: string;
+    };
+    shops: {
+      id?: string;
+      name: string;
+    };
+  };
+  categories: {
+    id: string;
+    slug: string;
+    sort_order: number;
+    label: string;
+  };
+}
+
+export interface CategoryRow {
+  id: string;
+  slug: string;
+  sort_order: number;
+  label: string;
+}
 // Business logic types
 export interface LocationState {
   shopName: string;
@@ -102,32 +128,6 @@ export interface PlaceDetailsAPIResponse {
     };
   };
   status: string;
-}
-
-export interface Review {
-  id: string;
-  rating: number;
-  comment: string;
-  mediaUrls: string[];
-  createdAt: string;
-  shopDrink: {
-    id: string;
-    price: number | null;
-    drink: {
-      id: string;
-      name: string;
-    };
-    shop: {
-      id: string;
-      name: string;
-    };
-  };
-}
-
-export interface DrinkCategory {
-  id: string;
-  name: string;
-  description?: string;
 }
 
 // Web-specific types

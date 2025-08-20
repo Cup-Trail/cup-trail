@@ -195,7 +195,7 @@ export async function insertReview(
         comment,
         media_urls: mediaUrlArr ?? null,
       })
-      .select()
+      .select('shop_drinks(id)')
       .single();
     if (error) {
       // Silently handle insert error

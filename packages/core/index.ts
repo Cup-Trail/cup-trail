@@ -3,3 +3,4 @@ export * from './constants';
 export * from './reviews';
 export * from './shops';
 export * from './drinks';
+export * from './categories';
