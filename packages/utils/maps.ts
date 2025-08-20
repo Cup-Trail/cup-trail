@@ -1,28 +1,14 @@
 import type { Prediction, PlaceDetailsAPIResponse } from '@cuptrail/core';
 
+import { getEnv } from './env';
+
 // Environment-aware function to get the base URL and API key
 function getMapsConfig() {
-  // Try to read from VITE_ (web) first
-  if (typeof import.meta !== 'undefined' && (import.meta as any).env) {
-    return {
-      baseUrl: (import.meta as any).env.VITE_SUPABASE_URL || '',
-      apiKey: (import.meta as any).env.VITE_SUPABASE_ANON_KEY || '',
-    };
-  }
-  // Fall back to EXPO_PUBLIC_ (mobile)
-  else if (typeof process !== 'undefined' && (process as any).env) {
-    return {
-      baseUrl: (process as any).env.EXPO_PUBLIC_SUPABASE_URL || '',
-      apiKey: (process as any).env.EXPO_PUBLIC_SUPABASE_ANON_KEY || '',
-    };
-  }
-  // Fall back to empty strings (will throw error)
-  else {
-    return {
-      baseUrl: '',
-      apiKey: '',
-    };
-  }
+  const { supabaseUrl, supabaseAnonKey } = getEnv();
+  return {
+    baseUrl: supabaseUrl,
+    apiKey: supabaseAnonKey,
+  };
 }
 
 /**
@@ -36,12 +22,6 @@ export async function getAutocomplete(input: string): Promise<Prediction[]> {
   }
 
   const { baseUrl, apiKey } = getMapsConfig();
-
-  if (!baseUrl || !apiKey) {
-    throw new Error(
-      'Maps configuration not found. Make sure environment variables are set.'
-    );
-  }
 
   try {
     const response = await fetch(
@@ -79,12 +59,6 @@ export async function getPlaceDetails(
   }
 
   const { baseUrl, apiKey } = getMapsConfig();
-
-  if (!baseUrl || !apiKey) {
-    throw new Error(
-      'Maps configuration not found. Make sure environment variables are set.'
-    );
-  }
 
   try {
     const response = await fetch(

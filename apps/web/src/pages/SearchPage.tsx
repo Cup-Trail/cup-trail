@@ -1,6 +1,17 @@
-import { getRecentReviews, getOrInsertShop } from '@cuptrail/core';
-import { DRINK_CATEGORIES, RATING_SCALE } from '@cuptrail/core';
-import type { Prediction, ReviewRow, LocationState } from '@cuptrail/core';
+import {
+  getRecentReviews,
+  getOrInsertShop,
+  getShopsByCategorySlug,
+  getCategories,
+} from '@cuptrail/core';
+import { RATING_SCALE } from '@cuptrail/core';
+import type {
+  Prediction,
+  ReviewRow,
+  LocationState,
+  ShopRow,
+  CategoryRow,
+} from '@cuptrail/core';
 import {
   getAutocomplete,
   getPlaceDetails,
@@ -27,10 +38,22 @@ export default function SearchPage() {
   const [suggestions, setSuggestions] = useState<Prediction[]>([]);
   const [reviews, setReviews] = useState<ReviewRow[]>([]);
   const [activeField, setActiveField] = useState<'name' | null>(null);
+  const [categoryShops, setCategoryShops] = useState<ShopRow[]>([]);
+  const [cats, setCats] = useState<CategoryRow[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<CategoryRow | null>(
+    null
+  );
   useEffect(() => {
     (async () => {
       const result = await getRecentReviews();
       if (result.success) setReviews(result.data);
+    })();
+  }, []);
+
+  useEffect(() => {
+    (async () => {
+      const res = await getCategories(20);
+      if (res.success) setCats(res.data);
     })();
   }, []);
 
@@ -141,13 +164,51 @@ export default function SearchPage() {
 
       <Box>
         <Stack direction="row" spacing={1} sx={{ overflowX: 'auto', pb: 1 }}>
-          {DRINK_CATEGORIES.map(c => (
-            <Chip key={c} label={c} color="secondary" variant="outlined" />
+          {cats.map(c => (
+            <Chip
+              key={c.id}
+              label={c.label}
+              color="secondary"
+              variant="outlined"
+              onClick={async () => {
+                if (selectedCategory?.id === c.id) {
+                  setSelectedCategory(null);
+                  setCategoryShops([]);
+                  return;
+                }
+                const res = await getShopsByCategorySlug(c.slug);
+                if (res.success) {
+                  setCategoryShops(res.data);
+                  setSelectedCategory(c);
+                }
+              }}
+            />
           ))}
         </Stack>
       </Box>
 
       <Divider />
+
+      {selectedCategory && categoryShops.length > 0 && (
+        <>
+          <Typography variant="h6">
+            Shops for {selectedCategory.label}
+          </Typography>
+          <Stack gap={1}>
+            {categoryShops.map(s => (
+              <Paper key={String(s.id)} variant="outlined" sx={{ p: 2 }}>
+                <Typography fontWeight={600}>{s.name}</Typography>
+                {s.address && (
+                  <Typography mt={0.5} color="text.secondary">
+                    {s.address}
+                  </Typography>
+                )}
+              </Paper>
+            ))}
+          </Stack>
+          <Divider />
+        </>
+      )}
 
       <Typography variant="h6">Recently Reviewed Shops</Typography>
       <Stack gap={1}>

@@ -1,4 +1,5 @@
-import { supabase } from './supabaseClient';
+import { supabase } from '@cuptrail/utils';
+
 import type { Result, Ok, Err, DrinkRow, ShopDrinkRow } from './types';
 
 const DRINKS_TABLE = 'drinks';
@@ -127,8 +128,7 @@ export async function getShopDrinkByName(
 }
 
 export async function getOrInsertDrink(
-  name: string,
-  tags: string[] | null = null
+  name: string
 ): Promise<Result<DrinkRow>> {
   try {
     const { data: getData, error: getError } = await supabase
@@ -151,7 +151,7 @@ export async function getOrInsertDrink(
 
     const { data: insertData, error: insertError } = await supabase
       .from(DRINKS_TABLE)
-      .insert([{ name, tags }])
+      .insert([{ name }])
       .select()
       .maybeSingle();
 

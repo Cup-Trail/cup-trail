@@ -8,7 +8,8 @@ export default defineConfig({
   envPrefix: ['VITE_', 'EXPO_PUBLIC_'],
   resolve: {
     alias: {
-      '@cuptrail/data': path.resolve(__dirname, '../../packages/data'),
+      '@cuptrail/core': path.resolve(__dirname, '../../packages/core'),
+      '@cuptrail/utils': path.resolve(__dirname, '../../packages/utils'),
     },
     extensions: [
       '.web.tsx',
