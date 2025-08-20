@@ -68,6 +68,7 @@ git clone https://github.com/Cup-Trail/cup-trail.git
 cd cup-trail
 ```
 2. **Install dependencies**
+
 Prerequisites:
 - Node 18+
 - pnpm 10+
@@ -76,7 +77,7 @@ Prerequisites:
 pnpm install
 ```
 
-1. **Set up environment variables**
+3. **Set up environment variables**
 Create a .env file in the each respective app:
 
 apps/mobile/.env
