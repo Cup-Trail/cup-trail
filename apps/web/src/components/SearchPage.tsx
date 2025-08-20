@@ -1,21 +1,21 @@
-import {
-  getRecentReviews,
-  getOrInsertShop,
-  getShopsByCategorySlug,
-  getCategories,
-} from '@cuptrail/core';
-import { RATING_SCALE } from '@cuptrail/core';
 import type {
+  CategoryRow,
+  LocationState,
   Prediction,
   ReviewRow,
-  LocationState,
   ShopRow,
-  CategoryRow,
 } from '@cuptrail/core';
 import {
+  getCategories,
+  getOrInsertShop,
+  getRecentReviews,
+  getShopsByCategorySlug,
+  RATING_SCALE,
+} from '@cuptrail/core';
+import {
+  extractLocationData,
   getAutocomplete,
   getPlaceDetails,
-  extractLocationData,
 } from '@cuptrail/utils';
 import {
   Box,
@@ -137,7 +137,7 @@ export default function SearchPage() {
   return (
     <Stack gap={2}>
       <TextField
-        label="Search shops, drinks, or cities..."
+        label="Search by drink or cafe"
         value={name}
         onChange={e => {
           setName(e.target.value);
