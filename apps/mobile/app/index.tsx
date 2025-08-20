@@ -1,7 +1,15 @@
-import type { Prediction, ReviewRow } from '@cuptrail/core';
-import { getRecentReviews } from '@cuptrail/core';
-import { getOrInsertShop } from '@cuptrail/core';
-import { DRINK_CATEGORIES } from '@cuptrail/core';
+import type {
+  CategoryRow,
+  Prediction,
+  ReviewRow,
+  ShopRow,
+} from '@cuptrail/core';
+import {
+  getOrInsertShop,
+  getRecentReviews,
+  getCategories,
+  getShopsByCategorySlug,
+} from '@cuptrail/core';
 import {
   getAutocomplete,
   getPlaceDetails,
@@ -27,17 +35,21 @@ export default function SearchScreen() {
   const [name, setName] = useState<string>('');
   const [suggestions, setSuggestions] = useState<Prediction[]>([]);
   const [activeField, setActiveField] = useState<'name' | null>(null);
-
-  // Dismiss keyboard and suggestions when tapping outside
+  const [categoryShops, setCategoryShops] = useState<ShopRow[]>([]);
+  const [cats, setCats] = useState<CategoryRow[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<CategoryRow | null>(
+    null
+  );
+  // dismiss keyboard and suggestions when tapping outside
   const dismissKeyboardAndSuggestions = () => {
     Keyboard.dismiss();
     setSuggestions([]);
     setActiveField(null);
   };
 
-  // Handle input blur (when input loses focus)
+  // handle input blur (when input loses focus)
   const handleInputBlur = () => {
-    // Clear suggestions immediately on blur
+    // clear suggestions immediately on blur
     setSuggestions([]);
     setActiveField(null);
   };
@@ -96,7 +108,7 @@ export default function SearchScreen() {
 
         if (result?.success && result.data?.id) {
           const shopId = result.data.id;
-          // Dismiss keyboard and suggestions before navigation
+          // dismiss keyboard and suggestions before navigation
           dismissKeyboardAndSuggestions();
           router.push({
             pathname: '/storefront/[shopId]',
@@ -126,6 +138,13 @@ export default function SearchScreen() {
         }
       };
       loadReviews();
+      const loadCategories = async () => {
+        const result = await getCategories();
+        if (result?.success) {
+          setCats(result.data);
+        }
+      };
+      loadCategories();
     }, [])
   );
 
@@ -147,12 +166,12 @@ export default function SearchScreen() {
       />
       {suggestions.length > 0 && (
         <>
-          {/* Transparent overlay to dismiss suggestions when tapping outside */}
+          {/* transparent overlay to dismiss suggestions when tapping outside */}
           <TouchableWithoutFeedback onPress={() => setSuggestions([])}>
             <View style={styles.suggestionsOverlay} />
           </TouchableWithoutFeedback>
 
-          {/* Suggestions dropdown */}
+          {/* suggestions dropdown */}
           <View style={styles.suggestionsDropdown}>
             <FlatList<Prediction>
               keyboardShouldPersistTaps="handled"
@@ -176,39 +195,81 @@ export default function SearchScreen() {
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.chipRow}
         >
-          {DRINK_CATEGORIES.map(cat => (
-            <TouchableOpacity key={cat} style={styles.chip}>
-              <Text style={styles.chipText}>{cat}</Text>
+          {cats.map(cat => (
+            <TouchableOpacity
+              key={cat.id}
+              style={styles.chip}
+              onPress={async () => {
+                if (selectedCategory?.id === cat.id) {
+                  setSelectedCategory(null);
+                  setCategoryShops([]);
+                  return;
+                }
+                const res = await getShopsByCategorySlug(cat.slug);
+                if (res.success) {
+                  setCategoryShops(res.data);
+                  setSelectedCategory(cat);
+                }
+              }}
+            >
+              <Text style={styles.chipText}>{cat.label}</Text>
             </TouchableOpacity>
           ))}
         </ScrollView>
       </View>
 
-      <Text style={styles.sectionTitle}>Recently reviewed shops</Text>
-      <ScrollView
-        style={styles.reviewsContainer}
-        showsVerticalScrollIndicator={true}
-      >
-        {reviews.map(item => {
-          const shopName = item.shop_drinks?.shops?.name;
-          const drinkName = item.shop_drinks?.drinks?.name;
+      {selectedCategory ? (
+        <>
+          <Text style={styles.sectionTitle}>
+            {`Shops for ${selectedCategory.label}`}
+          </Text>
+          <ScrollView
+            style={styles.reviewsContainer}
+            showsVerticalScrollIndicator={true}
+          >
+            {categoryShops.length === 0 ? (
+              <Text>No shops found.</Text>
+            ) : (
+              categoryShops.map(s => (
+                <View key={String(s.id)} style={styles.reviewCard}>
+                  <Text style={styles.reviewTitle}>{s.name}</Text>
+                  {s.address ? (
+                    <Text style={styles.reviewComment}>{s.address}</Text>
+                  ) : null}
+                </View>
+              ))
+            )}
+          </ScrollView>
+        </>
+      ) : (
+        <>
+          <Text style={styles.sectionTitle}>Recently reviewed shops</Text>
+          <ScrollView
+            style={styles.reviewsContainer}
+            showsVerticalScrollIndicator={true}
+          >
+            {reviews.map(item => {
+              const shopName = item.shop_drinks?.shops?.name;
+              const drinkName = item.shop_drinks?.drinks?.name;
 
-          return (
-            <View key={String(item.id)} style={styles.reviewCard}>
-              <Text style={styles.reviewTitle}>
-                {drinkName ? `${drinkName} @ ${shopName}` : 'Review'}
-              </Text>
-              <Text style={styles.reviewRating}>⭐ {item.rating}/5</Text>
-              {item.comment && (
-                <Text style={styles.reviewComment}>{item.comment}</Text>
-              )}
-              <Text style={styles.reviewDate}>
-                {new Date(item.created_at).toLocaleDateString()}
-              </Text>
-            </View>
-          );
-        })}
-      </ScrollView>
+              return (
+                <View key={String(item.id)} style={styles.reviewCard}>
+                  <Text style={styles.reviewTitle}>
+                    {drinkName ? `${drinkName} @ ${shopName}` : 'Review'}
+                  </Text>
+                  <Text style={styles.reviewRating}>⭐ {item.rating}/5</Text>
+                  {item.comment && (
+                    <Text style={styles.reviewComment}>{item.comment}</Text>
+                  )}
+                  <Text style={styles.reviewDate}>
+                    {new Date(item.created_at).toLocaleDateString()}
+                  </Text>
+                </View>
+              );
+            })}
+          </ScrollView>
+        </>
+      )}
     </View>
   );
 }

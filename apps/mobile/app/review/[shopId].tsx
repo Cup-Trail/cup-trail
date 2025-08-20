@@ -1,5 +1,4 @@
-import { insertReview } from '@cuptrail/core';
-import { RATING_SCALE } from '@cuptrail/core';
+import { insertReview, RATING_SCALE } from '@cuptrail/core';
 import * as ImagePicker from 'expo-image-picker';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState, useCallback } from 'react';
