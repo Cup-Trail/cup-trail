@@ -1,57 +1,106 @@
 # Cup Trail
 
-Cup Trail is a mobile app built with React Native that helps users discover and review their favorite drinks - from matcha and boba to coffee and more. Users can search local shops, write reviews with photos, and track their favorite drinks - leaving a trail of cups wherever they go.
+Cup Trail is a cross‑platform app for discovering and reviewing drinks at cafés. Search shops, log reviews with ratings and photos, and browse recent activity.
 
 ## Features
-
-- **Discover Drinks from Nearby Cafés**
-  - Browse highly-rated drinks and trending locations
-  - Powered by Google Places for accurate, local search
-
-- **Track Your Favorite Drinks**
-  - Add personal reviews with ratings and comments
-  - Each review is tied to a specific café location
-  - Upload pictures of drinks to visually catalog your experience (WIP)
+- Discover shops and drinks via Google Places
+- Add reviews (rating, comment, photos, videos)
+- Auto-suggest drink categories and filter shops by category
+- Web and mobile apps powered by a shared core
 
 ## Tech Stack
+- Web: React + Vite
+- Mobile: React Native (Expo)
+- Backend: Supabase (PostgreSQL, Auth, Storage, Edge Functions)
+- APIS: Google Maps API
+- Shared: TypeScript monorepo (pnpm workspaces)
 
-- **Frontend**: React Native (Expo), React Navigation
-- **Backend**: Supabase (PostgreSQL, Auth, Storage)
-- **APIs**: Google Places API, Place Details API
+## Monorepo Structure
 
-## Folder Structure
-```
-├── apis/ # Supabase and API logic (shops, reviews, drinks)
-├── screens/ # App screens (Search, Storefront, InsertReview)
-├── assets/ # Static assets (images, fonts, icons)
-├── App.js # Entry point of the app
-└── README.md # Project overview
-```
+cup-trail/
+├─ apps/
+│  ├─ web/                           # Vite (React) web app
+│  │  ├─ src/
+│  │  │  └─ components/
+│  │  │     ├─ App.tsx
+│  │  │     ├─ SearchPage.tsx        # Home Page
+│  │  │     ├─ StorefrontPage.tsx  
+│  │  │     └─ InsertReviewPage.tsx
+│  │  ├─ vite.config.ts              # Vite config + package aliases
+│  │  └─ tsconfig.json
+│  └─ mobile/                        # Expo (React Native) app
+│     ├─ app/
+│     │  ├─ _layout.tsx
+│     │  ├─ index.tsx
+│     │  ├─ storefront/[shopId].tsx
+│     │  └─ review/[shopId].tsx
+│     ├─ components/MediaPreview.tsx # Custom React Component
+│     ├─ storage/uploadMedia.ts      # Supabase storage helpers
+│     ├─ constants/index.ts
+│     ├─ app.json
+│     └─ metro.config.js
+├─ packages/
+│  ├─ core/                          # Business/data layer (shared)
+│  │  ├─ types.ts                    # Shared types (Result, rows, etc.)
+│  │  ├─ constants.ts                # Shared constants (RATING_SCALE, endpoints)
+│  │  ├─ drinks.ts                   # Drinks + shop_drinks queries/mutations
+│  │  ├─ reviews.ts                  # Reviews queries/mutations
+│  │  ├─ shops.ts                    # Shop lookup/insert
+│  │  ├─ categories.ts               # Category set/get and shop filtering
+│  │  └─ index.ts                    # Public exports
+│  └─ utils/                         # Cross-platform utilities
+│     ├─ env.ts                      # Platform-aware env (web/mobile)
+│     ├─ supabaseClient.ts           # Shared Supabase client
+│     ├─ maps.ts                     # Maps (autocomplete/details via Edge Function)
+│     ├─ categorizeDrinks.ts         # Keyword → category suggestions
+│     └─ index.ts                    # Public exports
+├─ tsconfig.base.json                # TS base config (paths for @cuptrail/*)
+├─ eslint.config.js                  # Monorepo ESLint config
+├─ pnpm-workspace.yaml               # Workspace packages
+├─ package.json                      # Root scripts (dev, lint, typecheck)
+└─ README.md
+
 ## 🛠️ Setup Instructions
 
 1. **Clone the repo**
 ```
-git clone https://github.com/your-username/cup-trail.git
+git clone https://github.com/Cup-Trail/cup-trail.git
 cd cup-trail
 ```
 2. **Install dependencies**
+## Prerequisites
+- Node 18+
+- pnpm 10+
+- Supabase project (URL + anon key)
 ```
-npm install
+pnpm install
 ```
 
-3. **Set up environment variables**
-Create a .env file in the root directory:
+1. **Set up environment variables**
+Create a .env file in the each respective app:
+
+apps/mobile/.env
 
 ```
-SUPABASE_URL=your-supabase-url
-SUPABASE_ANON_KEY=your-supabase-anon-key
-GOOGLE_API_KEY=your-google-places-api-key
+EXPO_PUBLIC_SUPABASE_URL=your-supabase-url
+EXPO_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
+```
+apps/web/.env
+
+```
+VITE_SUPABASE_URL=your-supabase-url
+VITE_SUPABASE_ANON_KEY=your-supabase-anon-key
 ```
 
 4. **Run the app**
-```
-npx expo start
-```
+- mobile: `pnpm run dev:mobile`
+- web: `pnpm run dev:web`
+
+5. **Run linter**
+From repo root:
+- Lint all: `pnpm lint`
+- Fix lint: `pnpm lint:fix`
+- Typecheck: `pnpm typecheck`
 
 ## Meet the Team
 This project wouldn't have been possible without the creativity, technical skill, and thoughtful feedback of the following team members:
