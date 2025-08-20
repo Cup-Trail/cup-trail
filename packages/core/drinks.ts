@@ -128,8 +128,7 @@ export async function getShopDrinkByName(
 }
 
 export async function getOrInsertDrink(
-  name: string,
-  tags: string[] | null = null
+  name: string
 ): Promise<Result<DrinkRow>> {
   try {
     const { data: getData, error: getError } = await supabase
@@ -152,7 +151,7 @@ export async function getOrInsertDrink(
 
     const { data: insertData, error: insertError } = await supabase
       .from(DRINKS_TABLE)
-      .insert([{ name, tags }])
+      .insert([{ name }])
       .select()
       .maybeSingle();
 
