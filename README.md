@@ -12,7 +12,7 @@ Cup Trail is a crossâ€‘platform app for discovering and reviewing drinks at cafÃ
 - Web: React + Vite
 - Mobile: React Native (Expo)
 - Backend: Supabase (PostgreSQL, Auth, Storage, Edge Functions)
-- APIS: Google Maps API
+- APIs: Google Maps API
 - Shared: TypeScript monorepo (pnpm workspaces)
 
 ## Monorepo Structure
