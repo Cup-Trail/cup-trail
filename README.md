@@ -16,7 +16,7 @@ Cup Trail is a cross‑platform app for discovering and reviewing drinks at caf�
 - Shared: TypeScript monorepo (pnpm workspaces)
 
 ## Monorepo Structure
-
+```
 cup-trail/
 ├─ apps/
 │  ├─ web/                           # Vite (React) web app
@@ -59,7 +59,7 @@ cup-trail/
 ├─ pnpm-workspace.yaml               # Workspace packages
 ├─ package.json                      # Root scripts (dev, lint, typecheck)
 └─ README.md
-
+```
 ## 🛠️ Setup Instructions
 
 1. **Clone the repo**
