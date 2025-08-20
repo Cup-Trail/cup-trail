@@ -1,6 +1,17 @@
-import { getRecentReviews, getOrInsertShop, getShopsByCategorySlug, getCategories } from '@cuptrail/core';
+import {
+  getRecentReviews,
+  getOrInsertShop,
+  getShopsByCategorySlug,
+  getCategories,
+} from '@cuptrail/core';
 import { RATING_SCALE } from '@cuptrail/core';
-import type { Prediction, ReviewRow, LocationState, ShopRow, CategoryRow } from '@cuptrail/core';
+import type {
+  Prediction,
+  ReviewRow,
+  LocationState,
+  ShopRow,
+  CategoryRow,
+} from '@cuptrail/core';
 import {
   getAutocomplete,
   getPlaceDetails,
@@ -29,6 +40,9 @@ export default function SearchPage() {
   const [activeField, setActiveField] = useState<'name' | null>(null);
   const [categoryShops, setCategoryShops] = useState<ShopRow[]>([]);
   const [cats, setCats] = useState<CategoryRow[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<CategoryRow | null>(
+    null
+  );
   useEffect(() => {
     (async () => {
       const result = await getRecentReviews();
@@ -157,8 +171,16 @@ export default function SearchPage() {
               color="secondary"
               variant="outlined"
               onClick={async () => {
+                if (selectedCategory?.id === c.id) {
+                  setSelectedCategory(null);
+                  setCategoryShops([]);
+                  return;
+                }
                 const res = await getShopsByCategorySlug(c.slug);
-                if (res.success) setCategoryShops(res.data);
+                if (res.success) {
+                  setCategoryShops(res.data);
+                  setSelectedCategory(c);
+                }
               }}
             />
           ))}
@@ -167,15 +189,19 @@ export default function SearchPage() {
 
       <Divider />
 
-      {categoryShops.length > 0 && (
+      {selectedCategory && categoryShops.length > 0 && (
         <>
-          <Typography variant="h6">Shops for selected category</Typography>
+          <Typography variant="h6">
+            Shops for {selectedCategory.label}
+          </Typography>
           <Stack gap={1}>
-            {categoryShops.map((s) => (
+            {categoryShops.map(s => (
               <Paper key={String(s.id)} variant="outlined" sx={{ p: 2 }}>
                 <Typography fontWeight={600}>{s.name}</Typography>
                 {s.address && (
-                  <Typography mt={0.5} color="text.secondary">{s.address}</Typography>
+                  <Typography mt={0.5} color="text.secondary">
+                    {s.address}
+                  </Typography>
                 )}
               </Paper>
             ))}

@@ -4,6 +4,7 @@ import {
   LocationState,
   setShopDrinkCategories,
 } from '@cuptrail/core';
+import { suggestCategoriesByKeyword, slugToLabel } from '@cuptrail/utils';
 import {
   Alert,
   Box,
@@ -16,7 +17,7 @@ import {
 } from '@mui/material';
 import { useState } from 'react';
 import { useLocation, useParams } from 'react-router-dom';
-import { suggestCategoriesByKeyword, slugToLabel } from '@cuptrail/utils';
+
 import type { SnackState } from '../types';
 
 export default function InsertReviewPage() {
