@@ -5,7 +5,7 @@ import {
   getOrInsertShopDrink,
   updateShopDrink,
 } from './drinks';
-import type { Result, Ok, Err, ReviewRow } from './types';
+import type { Err, Ok, Result, ReviewRow } from './types/types';
 
 // ReviewRow type is now imported from ./types
 const REVIEWS_TABLE = 'reviews';

@@ -94,8 +94,8 @@ export interface ShopDrinkCategoryRow {
 export interface CategoryRow {
   id: string;
   slug: string;
-  sort_order: number;
-  label: string;
+  sort_order?: number;
+  label?: string;
 }
 // Business logic types
 export interface LocationState {
@@ -113,21 +113,6 @@ export interface Prediction {
     main_text: string;
     secondary_text: string;
   };
-}
-
-export interface PlaceDetailsAPIResponse {
-  result: {
-    place_id: string;
-    name: string;
-    formatted_address: string;
-    geometry: {
-      location: {
-        lat: number;
-        lng: number;
-      };
-    };
-  };
-  status: string;
 }
 
 // Web-specific types

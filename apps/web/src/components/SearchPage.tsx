@@ -18,12 +18,10 @@ import {
   getPlaceDetails,
 } from '@cuptrail/utils';
 import {
+  Autocomplete,
   Box,
   Chip,
   Divider,
-  List,
-  ListItemButton,
-  ListItemText,
   Paper,
   Stack,
   TextField,
@@ -32,17 +30,24 @@ import {
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
+const extractShopId = (data: ShopRow) => {
+  const rawId = data?.id;
+  return rawId !== null && String(rawId).trim().length > 0
+    ? String(rawId).trim()
+    : '';
+};
+
 export default function SearchPage() {
   const navigate = useNavigate();
-  const [name, setName] = useState<string>('');
   const [suggestions, setSuggestions] = useState<Prediction[]>([]);
   const [reviews, setReviews] = useState<ReviewRow[]>([]);
-  const [activeField, setActiveField] = useState<'name' | null>(null);
   const [categoryShops, setCategoryShops] = useState<ShopRow[]>([]);
   const [cats, setCats] = useState<CategoryRow[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<CategoryRow | null>(
     null
   );
+  const [searchError, setSearchError] = useState<boolean>(false);
+
   useEffect(() => {
     (async () => {
       const result = await getRecentReviews();
@@ -52,7 +57,7 @@ export default function SearchPage() {
 
   useEffect(() => {
     (async () => {
-      const res = await getCategories(20);
+      const res = await getCategories();
       if (res.success) setCats(res.data);
     })();
   }, []);
@@ -65,39 +70,29 @@ export default function SearchPage() {
 
     try {
       const predictions = await getAutocomplete(input);
+      setSearchError(false);
       setSuggestions(predictions);
     } catch {
+      setSearchError(true);
       setSuggestions([]);
     }
   }
 
-  async function handleSelectSuggestion(suggestion: Prediction): Promise<void> {
+  async function handleSelectSuggestion(
+    suggestion: Prediction | null
+  ): Promise<void> {
+    if (!suggestion) return;
+
     try {
       const data = await getPlaceDetails(suggestion.place_id);
-
-      if (!data) {
-        setSuggestions([]);
-        return;
-      }
+      if (!data) return;
 
       const locationData = extractLocationData(data);
-
-      if (!locationData) {
-        setSuggestions([]);
-        return;
-      }
+      if (!locationData) return;
 
       const { name: placeName, address, latitude, longitude } = locationData;
 
-      if (activeField === 'name' && placeName) setName(placeName);
-
-      if (
-        activeField === 'name' &&
-        placeName &&
-        address &&
-        latitude &&
-        longitude
-      ) {
+      if (placeName && address && latitude && longitude) {
         const result = await getOrInsertShop(
           placeName,
           address,
@@ -105,22 +100,11 @@ export default function SearchPage() {
           longitude
         );
 
-        if (!result?.success) {
-          setSuggestions([]);
-          return;
-        }
+        if (!result?.success) return;
 
-        const rawId = result.data?.id;
-        const shopId =
-          rawId != null && String(rawId).trim().length > 0
-            ? String(rawId).trim()
-            : '';
-        if (!shopId) {
-          setSuggestions([]);
-          return;
-        }
+        const shopId = extractShopId(result.data);
+        if (!shopId) return;
 
-        setSuggestions([]);
         navigate(`/shop/${encodeURIComponent(shopId)}`, {
           state: {
             shopName: placeName,
@@ -130,18 +114,9 @@ export default function SearchPage() {
         });
       }
     } catch {
-      // Silently handle errors
+      // TODO implement error message in UI
     }
-    setSuggestions([]);
   }
-
-  const handleSearch = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
-    setName(e.target.value);
-    setActiveField('name');
-    handleAutocomplete(e.target.value);
-  };
 
   useEffect(() => {
     console.log('suggestions', suggestions);
@@ -149,26 +124,24 @@ export default function SearchPage() {
 
   return (
     <Stack gap={2}>
-      <TextField
-        label="Search by drink or cafe"
-        value={name}
-        onChange={handleSearch}
-        fullWidth
+      <Autocomplete
+        options={suggestions}
+        filterOptions={x => x}
+        getOptionLabel={s => s.description}
+        onInputChange={(_, value) => handleAutocomplete(value)}
+        onChange={(_, s) => handleSelectSuggestion(s)}
+        renderInput={params => (
+          <TextField
+            {...params}
+            label="Search by drink or cafe"
+            fullWidth
+            error={searchError}
+            helperText={
+              searchError ? 'Error getting results. Please try again' : ''
+            }
+          />
+        )}
       />
-      {suggestions.length > 0 && (
-        <Paper variant="outlined">
-          <List dense>
-            {suggestions.map((s: Prediction) => (
-              <ListItemButton
-                key={s.place_id}
-                onClick={() => handleSelectSuggestion(s)}
-              >
-                <ListItemText primary={s.description} />
-              </ListItemButton>
-            ))}
-          </List>
-        </Paper>
-      )}
 
       <Box>
         <Stack direction="row" spacing={1} sx={{ overflowX: 'auto', pb: 1 }}>
