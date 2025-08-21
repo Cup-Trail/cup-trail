@@ -1,33 +1,20 @@
 import type {
-  CategoryRow,
   LocationState,
   Prediction,
   ReviewRow,
   ShopRow,
 } from '@cuptrail/core';
-import {
-  getCategories,
-  getOrInsertShop,
-  getRecentReviews,
-  getShopsByCategorySlug,
-} from '@cuptrail/core';
+import { getOrInsertShop } from '@cuptrail/core';
 import {
   extractLocationData,
   getAutocomplete,
   getPlaceDetails,
 } from '@cuptrail/utils';
-import {
-  Autocomplete,
-  Box,
-  Chip,
-  Divider,
-  Paper,
-  Stack,
-  TextField,
-  Typography,
-} from '@mui/material';
-import { useEffect, useState } from 'react';
+import { Autocomplete, Stack, TextField, Typography } from '@mui/material';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useRecentReviewsQuery } from '../../queries';
+import CategoryFilters from './CategoryFilters';
 import ReviewItem from './ReviewItem';
 
 const extractShopId = (data: ShopRow) => {
@@ -40,27 +27,9 @@ const extractShopId = (data: ShopRow) => {
 export default function SearchPage() {
   const navigate = useNavigate();
   const [suggestions, setSuggestions] = useState<Prediction[]>([]);
-  const [reviews, setReviews] = useState<ReviewRow[]>([]);
-  const [categoryShops, setCategoryShops] = useState<ShopRow[]>([]);
-  const [cats, setCats] = useState<CategoryRow[]>([]);
-  const [selectedCategory, setSelectedCategory] = useState<CategoryRow | null>(
-    null
-  );
   const [searchError, setSearchError] = useState<boolean>(false);
 
-  useEffect(() => {
-    (async () => {
-      const result = await getRecentReviews();
-      if (result.success) setReviews(result.data);
-    })();
-  }, []);
-
-  useEffect(() => {
-    (async () => {
-      const res = await getCategories();
-      if (res.success) setCats(res.data);
-    })();
-  }, []);
+  const { data: reviews } = useRecentReviewsQuery();
 
   async function handleAutocomplete(input: string): Promise<void> {
     if (!input) {
@@ -118,10 +87,6 @@ export default function SearchPage() {
     }
   }
 
-  useEffect(() => {
-    console.log('suggestions', suggestions);
-  }, [suggestions]);
-
   return (
     <Stack gap={2}>
       <Autocomplete
@@ -143,60 +108,21 @@ export default function SearchPage() {
         )}
       />
 
-      <Box>
-        <Stack direction="row" spacing={1} sx={{ overflowX: 'auto', pb: 1 }}>
-          {cats.map(c => (
-            <Chip
-              key={c.id}
-              label={c.label}
-              color="secondary"
-              variant="outlined"
-              onClick={async () => {
-                if (selectedCategory?.id === c.id) {
-                  setSelectedCategory(null);
-                  setCategoryShops([]);
-                  return;
-                }
-                const res = await getShopsByCategorySlug(c.slug);
-                if (res.success) {
-                  setCategoryShops(res.data);
-                  setSelectedCategory(c);
-                }
-              }}
-            />
-          ))}
-        </Stack>
-      </Box>
+      <CategoryFilters />
 
-      <Divider />
-
-      {selectedCategory && categoryShops.length > 0 && (
+      {reviews && (
         <>
-          <Typography variant="h6">
-            Shops for {selectedCategory.label}
-          </Typography>
-          <Stack gap={1}>
-            {categoryShops.map(s => (
-              <Paper key={String(s.id)} variant="outlined" sx={{ p: 2 }}>
-                <Typography fontWeight={600}>{s.name}</Typography>
-                {s.address && (
-                  <Typography mt={0.5} color="text.secondary">
-                    {s.address}
-                  </Typography>
-                )}
-              </Paper>
-            ))}
-          </Stack>
-          <Divider />
+          <Typography variant="h6">Recently Reviewed Shops</Typography>
+          {reviews.length === 0 && <Typography>No recent reviews</Typography>}
+          {reviews.length > 0 && (
+            <Stack gap={1}>
+              {reviews.map((item: ReviewRow) => (
+                <ReviewItem item={item} />
+              ))}
+            </Stack>
+          )}
         </>
       )}
-
-      <Typography variant="h6">Recently Reviewed Shops</Typography>
-      <Stack gap={1}>
-        {reviews.map((item: ReviewRow) => (
-          <ReviewItem item={item} />
-        ))}
-      </Stack>
     </Stack>
   );
 }
