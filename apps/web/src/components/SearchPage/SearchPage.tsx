@@ -10,7 +10,6 @@ import {
   getOrInsertShop,
   getRecentReviews,
   getShopsByCategorySlug,
-  RATING_SCALE,
 } from '@cuptrail/core';
 import {
   extractLocationData,
@@ -29,6 +28,7 @@ import {
 } from '@mui/material';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import ReviewItem from './ReviewItem';
 
 const extractShopId = (data: ShopRow) => {
   const rawId = data?.id;
@@ -193,29 +193,9 @@ export default function SearchPage() {
 
       <Typography variant="h6">Recently Reviewed Shops</Typography>
       <Stack gap={1}>
-        {reviews.map((item: ReviewRow) => {
-          const shopName = item.shop_drinks?.shops?.name;
-          const drinkName = item.shop_drinks?.drinks?.name;
-          return (
-            <Paper key={item.id} variant="outlined" sx={{ p: 2 }}>
-              <Typography fontWeight={600}>
-                {drinkName ? `${drinkName} @ ${shopName}` : 'Review'}
-              </Typography>
-              <Typography mt={0.5}>
-                ⭐ {item.rating}
-                {RATING_SCALE.DISPLAY_SUFFIX}
-              </Typography>
-              {item.comment && (
-                <Typography mt={0.5} fontStyle="italic" color="text.secondary">
-                  {item.comment}
-                </Typography>
-              )}
-              <Typography mt={0.5} variant="caption" color="text.secondary">
-                {new Date(item.created_at).toLocaleDateString()}
-              </Typography>
-            </Paper>
-          );
-        })}
+        {reviews.map((item: ReviewRow) => (
+          <ReviewItem item={item} />
+        ))}
       </Stack>
     </Stack>
   );

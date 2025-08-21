@@ -1,11 +1,12 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
-
-import AppNavigation from './components/AppNavigation';
-import InsertReviewPage from './components/InsertReviewPage';
-import SearchPage from './components/SearchPage';
-import StorefrontPage from './components/StorefrontPage';
+import {
+  AppNavigation,
+  InsertReviewPage,
+  SearchPage,
+  StorefrontPage,
+} from './components';
 
 const router = createBrowserRouter(
   [
