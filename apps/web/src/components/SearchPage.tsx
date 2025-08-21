@@ -134,17 +134,25 @@ export default function SearchPage() {
     }
     setSuggestions([]);
   }
+
+  const handleSearch = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    setName(e.target.value);
+    setActiveField('name');
+    handleAutocomplete(e.target.value);
+  };
+
+  useEffect(() => {
+    console.log('suggestions', suggestions);
+  }, [suggestions]);
+
   return (
     <Stack gap={2}>
       <TextField
         label="Search by drink or cafe"
         value={name}
-        onChange={e => {
-          setName(e.target.value);
-          setActiveField('name');
-          handleAutocomplete(e.target.value);
-        }}
-        size="medium"
+        onChange={handleSearch}
         fullWidth
       />
       {suggestions.length > 0 && (
