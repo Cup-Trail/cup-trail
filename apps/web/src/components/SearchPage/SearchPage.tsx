@@ -134,7 +134,7 @@ export default function SearchPage() {
           {reviews.length > 0 && (
             <Stack gap={1}>
               {reviews.map((item: ReviewRow) => (
-                <ReviewItem item={item} />
+                <ReviewItem key={item.id} item={item} />
               ))}
             </Stack>
           )}

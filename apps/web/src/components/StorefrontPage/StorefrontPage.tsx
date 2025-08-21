@@ -73,7 +73,7 @@ const StorefrontPage = () => {
               sx={{ overflowX: 'auto', pb: 1 }}
             >
               {drinks.map((item: ShopDrinkRow) => (
-                <ReviewItem item={item} />
+                <ReviewItem key={item.id} item={item} />
               ))}
             </Stack>
           )}
