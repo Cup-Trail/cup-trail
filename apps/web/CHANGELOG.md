@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file. See [standa
 
 ### Features
 
+- Create fetch wrapper
 - Update style and layouts
 - Refactor code to use react query and react hook form
 - Refactor components and create sub-components
