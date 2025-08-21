@@ -1,17 +1,21 @@
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
+import {
+  AppNavigation,
+  InsertReviewPage,
+  SearchPage,
+  StorefrontPage,
+} from './components';
 
-import App from './pages/App';
-import InsertReviewPage from './pages/InsertReviewPage';
-import SearchPage from './pages/SearchPage';
-import StorefrontPage from './pages/StorefrontPage';
+const queryClient = new QueryClient();
 
 const router = createBrowserRouter(
   [
     {
       path: '/',
-      element: <App />,
+      element: <AppNavigation />,
       children: [
         { index: true, element: <SearchPage /> },
         { path: 'shop/:shopId', element: <StorefrontPage /> },
@@ -27,6 +31,8 @@ if (!rootEl) throw new Error('Root element #root not found');
 
 createRoot(rootEl).render(
   <StrictMode>
-    <RouterProvider router={router} />
+    <QueryClientProvider client={queryClient}>
+      <RouterProvider router={router} />
+    </QueryClientProvider>
   </StrictMode>
 );

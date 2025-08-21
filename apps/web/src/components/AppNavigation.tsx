@@ -1,7 +1,14 @@
-import { AppBar, Box, Container, Toolbar, Typography } from '@mui/material';
+import {
+  AppBar,
+  Avatar,
+  Box,
+  Container,
+  Toolbar,
+  Typography,
+} from '@mui/material';
 import { Link, Outlet } from 'react-router-dom';
 
-export default function App() {
+export default function AppNavigation() {
   return (
     <Box sx={{ minHeight: '100vh', bgcolor: '#fafafa' }}>
       <AppBar
@@ -10,7 +17,7 @@ export default function App() {
         elevation={0}
         sx={{ borderBottom: '1px solid #eee' }}
       >
-        <Toolbar>
+        <Toolbar sx={{ display: 'flex', justifyContent: 'space-between' }}>
           <Typography
             variant="h6"
             component={Link}
@@ -19,6 +26,8 @@ export default function App() {
           >
             Cup Trail
           </Typography>
+          {/* TODO: add user avatar */}
+          <Avatar>A</Avatar>
         </Toolbar>
       </AppBar>
       <Container maxWidth="md" sx={{ py: 4 }}>

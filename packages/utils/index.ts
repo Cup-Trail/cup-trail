@@ -9,3 +9,6 @@ export * from './supabaseClient';
 
 // Drink categorization
 export * from './categorizeDrinks';
+
+// Fetch wrapper utilities
+export * from './fetchWrapper';

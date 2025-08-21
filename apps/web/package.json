@@ -1,7 +1,7 @@
 {
   "name": "@cuptrail/web",
   "private": true,
-  "version": "0.0.4",
+  "version": "0.1.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -20,13 +20,15 @@
   "dependencies": {
     "@cuptrail/core": "workspace:*",
     "@cuptrail/utils": "workspace:*",
-    "@emotion/react": "^11.11.4",
-    "@emotion/styled": "^11.11.5",
-    "@mui/icons-material": "^5.15.20",
-    "@mui/material": "^5.15.20",
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
+    "@mui/icons-material": "^7.3.1",
+    "@mui/material": "^7.3.1",
     "@supabase/supabase-js": "^2.45.3",
+    "@tanstack/react-query": "^5.85.5",
     "react": "19.0.0",
     "react-dom": "19.0.0",
+    "react-hook-form": "^7.62.0",
     "react-router-dom": "^6.26.2"
   },
   "devDependencies": {

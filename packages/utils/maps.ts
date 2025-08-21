@@ -1,15 +1,9 @@
-import type { Prediction, PlaceDetailsAPIResponse } from '@cuptrail/core';
-
+import type { PlaceDetailsAPIResponse, Prediction } from '@cuptrail/core';
 import { getEnv } from './env';
+import { apiPost } from './fetchWrapper';
 
-// Environment-aware function to get the base URL and API key
-function getMapsConfig() {
-  const { supabaseUrl, supabaseAnonKey } = getEnv();
-  return {
-    baseUrl: supabaseUrl,
-    apiKey: supabaseAnonKey,
-  };
-}
+const { supabaseUrl } = getEnv();
+const mapsBaseUrl = `${supabaseUrl}/functions/v1/maps`;
 
 /**
  * Get autocomplete suggestions for a search input
@@ -21,29 +15,20 @@ export async function getAutocomplete(input: string): Promise<Prediction[]> {
     return [];
   }
 
-  const { baseUrl, apiKey } = getMapsConfig();
+  const inputParam = encodeURIComponent(input.trim());
+  const params = new URLSearchParams({
+    type: 'autocomplete',
+    input: inputParam,
+  });
+  const response = await apiPost<{ predictions?: Prediction[] }>(
+    `${mapsBaseUrl}?${params.toString()}`
+  );
 
-  try {
-    const response = await fetch(
-      `${baseUrl}/functions/v1/maps?type=autocomplete&input=${encodeURIComponent(input.trim())}`,
-      {
-        headers: {
-          Authorization: `Bearer ${apiKey}`,
-          'Content-Type': 'application/json',
-        },
-      }
-    );
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    const json: { predictions?: Prediction[] } = await response.json();
-    return json.predictions || [];
-  } catch (error) {
-    console.error('Error fetching autocomplete:', error);
-    return [];
+  if (!response.ok) {
+    throw new Error(response.error || `HTTP error! status: ${response.status}`);
   }
+
+  return response.data?.predictions || [];
 }
 
 /**
@@ -58,29 +43,19 @@ export async function getPlaceDetails(
     return null;
   }
 
-  const { baseUrl, apiKey } = getMapsConfig();
+  const params = new URLSearchParams({
+    type: 'details',
+    place_id: encodeURIComponent(placeId),
+  });
+  const response = await apiPost<PlaceDetailsAPIResponse>(
+    `${mapsBaseUrl}?${params.toString()}`
+  );
 
-  try {
-    const response = await fetch(
-      `${baseUrl}/functions/v1/maps?type=details&place_id=${encodeURIComponent(placeId)}`,
-      {
-        headers: {
-          Authorization: `Bearer ${apiKey}`,
-          'Content-Type': 'application/json',
-        },
-      }
-    );
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    const data: PlaceDetailsAPIResponse = await response.json();
-    return data;
-  } catch (error) {
-    console.error('Error fetching place details:', error);
-    return null;
+  if (!response.ok) {
+    throw new Error(response.error || `HTTP error! status: ${response.status}`);
   }
+
+  return response.data || null;
 }
 
 /**

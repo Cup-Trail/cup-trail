@@ -1,10 +1,10 @@
 import {
   insertReview,
-  RATING_SCALE,
   LocationState,
+  RATING_SCALE,
   setShopDrinkCategories,
 } from '@cuptrail/core';
-import { suggestCategoriesByKeyword, slugToLabel } from '@cuptrail/utils';
+import { slugToLabel, suggestCategoriesByKeyword } from '@cuptrail/utils';
 import {
   Alert,
   Box,
@@ -18,6 +18,7 @@ import {
 import { useState } from 'react';
 import { useLocation, useParams } from 'react-router-dom';
 
+import { useForm } from 'react-hook-form';
 import type { SnackState } from '../types';
 
 export default function InsertReviewPage() {
@@ -25,9 +26,14 @@ export default function InsertReviewPage() {
   const location = useLocation();
   const shopName = (location.state as LocationState)?.shopName ?? '';
 
-  const [drink, setDrink] = useState('');
-  const [rating, setRating] = useState('');
-  const [review, setReview] = useState('');
+  const { register, getValues, reset } = useForm({
+    defaultValues: {
+      drinkName: '',
+      rating: '',
+      comments: '',
+    },
+  });
+
   const [snack, setSnack] = useState<SnackState>({
     open: false,
     message: '',
@@ -35,7 +41,8 @@ export default function InsertReviewPage() {
   });
   const [suggestedCategories, setSuggestedCategories] = useState<string[]>([]);
 
-  async function handleSubmit() {
+  async function handleSubmitReview() {
+    const { rating, drinkName, comments } = getValues();
     const parsed = parseFloat(rating);
     if (
       Number.isNaN(parsed) ||
@@ -49,7 +56,7 @@ export default function InsertReviewPage() {
       });
       return;
     }
-    if (!review.trim()) {
+    if (!comments.trim()) {
       setSnack({
         open: true,
         message: 'Please enter a valid review.',
@@ -57,7 +64,7 @@ export default function InsertReviewPage() {
       });
       return;
     }
-    if (!drink.trim()) {
+    if (!drinkName.trim()) {
       setSnack({
         open: true,
         message: 'Please enter a valid drink.',
@@ -69,7 +76,7 @@ export default function InsertReviewPage() {
 
     // add review
 
-    const result = await insertReview(shopId, drink, parsed, review);
+    const result = await insertReview(shopId, drinkName, parsed, comments);
     if (result.success) {
       const shopDrinkId = result.data.shop_drinks?.id;
       if (shopDrinkId && suggestedCategories.length > 0) {
@@ -98,9 +105,7 @@ export default function InsertReviewPage() {
         message: 'Review added successfully!',
         severity: 'success',
       });
-      setDrink('');
-      setRating('');
-      setReview('');
+      reset();
       setSuggestedCategories([]);
     } else {
       setSnack({
@@ -114,19 +119,16 @@ export default function InsertReviewPage() {
   return (
     <Stack gap={2}>
       <Typography variant="h5" textAlign="center" fontWeight={700}>
-        Add Your Review
-      </Typography>
-      <Typography variant="body2" textAlign="center" color="text.secondary">
-        Track your favorite drinks from each shop!
+        Add a review
       </Typography>
 
       <TextField
-        label="Drink"
-        value={drink}
-        onChange={e => setDrink(e.target.value)}
-        onBlur={() =>
-          setSuggestedCategories(suggestCategoriesByKeyword(drink.trim()))
-        }
+        {...register('drinkName')}
+        label="Drink Name (required)"
+        onBlur={() => {
+          const inputValue = getValues('drinkName').trim();
+          setSuggestedCategories(suggestCategoriesByKeyword(inputValue));
+        }}
         fullWidth
       />
       {/* Suggested categories */}
@@ -147,25 +149,25 @@ export default function InsertReviewPage() {
       )}
       <TextField label="Shop" value={shopName} fullWidth disabled />
       <TextField
+        {...register('rating')}
         type="number"
         label={`Rating (${RATING_SCALE.MIN} - ${RATING_SCALE.MAX})`}
-        value={rating}
-        onChange={e => setRating(e.target.value)}
-        inputProps={{ min: RATING_SCALE.MIN, max: RATING_SCALE.MAX }}
+        slotProps={{
+          htmlInput: { min: RATING_SCALE.MIN, max: RATING_SCALE.MAX },
+        }}
         fullWidth
       />
       <TextField
-        label="Your Review"
-        value={review}
-        onChange={e => setReview(e.target.value)}
+        {...register('comments')}
+        label="Comments"
         fullWidth
         multiline
         minRows={4}
       />
 
-      <Box>
-        <Button variant="contained" onClick={handleSubmit}>
-          Add Review
+      <Box display="flex" justifyContent="center">
+        <Button variant="contained" onClick={handleSubmitReview} fullWidth>
+          Save Review
         </Button>
       </Box>
 
