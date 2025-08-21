@@ -29,7 +29,11 @@ const CategoryFilters = () => {
   return (
     <>
       {cats && (
-        <Stack direction="row" spacing={1} sx={{ overflowX: 'auto', pb: 1 }}>
+        <Stack
+          direction="row"
+          spacing={1}
+          sx={{ justifyContent: 'center', overflowX: 'auto', pb: 1 }}
+        >
           {cats.map(c => (
             <Chip
               key={c.id}
@@ -41,8 +45,6 @@ const CategoryFilters = () => {
           ))}
         </Stack>
       )}
-
-      <Divider />
 
       {selectedCategory && (
         <>

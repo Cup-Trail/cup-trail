@@ -1,28 +1,19 @@
-import type {
-  LocationState,
-  Prediction,
-  ReviewRow,
-  ShopRow,
-} from '@cuptrail/core';
+import type { LocationState, Prediction, ReviewRow } from '@cuptrail/core';
 import { getOrInsertShop } from '@cuptrail/core';
 import {
   extractLocationData,
   getAutocomplete,
   getPlaceDetails,
 } from '@cuptrail/utils';
+import LocationOnOutlinedIcon from '@mui/icons-material/LocationOnOutlined';
+import SearchIcon from '@mui/icons-material/Search';
 import { Autocomplete, Stack, TextField, Typography } from '@mui/material';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useRecentReviewsQuery } from '../../queries';
+import { extractShopId } from '../../utils';
 import CategoryFilters from './CategoryFilters';
 import ReviewItem from './ReviewItem';
-
-const extractShopId = (data: ShopRow) => {
-  const rawId = data?.id;
-  return rawId !== null && String(rawId).trim().length > 0
-    ? String(rawId).trim()
-    : '';
-};
 
 export default function SearchPage() {
   const navigate = useNavigate();
@@ -104,6 +95,32 @@ export default function SearchPage() {
             helperText={
               searchError ? 'Error getting results. Please try again' : ''
             }
+            slotProps={{
+              input: {
+                ...params.InputProps,
+                startAdornment: <SearchIcon />,
+              },
+            }}
+          />
+        )}
+      />
+
+      {/* TODO hook up current location */}
+      <Autocomplete
+        options={[]}
+        filterOptions={x => x}
+        renderInput={params => (
+          <TextField
+            {...params}
+            label="Location"
+            placeholder="Current Location"
+            fullWidth
+            slotProps={{
+              input: {
+                ...params.InputProps,
+                startAdornment: <LocationOnOutlinedIcon />,
+              },
+            }}
           />
         )}
       />

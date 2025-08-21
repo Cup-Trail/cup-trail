@@ -1,14 +1,10 @@
 import { ReviewRow } from '@cuptrail/core';
 import { Box, Typography } from '@mui/material';
+import { renderStars } from '../../utils';
 
 interface ReviewItemProps {
   item: ReviewRow;
 }
-
-const renderStars = (rating: number, max = 5) => {
-  const r = Math.max(0, Math.min(max, Math.floor(rating)));
-  return '★'.repeat(r) + '☆'.repeat(max - r);
-};
 
 const ReviewItem = ({ item }: ReviewItemProps) => {
   const shopName = item.shop_drinks?.shops?.name;
@@ -22,7 +18,7 @@ const ReviewItem = ({ item }: ReviewItemProps) => {
       bgcolor="#FFF6EB"
       display="flex"
       flexDirection="column"
-      columnGap={2}
+      gap={2}
     >
       <Typography fontWeight={600}>{title}</Typography>
       <Box color="warning.main" fontSize="20px">
