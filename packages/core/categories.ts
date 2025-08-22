@@ -1,4 +1,5 @@
 import { supabase } from '@cuptrail/utils';
+
 import type { CategoryRow, Result, ShopRow, ShopsByCategory } from './types';
 
 export async function setShopDrinkCategories(

@@ -1,6 +1,7 @@
 import { CategoryRow, getShopsByCategorySlug, ShopRow } from '@cuptrail/core';
 import { Chip, Divider, Paper, Stack, Typography } from '@mui/material';
 import { useState } from 'react';
+
 import { useCategoriesQuery } from '../../queries';
 
 const CategoryFilters = () => {

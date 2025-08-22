@@ -1,5 +1,6 @@
 import { ShopDrinkRow } from '@cuptrail/core';
 import { Box, Typography } from '@mui/material';
+
 import { renderStars } from '../../utils';
 
 const PLACEHOLDER_IMAGE_URL =
