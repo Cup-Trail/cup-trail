@@ -1,5 +1,6 @@
 import { ReviewRow } from '@cuptrail/core';
 import { Box, Typography } from '@mui/material';
+
 import { renderStars } from '../../utils';
 
 interface ReviewItemProps {

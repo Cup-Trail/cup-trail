@@ -1,7 +1,6 @@
 import { supabase } from '@cuptrail/utils';
 
-import { ShopsByCategoryResponse } from './types';
-import type { CategoryRow, Result, ShopRow } from './types/types';
+import type { CategoryRow, Result, ShopRow, ShopsByCategory } from './types';
 
 export async function setShopDrinkCategories(
   shopDrinkId: string,
@@ -83,7 +82,7 @@ export async function getShopsByCategorySlug(
       return { success: false, source: 'supabase', message: error.message };
     }
 
-    const rows = (data ?? []) as Array<ShopsByCategoryResponse>;
+    const rows = (data ?? []) as Array<ShopsByCategory>;
     const uniqueMap = new Map<string, ShopRow>();
     for (const row of rows) {
       const shop = row?.shop_drinks?.shops;

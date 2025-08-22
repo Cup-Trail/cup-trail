@@ -3,7 +3,9 @@ import AddOutlinedIcon from '@mui/icons-material/AddOutlined';
 import { Box, Button, Stack, Tab, Tabs, Typography } from '@mui/material';
 import { useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
+
 import { usePopularDrinksQuery } from '../../queries';
+
 import ReviewItem from './ReviewItem';
 
 const STOREFRONT_TAB_VIEWS = {

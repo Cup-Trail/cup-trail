@@ -15,7 +15,7 @@ module.exports = [
       // Dependencies
       'node_modules/',
       '.pnpm/',
-      
+
       // Build outputs
       'dist/',
       'build/',
@@ -23,45 +23,45 @@ module.exports = [
       'out/',
       '**/dist/**',
       '**/build/**',
-      
+
       // Generated files
       '**/*.d.ts',
       '**/*.generated.*',
-      
+
       // Environment files
       '.env',
       '.env.*',
-      
+
       // Logs
       '*.log',
       'npm-debug.log*',
       'yarn-debug.log*',
       'yarn-error.log*',
       'pnpm-debug.log*',
-      
+
       // Runtime data
       'pids',
       '*.pid',
       '*.seed',
       '*.pid.lock',
-      
+
       // Coverage directory
       'coverage/',
       '*.lcov',
       '.nyc_output',
-      
+
       // Cache directories
       '.cache',
       '.parcel-cache',
       '.eslintcache',
-      
+
       // Editor directories
       '.vscode/',
       '.idea/',
       '*.swp',
       '*.swo',
       '*~',
-      
+
       // OS generated files
       '.DS_Store',
       '.DS_Store?',
@@ -70,7 +70,7 @@ module.exports = [
       '.Trashes',
       'ehthumbs.db',
       'Thumbs.db',
-      
+
       // Config files that use CommonJS
       'eslint.config.js',
       'babel.config.js',
@@ -81,10 +81,10 @@ module.exports = [
       '**/vite.config.ts',
     ],
   },
-  
+
   // JavaScript files
   js.configs.recommended,
-  
+
   // TypeScript files
   {
     files: ['**/*.ts', '**/*.tsx'],
@@ -112,13 +112,15 @@ module.exports = [
       '@typescript-eslint/no-explicit-any': 'warn',
       '@typescript-eslint/explicit-function-return-type': 'off',
       '@typescript-eslint/explicit-module-boundary-types': 'off',
-      
+      // Use TypeScript for undefined checks; this rule doesn't understand TS types
+      'no-undef': 'off',
+
       // React specific rules
       'react/react-in-jsx-scope': 'off', // Not needed in React 17+
       'react/prop-types': 'off', // Using TypeScript instead
       'react-hooks/rules-of-hooks': 'error',
       'react-hooks/exhaustive-deps': 'warn',
-      
+
       // Import rules
       'import/order': [
         'error',
@@ -148,12 +150,12 @@ module.exports = [
           argsIgnorePattern: '^_',
         },
       ],
-      
+
       // General rules
       'no-console': 'warn',
       'prefer-const': 'error',
       'no-var': 'error',
-      
+
       // Prettier
       'prettier/prettier': 'error',
     },
@@ -176,7 +178,7 @@ module.exports = [
       },
     },
   },
-  
+
   // Mobile app specific rules
   {
     files: ['apps/mobile/**/*'],
@@ -198,7 +200,7 @@ module.exports = [
       'react-native/no-color-literals': 'warn',
     },
   },
-  
+
   // Web app specific rules
   {
     files: ['apps/web/**/*'],
@@ -217,7 +219,7 @@ module.exports = [
       },
     },
   },
-  
+
   // Data package specific rules
   {
     files: ['packages/**/*'],
