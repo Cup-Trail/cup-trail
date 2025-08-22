@@ -1,9 +1,3 @@
-import { ShopRow } from '.';
-
-export type ShopsByCategoryResponse = {
-  shop_drinks?: { shops?: ShopRow };
-};
-
 export interface PlaceDetailsAPIResponse {
   result: {
     place_id: string;
@@ -17,4 +11,13 @@ export interface PlaceDetailsAPIResponse {
     };
   };
   status: string;
+}
+
+export interface Prediction {
+  place_id: string;
+  description: string;
+  structured_formatting: {
+    main_text: string;
+    secondary_text: string;
+  };
 }
