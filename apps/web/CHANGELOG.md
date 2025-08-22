@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file. See [standa
 
 ## [0.2.0](https://github.com/Cup-Trail/cup-trail/compare/v0.1.0...v0.2.0) (2025-08-22)
 
+### Bug Fixes
+
+- Maps autocomplete
+
 ## [0.1.0](https://github.com/Cup-Trail/cup-trail/compare/v0.0.4...v0.1.0) (2025-08-21)
 
 ### Features
