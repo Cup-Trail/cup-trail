@@ -1,17 +1,14 @@
 import type { LocationState, Prediction, ReviewRow } from '@cuptrail/core';
 import { getOrInsertShop } from '@cuptrail/core';
-import {
-  extractLocationData,
-  getAutocomplete,
-  getPlaceDetails,
-} from '@cuptrail/utils';
+import { getAutocomplete, getPlaceDetails } from '@cuptrail/utils';
 import LocationOnOutlinedIcon from '@mui/icons-material/LocationOnOutlined';
 import SearchIcon from '@mui/icons-material/Search';
 import { Autocomplete, Stack, TextField, Typography } from '@mui/material';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+
 import { useRecentReviewsQuery } from '../../queries';
-import { extractShopId } from '../../utils';
+
 import CategoryFilters from './CategoryFilters';
 import ReviewItem from './ReviewItem';
 
@@ -44,31 +41,28 @@ export default function SearchPage() {
     if (!suggestion) return;
 
     try {
-      const data = await getPlaceDetails(suggestion.place_id);
+      const data = await getPlaceDetails(suggestion.placeId);
       if (!data) return;
 
-      const locationData = extractLocationData(data);
-      if (!locationData) return;
+      const { displayName, formattedAddress, location } = data;
 
-      const { name: placeName, address, latitude, longitude } = locationData;
-
-      if (placeName && address && latitude && longitude) {
+      if (displayName && formattedAddress && location) {
         const result = await getOrInsertShop(
-          placeName,
-          address,
-          latitude,
-          longitude
+          displayName,
+          formattedAddress,
+          location.latitude,
+          location.longitude
         );
 
         if (!result?.success) return;
 
-        const shopId = extractShopId(result.data);
+        const shopId = result.data.id;
         if (!shopId) return;
 
         navigate(`/shop/${encodeURIComponent(shopId)}`, {
           state: {
-            shopName: placeName,
-            address: address,
+            shopName: displayName,
+            address: formattedAddress,
             shopId,
           } as LocationState,
         });
@@ -83,7 +77,7 @@ export default function SearchPage() {
       <Autocomplete
         options={suggestions}
         filterOptions={x => x}
-        getOptionLabel={s => s.description}
+        getOptionLabel={s => s.text}
         onInputChange={(_, value) => handleAutocomplete(value)}
         onChange={(_, s) => handleSelectSuggestion(s)}
         renderInput={params => (

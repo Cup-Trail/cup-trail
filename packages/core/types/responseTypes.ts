@@ -1,23 +1,17 @@
-export interface PlaceDetailsAPIResponse {
-  result: {
-    place_id: string;
-    name: string;
-    formatted_address: string;
-    geometry: {
-      location: {
-        lat: number;
-        lng: number;
-      };
-    };
+export interface PlaceDetails {
+  displayName: string;
+  formattedAddress: string;
+  location: {
+    latitude: number;
+    longitude: number;
   };
-  status: string;
 }
 
 export interface Prediction {
-  place_id: string;
-  description: string;
-  structured_formatting: {
-    main_text: string;
-    secondary_text: string;
+  placeId: string;
+  text: string;
+  structuredFormat: {
+    mainText: string;
+    secondaryText: string;
   };
 }
