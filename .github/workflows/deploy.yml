@@ -2,7 +2,7 @@ name: Deploy website to GitHub Pages
 
 on:
   push:
-    branches: ["main"]
+    branches: ['main']
   workflow_dispatch:
 
 permissions:
@@ -11,48 +11,52 @@ permissions:
   id-token: write
 
 concurrency:
-  group: "pages"
+  group: 'pages'
   cancel-in-progress: false
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: web
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.14.0
+          run_install: false
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: npm
-          cache-dependency-path: web/package-lock.json
+          cache: 'pnpm'
+          cache-dependency-path: pnpm-lock.yaml
 
-      - name: Install dependencies
-        run: npm ci --no-fund --no-audit
+      - name: Install dependencies (workspace)
+        run: pnpm install --frozen-lockfile --prefer-offline
 
-      - name: Build (Vite) with correct base for GitHub Pages
+      - name: Build @cuptrail/web (Vite) for Pages
+        working-directory: apps/web
         env:
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+          # Vite reads this in vite.config.ts: base: process.env.VITE_BASE || '/'
+          VITE_BASE: ${{ endsWith(github.event.repository.name, '.github.io') && '/' || format('/{0}/', github.event.repository.name) }}
         run: |
-          REPO="${{ github.event.repository.name }}"
-          if [[ "$REPO" == *.github.io ]]; then
-            BASE="/"
-          else
-            BASE="/$REPO/"
-          fi
-          npm run build -- --base=$BASE
+          set -euo pipefail
+          echo "Using base: $VITE_BASE"
+          pnpm build
+          # SPA fallback + Pages quirks
           touch dist/.nojekyll
           cp dist/index.html dist/404.html
+          sed -n '1,120p' dist/index.html
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: web/dist
+          path: apps/web/dist
 
   deploy:
     environment:
@@ -64,5 +68,3 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
-
-

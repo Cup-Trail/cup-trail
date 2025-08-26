@@ -1,4 +1,4 @@
-name: Preview website for Pull Requests (pnpm monorepo)
+name: Preview website for Pull Requests
 
 on:
   pull_request:
