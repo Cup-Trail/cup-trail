@@ -11,7 +11,7 @@ permissions:
   pull-requests: write
 
 concurrency:
-  group: "pages-preview-${{ github.event.pull_request.number }}"
+  group: 'pages-preview-${{ github.event.pull_request.number }}'
   cancel-in-progress: true
 
 jobs:
@@ -38,6 +38,7 @@ jobs:
         run: pnpm install --frozen-lockfile --prefer-offline
 
       - name: Build @cuptrail/web (Vite) with PR base path
+        working-directory: apps/web
         env:
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
@@ -51,17 +52,16 @@ jobs:
             BASE="/$REPO/${PR}/"
           fi
           echo "Using base: $BASE"
-          # Build the Vite app inside apps/web, using the workspace filter
-          pnpm -F @cuptrail/web build -- --base="$BASE"
+          pnpm build -- --base="$BASE"
+          test -f dist/index.html || { echo "dist/index.html missing"; exit 1; }
 
-          # Stage under a PR-specific subfolder so the preview lives at .../<repo>/${PR}/
-          rm -rf preview
-          mkdir -p preview/${PR}
-          cp -R apps/web/dist/* preview/${PR}/
+          # Stage under a PR-specific subfolder
+          mkdir -p ../../preview/${PR}
+          cp -R dist/* ../../preview/${PR}/
+
           # SPA fallback + Pages quirks
-          touch preview/.nojekyll
-          cp preview/${PR}/index.html preview/${PR}/404.html
-
+          touch ../../preview/.nojekyll
+          cp ../../preview/${PR}/index.html ../../preview/${PR}/404.html
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
