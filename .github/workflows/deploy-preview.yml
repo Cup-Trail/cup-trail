@@ -55,13 +55,17 @@ jobs:
           pnpm build -- --base="$BASE"
           test -f dist/index.html || { echo "dist/index.html missing"; exit 1; }
 
-          # Stage under a PR-specific subfolder
           mkdir -p ../../preview/${PR}
           cp -R dist/* ../../preview/${PR}/
-
-          # SPA fallback + Pages quirks
           touch ../../preview/.nojekyll
           cp ../../preview/${PR}/index.html ../../preview/${PR}/404.html
+      - name: Inspect built index.html
+        working-directory: apps/web
+        run: sed -n '1,120p' dist/index.html
+      - name: List preview contents
+        run: |
+          echo "Preview tree:"
+          find preview -maxdepth 3 -type f | sort
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
