@@ -1,4 +1,5 @@
 import { supabase } from '@cuptrail/utils';
+
 import type { Err, Ok, Result, ShopRow } from './types/types';
 
 const SHOPS_TABLE = 'shops';
