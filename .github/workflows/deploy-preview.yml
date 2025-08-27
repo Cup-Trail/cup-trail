@@ -1,4 +1,4 @@
-name: Preview website for Pull Requests (pnpm monorepo)
+name: Preview website for Pull Requests
 
 on:
   pull_request:
@@ -11,7 +11,7 @@ permissions:
   pull-requests: write
 
 concurrency:
-  group: "pages-preview-${{ github.event.pull_request.number }}"
+  group: 'pages-preview-${{ github.event.pull_request.number }}'
   cancel-in-progress: true
 
 jobs:
@@ -38,30 +38,25 @@ jobs:
         run: pnpm install --frozen-lockfile --prefer-offline
 
       - name: Build @cuptrail/web (Vite) with PR base path
+        working-directory: apps/web
         env:
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+          VITE_BASE: ${{ endsWith(github.event.repository.name, '.github.io') && format('/pr-{0}/', github.event.pull_request.number) || format('/{0}/pr-{1}/', github.event.repository.name, github.event.pull_request.number) }}
         run: |
           set -euo pipefail
-          REPO="${{ github.event.repository.name }}"
-          PR="pr-${{ github.event.pull_request.number }}"
-          if [[ "$REPO" == *.github.io ]]; then
-            BASE="/${PR}/"
-          else
-            BASE="/$REPO/${PR}/"
-          fi
-          echo "Using base: $BASE"
-          # Build the Vite app inside apps/web, using the workspace filter
-          pnpm -F @cuptrail/web build -- --base="$BASE"
+          echo "Using base: $VITE_BASE"
+          pnpm run build
+          sed -n '1,120p' dist/index.html
+          mkdir -p ../../preview/pr-${{ github.event.pull_request.number }}
+          cp -R dist/* ../../preview/pr-${{ github.event.pull_request.number }}/
+          touch ../../preview/.nojekyll
+          cp ../../preview/pr-${{ github.event.pull_request.number }}/index.html ../../preview/pr-${{ github.event.pull_request.number }}/404.html
 
-          # Stage under a PR-specific subfolder so the preview lives at .../<repo>/${PR}/
-          rm -rf preview
-          mkdir -p preview/${PR}
-          cp -R apps/web/dist/* preview/${PR}/
-          # SPA fallback + Pages quirks
-          touch preview/.nojekyll
-          cp preview/${PR}/index.html preview/${PR}/404.html
-
+      - name: List preview contents
+        run: |
+          echo "Preview tree:"
+          find preview -maxdepth 3 -type f | sort
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
