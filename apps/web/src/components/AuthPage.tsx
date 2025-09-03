@@ -3,7 +3,6 @@ import {
   Alert,
   Box,
   Button,
-  Divider,
   Stack,
   TextField,
   Typography,
@@ -22,7 +21,7 @@ export default function AuthPage() {
   const [showOtpInput, setShowOtpInput] = useState(false);
   const [countdown, setCountdown] = useState(0);
 
-  // Countdown timer for resend button
+  // countdown for resend button
   useEffect(() => {
     if (countdown > 0) {
       const timer = setTimeout(() => setCountdown(countdown - 1), 1000);
@@ -43,7 +42,7 @@ export default function AuthPage() {
       if (error) throw error;
       setStatus('sent');
       setShowOtpInput(true);
-      setCountdown(60); // 60 second cooldown
+      setCountdown(60); // 60 sec cooldown
       setMessage('Check your email for the 6-digit verification code.');
     } catch (e: any) {
       setStatus('error');
@@ -62,7 +61,7 @@ export default function AuthPage() {
       });
       if (error) throw error;
 
-      // Successfully signed in
+      // successfully signed in
       navigate('/');
     } catch (e: any) {
       setStatus('error');
@@ -81,7 +80,7 @@ export default function AuthPage() {
   return (
     <Box
       sx={{
-        minHeight: '100vh',
+        minHeight: '60vh',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -90,24 +89,15 @@ export default function AuthPage() {
     >
       <Box
         sx={{
-          maxWidth: 600,
-          width: '100%',
-          backgroundColor: 'white',
-          borderRadius: 3,
-          boxShadow:
-            '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
-          padding: 4,
           textAlign: 'center',
         }}
       >
+        {/* text & subtitle */}
         <Box sx={{ mb: 2 }}>
-          <Typography variant="h2" sx={{ fontSize: '3rem', mb: 1 }}>
-            ☕
-          </Typography>
           <Typography
             variant="h4"
             gutterBottom
-            fontWeight={700}
+            fontWeight={500}
             color="primary.main"
           >
             Welcome to Cup Trail!
@@ -121,7 +111,6 @@ export default function AuthPage() {
             Sign in to review and discover your favorite coffee shops
           </Typography>
         </Box>
-
         <Stack gap={3}>
           {status !== 'idle' && (
             <Alert
@@ -131,8 +120,7 @@ export default function AuthPage() {
               {message}
             </Alert>
           )}
-
-          {/* Email Input */}
+          {/* email */}
           <TextField
             label="Email Address"
             type="email"
@@ -147,8 +135,7 @@ export default function AuthPage() {
               }
             }}
           />
-
-          {/* OTP Input (shown after email is sent) */}
+          {/* otp input (shown after email is sent) */}
           {showOtpInput && (
             <Box>
               <Typography
@@ -160,13 +147,13 @@ export default function AuthPage() {
                 Enter the 6-digit code sent to {email}
               </Typography>
               <Box
-                sx={{
-                  backgroundColor: 'grey.50',
-                  borderRadius: 2,
-                  padding: 3,
-                  border: '2px dashed',
-                  borderColor: 'primary.light',
-                }}
+              // sx={{
+              //   backgroundColor: 'grey.50',
+              //   borderRadius: 2,
+              //   padding: 3,
+              //   border: '2px dashed',
+              //   borderColor: 'primary.light',
+              // }}
               >
                 <TextField
                   label="Verification Code"
@@ -180,15 +167,17 @@ export default function AuthPage() {
                   placeholder="123456"
                   fullWidth
                   variant="outlined"
-                  inputProps={{
-                    maxLength: 6,
-                    style: {
-                      textAlign: 'center',
-                      fontSize: '2rem',
-                      letterSpacing: '0.8rem',
-                      fontFamily: 'monospace',
-                      fontWeight: 'bold',
-                      padding: '1rem',
+                  slotProps={{
+                    htmlInput: {
+                      maxLength: 6,
+                      style: {
+                        textAlign: 'center',
+                        fontSize: '2rem',
+                        letterSpacing: '0.8rem',
+                        fontFamily: 'monospace',
+                        fontWeight: 'bold',
+                        padding: '1rem',
+                      },
                     },
                   }}
                   helperText="Enter the 6-digit code from your email"
@@ -211,7 +200,6 @@ export default function AuthPage() {
               </Box>
             </Box>
           )}
-
           {/* Action Buttons */}
           <Stack direction="row" spacing={2}>
             {!showOtpInput ? (
@@ -221,19 +209,6 @@ export default function AuthPage() {
                 disabled={!email || status === 'sent'}
                 size="large"
                 fullWidth
-                sx={{
-                  py: 2,
-                  fontSize: '1.1rem',
-                  fontWeight: 600,
-                  borderRadius: 2,
-                  textTransform: 'none',
-
-                  boxShadow: '0 3px 5px 2px rgba(33, 203, 243, .3)',
-                  '&:hover': {
-                    background:
-                      'linear-gradient(45deg, #1976D2 30%, #1E88E5 90%)',
-                  },
-                }}
               >
                 Send Verification Code
               </Button>
@@ -244,46 +219,15 @@ export default function AuthPage() {
                   onClick={verifyOtpCode}
                   disabled={otp.length !== 6 || status === 'verifying'}
                   size="large"
-                  sx={{
-                    py: 2,
-                    flex: 1,
-                    fontSize: '1.1rem',
-                    fontWeight: 600,
-                    borderRadius: 2,
-                    textTransform: 'none',
-                    background:
-                      'linear-gradient(45deg, #4CAF50 30%, #8BC34A 90%)',
-                    boxShadow: '0 3px 5px 2px rgba(76, 175, 80, .3)',
-                    '&:hover': {
-                      background:
-                        'linear-gradient(45deg, #388E3C 30%, #689F38 90%)',
-                    },
-                  }}
                 >
                   {status === 'verifying' ? 'Verifying...' : 'Verify Code'}
                 </Button>
-                <Button
-                  variant="outlined"
-                  onClick={resetForm}
-                  size="large"
-                  sx={{
-                    py: 2,
-                    fontSize: '1rem',
-                    fontWeight: 500,
-                    borderRadius: 2,
-                    textTransform: 'none',
-                    borderWidth: 2,
-                    '&:hover': {
-                      borderWidth: 2,
-                    },
-                  }}
-                >
+                <Button variant="outlined" onClick={resetForm} size="large">
                   Change Email
                 </Button>
               </>
             )}
           </Stack>
-
           {/* Resend Code Button */}
           {showOtpInput && (
             <Box textAlign="center">
@@ -299,9 +243,7 @@ export default function AuthPage() {
               </Button>
             </Box>
           )}
-
-          <Divider sx={{ my: 2 }} />
-
+          {/* <Divider sx={{ my: 2 }} /> */}
           <Typography
             variant="caption"
             color="text.secondary"
