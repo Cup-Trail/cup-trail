@@ -36,9 +36,12 @@ export default function SearchPage() {
   }
 
   async function handleSelectSuggestion(
-    suggestion: Prediction | null
+    suggestion: Prediction | string | null
   ): Promise<void> {
     if (!suggestion) return;
+
+    // If it's a string (freeSolo input), we can't process it as a place
+    if (typeof suggestion === 'string') return;
 
     try {
       const data = await getPlaceDetails(suggestion.placeId);
@@ -77,7 +80,10 @@ export default function SearchPage() {
       <Autocomplete
         options={suggestions}
         filterOptions={x => x}
-        getOptionLabel={s => s.text}
+        freeSolo
+        getOptionLabel={option =>
+          typeof option === 'string' ? option : option.text
+        }
         onInputChange={(_, value) => handleAutocomplete(value)}
         onChange={(_, s) => handleSelectSuggestion(s)}
         renderInput={params => (
@@ -102,6 +108,7 @@ export default function SearchPage() {
       {/* TODO hook up current location */}
       <Autocomplete
         options={[]}
+        freeSolo
         filterOptions={x => x}
         renderInput={params => (
           <TextField
