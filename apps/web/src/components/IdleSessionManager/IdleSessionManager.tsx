@@ -1,6 +1,7 @@
 import { Box, Button, Dialog, Typography } from '@mui/material';
 import { useCallback, useEffect, useState } from 'react';
 import { useIdleTimer } from 'react-idle-timer';
+
 import type { IdleSessionManagerProps } from './types';
 
 /**

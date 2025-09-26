@@ -9,10 +9,9 @@ import {
   Typography,
 } from '@mui/material';
 import { useEffect, useState } from 'react';
-import { Link, Outlet, useNavigate } from 'react-router-dom';
+import { Link, Outlet } from 'react-router-dom';
 
 export default function AppNavigation() {
-  const navigate = useNavigate();
   const [signedIn, setSignedIn] = useState<boolean>(false);
   const [user, setUser] = useState<any>(null);
 
