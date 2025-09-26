@@ -10,7 +10,6 @@ import {
 } from '@mui/material';
 import { useEffect, useState } from 'react';
 import { Link, Outlet, useNavigate } from 'react-router-dom';
-import IdleSessionManager from './IdleSessionManager';
 
 export default function AppNavigation() {
   const navigate = useNavigate();
@@ -50,14 +49,6 @@ export default function AppNavigation() {
 
     return (
       <Box sx={{ minHeight: '100vh', bgcolor: '#fafafa' }}>
-        <IdleSessionManager
-          timeoutMs={20 * 60 * 1000} // timeout after 20 mins
-          autoLogoutMs={60000}
-          onLogout={async () => {
-            await supabase.auth.signOut();
-            navigate('/');
-          }}
-        />
         <AppBar
           position="static"
           color="inherit"

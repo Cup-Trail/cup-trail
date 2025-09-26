@@ -3,6 +3,13 @@ import { useCallback, useEffect, useState } from 'react';
 import { useIdleTimer } from 'react-idle-timer';
 import type { IdleSessionManagerProps } from './types';
 
+/**
+ * Deprecated in favor of long-lived sessions
+ * @param timeoutMs
+ * @param autoLogoutMs
+ * @param onLogout callback
+ * @returns
+ */
 export default function IdleSessionManager({
   timeoutMs = 20 * 60 * 1000, // 20 minutes
   autoLogoutMs,
