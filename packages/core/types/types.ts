@@ -110,10 +110,3 @@ export interface LocationState {
   latitude: number;
   longitude: number;
 }
-
-// Web-specific types
-export type SnackState = {
-  open: boolean;
-  message: string;
-  severity: 'success' | 'error';
-};
