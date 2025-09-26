@@ -5,29 +5,33 @@ import {
   Box,
   Button,
   Container,
-  Stack,
   Toolbar,
   Typography,
 } from '@mui/material';
 import { useEffect, useState } from 'react';
-import { Link, Outlet } from 'react-router-dom';
+import { Link, Outlet, useNavigate } from 'react-router-dom';
+import IdleSessionManager from './IdleSessionManager';
 
 export default function AppNavigation() {
+  const navigate = useNavigate();
   const [signedIn, setSignedIn] = useState<boolean>(false);
   const [user, setUser] = useState<any>(null);
 
   useEffect(() => {
     let mounted = true;
+    // fetch curr session
     supabase.auth.getSession().then(({ data }) => {
       if (!mounted) return;
       const session = data.session;
       setSignedIn(Boolean(session));
       setUser(session?.user || null);
     });
+    // updates when auth state changes
     const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
       setSignedIn(Boolean(session));
       setUser(session?.user || null);
     });
+    // cleanup if component unmounts
     return () => {
       mounted = false;
       sub.subscription.unsubscribe();
@@ -35,7 +39,7 @@ export default function AppNavigation() {
   }, []);
 
   if (signedIn) {
-    // If signed in, show avatar that links to profile
+    // if signed in, show avatar that links to profile
     const currentDisplayName = user?.user_metadata?.display_name || 'User';
     const initials = currentDisplayName
       .split(' ')
@@ -46,6 +50,14 @@ export default function AppNavigation() {
 
     return (
       <Box sx={{ minHeight: '100vh', bgcolor: '#fafafa' }}>
+        <IdleSessionManager
+          timeoutMs={20 * 60 * 1000} // timeout after 20 mins
+          autoLogoutMs={60000}
+          onLogout={async () => {
+            await supabase.auth.signOut();
+            navigate('/');
+          }}
+        />
         <AppBar
           position="static"
           color="inherit"
@@ -86,7 +98,7 @@ export default function AppNavigation() {
     );
   }
 
-  // If not signed in, show sign up and login buttons
+  // if not signed in, show sign up and login buttons
   return (
     <Box sx={{ minHeight: '100vh', bgcolor: '#fafafa' }}>
       <AppBar
@@ -104,19 +116,9 @@ export default function AppNavigation() {
           >
             Cup Trail
           </Typography>
-          <Stack direction="row" spacing={2}>
-            <Button
-              component={Link}
-              to="/auth"
-              variant="contained"
-              size="small"
-            >
-              Sign up
-            </Button>
-            <Button component={Link} to="/auth" variant="outlined" size="small">
-              Login
-            </Button>
-          </Stack>
+          <Button component={Link} to="/auth" variant="contained" size="small">
+            Login
+          </Button>
         </Toolbar>
       </AppBar>
       <Container maxWidth="md" sx={{ py: 4 }}>
