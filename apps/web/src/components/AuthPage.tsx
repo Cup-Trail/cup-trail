@@ -146,15 +146,7 @@ export default function AuthPage() {
               >
                 Enter the 6-digit code sent to {email}
               </Typography>
-              <Box
-              // sx={{
-              //   backgroundColor: 'grey.50',
-              //   borderRadius: 2,
-              //   padding: 3,
-              //   border: '2px dashed',
-              //   borderColor: 'primary.light',
-              // }}
-              >
+              <Box>
                 <TextField
                   label="Verification Code"
                   value={otp}
