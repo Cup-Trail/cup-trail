@@ -20,6 +20,7 @@ export default function AuthPage() {
   const [message, setMessage] = useState<string>('');
   const [showOtpInput, setShowOtpInput] = useState(false);
   const [countdown, setCountdown] = useState(0);
+  const [isNewUser, setIsNewUser] = useState(false);
 
   // countdown for resend button
   useEffect(() => {
@@ -36,14 +37,32 @@ export default function AuthPage() {
       const { error } = await supabase.auth.signInWithOtp({
         email: email.trim(),
         options: {
-          shouldCreateUser: true,
+          shouldCreateUser: false,
         },
       });
-      if (error) throw error;
-      setStatus('sent');
-      setShowOtpInput(true);
-      setCountdown(60); // 60 sec cooldown
-      setMessage('Check your email for the 6-digit verification code.');
+      if (error) {
+        if (error.message === 'Signups not allowed for otp') {
+          const { error } = await supabase.auth.signInWithOtp({
+            email: email.trim(),
+            options: {
+              shouldCreateUser: true,
+            },
+          });
+          if (error) throw error;
+          setShowOtpInput(false);
+          setStatus('sent');
+          setCountdown(60); // 60 sec cooldown
+          setIsNewUser(true);
+          setMessage(`Verify your email through the link sent to ${email}`);
+        } else {
+          throw error;
+        }
+      } else {
+        setStatus('sent');
+        setShowOtpInput(true);
+        setCountdown(60); // 60 sec cooldown
+        setMessage('Check your email for the 6-digit verification code.');
+      }
     } catch (e: any) {
       setStatus('error');
       setMessage(e?.message || 'Failed to send verification code');
@@ -60,7 +79,6 @@ export default function AuthPage() {
         type: 'email',
       });
       if (error) throw error;
-
       // successfully signed in
       navigate('/');
     } catch (e: any) {
@@ -75,6 +93,7 @@ export default function AuthPage() {
     setStatus('idle');
     setMessage('');
     setCountdown(0);
+    setIsNewUser(false);
   }
 
   return (
@@ -198,7 +217,7 @@ export default function AuthPage() {
               <Button
                 variant="contained"
                 onClick={sendOtpCode}
-                disabled={!email || status === 'sent'}
+                disabled={!email || status === 'sent' || countdown > 0}
                 size="large"
                 fullWidth
               >
