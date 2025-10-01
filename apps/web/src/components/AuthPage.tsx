@@ -12,6 +12,7 @@ import { useNavigate } from 'react-router-dom';
 
 export default function AuthPage() {
   const navigate = useNavigate();
+  const redirect = `${import.meta.env.BASE_URL}#auth/callback`;
   const [email, setEmail] = useState('');
   const [otp, setOtp] = useState('');
   const [status, setStatus] = useState<'idle' | 'sent' | 'verifying' | 'error'>(
@@ -46,6 +47,7 @@ export default function AuthPage() {
             email: email.trim(),
             options: {
               shouldCreateUser: true,
+              emailRedirectTo: redirect,
             },
           });
           if (error) throw error;
