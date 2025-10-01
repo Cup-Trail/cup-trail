@@ -12,7 +12,7 @@ import { useNavigate } from 'react-router-dom';
 
 export default function AuthPage() {
   const navigate = useNavigate();
-  const redirect = `${import.meta.env.BASE_URL}#auth/callback`;
+  const redirect = `${window.location.origin}${import.meta.env.BASE_URL}#auth/callback`;
   const [email, setEmail] = useState('');
   const [otp, setOtp] = useState('');
   const [status, setStatus] = useState<'idle' | 'sent' | 'verifying' | 'error'>(
