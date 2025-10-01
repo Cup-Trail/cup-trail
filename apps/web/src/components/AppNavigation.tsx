@@ -9,12 +9,19 @@ import {
   Typography,
 } from '@mui/material';
 import { useEffect, useState } from 'react';
-import { Link, Outlet } from 'react-router-dom';
+import { Link, Outlet, useNavigate } from 'react-router-dom';
 
 export default function AppNavigation() {
+  const navigate = useNavigate();
   const [signedIn, setSignedIn] = useState<boolean>(false);
   const [user, setUser] = useState<any>(null);
-
+  const handleLoginClick = () => {
+    if (location.pathname === '/auth') {
+      window.location.reload();
+    } else {
+      navigate('/auth');
+    }
+  };
   useEffect(() => {
     let mounted = true;
     // fetch curr session
@@ -106,7 +113,13 @@ export default function AppNavigation() {
           >
             Cup Trail
           </Typography>
-          <Button component={Link} to="/auth" variant="contained" size="small">
+          <Button
+            component={Link}
+            onClick={handleLoginClick}
+            to="/auth"
+            variant="contained"
+            size="small"
+          >
             Login
           </Button>
         </Toolbar>
