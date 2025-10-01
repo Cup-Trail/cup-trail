@@ -31,6 +31,14 @@ export default function AuthPage() {
     }
   }, [countdown]);
 
+  function computeRedirect(): string {
+    const { origin, pathname } = window.location;
+    const prMatch = pathname.match(/\/cup-trail\/pr-\d+\//);
+    if (prMatch) {
+      return `${origin}${prMatch[0]}`;
+    }
+    return `${origin}${import.meta.env.BASE_URL}`;
+  }
   async function sendOtpCode(): Promise<void> {
     setStatus('idle');
     setMessage('');
@@ -42,6 +50,7 @@ export default function AuthPage() {
         },
       });
       if (error) {
+        const redirect = computeRedirect();
         if (error.message === 'Signups not allowed for otp') {
           const { error } = await supabase.auth.signInWithOtp({
             email: email.trim(),
