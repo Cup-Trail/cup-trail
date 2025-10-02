@@ -72,7 +72,7 @@ export default function AuthPage() {
         setShowOtpInput(true);
         setCountdown(60); // 60 sec cooldown
         setMessage(
-          'Check your email for the 6-digit verification code. If you have an existing account, please confirm signup via verification link'
+          'Check your email for the 6-digit verification code. If you have an existing account, please confirm signup first via verification link'
         );
       }
     } catch (e: any) {
@@ -231,7 +231,7 @@ export default function AuthPage() {
                 size="large"
                 fullWidth
               >
-                Send Verification Code
+                Sign In
               </Button>
             ) : (
               <>
