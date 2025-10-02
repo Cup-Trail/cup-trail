@@ -3,6 +3,7 @@ import {
   Alert,
   Box,
   Button,
+  Snackbar,
   Stack,
   TextField,
   Typography,
@@ -142,14 +143,21 @@ export default function AuthPage() {
           </Typography>
         </Box>
         <Stack gap={3}>
-          {status !== 'idle' && (
+          <Snackbar
+            open={Boolean(message) && status !== 'idle'}
+            autoHideDuration={5000}
+            onClose={() => setMessage('')}
+            anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+          >
             <Alert
+              onClose={() => setMessage('')}
               severity={status === 'error' ? 'error' : 'success'}
-              sx={{ mb: 2 }}
+              variant="filled"
+              sx={{ width: '100%' }}
             >
               {message}
             </Alert>
-          )}
+          </Snackbar>
           {/* email */}
           <TextField
             label="Email Address"
@@ -174,8 +182,8 @@ export default function AuthPage() {
                 textAlign="center"
                 mb={2}
               >
-                Enter the 6-digit code sent to {email}. Or if you have an
-                existing account, please confirm signup via verification link.
+                Enter the 6-digit code sent to {email}. If you have an existing
+                account, please confirm signup via verification link.
               </Typography>
               <Box>
                 <TextField
