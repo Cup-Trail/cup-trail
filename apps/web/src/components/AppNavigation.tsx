@@ -9,19 +9,13 @@ import {
   Typography,
 } from '@mui/material';
 import { useEffect, useState } from 'react';
-import { Link, Outlet, useNavigate } from 'react-router-dom';
+import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 
 export default function AppNavigation() {
+  const location = useLocation();
   const navigate = useNavigate();
   const [signedIn, setSignedIn] = useState<boolean>(false);
   const [user, setUser] = useState<any>(null);
-  const handleLoginClick = () => {
-    if (location.pathname === '/auth') {
-      window.location.reload();
-    } else {
-      navigate('/auth');
-    }
-  };
   useEffect(() => {
     let mounted = true;
     // fetch curr session
@@ -115,7 +109,13 @@ export default function AppNavigation() {
           </Typography>
           <Button
             component={Link}
-            onClick={handleLoginClick}
+            onClick={() => {
+              if (location.pathname === '/auth') {
+                navigate(0); // refresh the page
+              } else {
+                navigate('/auth'); // go to auth
+              }
+            }}
             to="/auth"
             variant="contained"
             size="small"
