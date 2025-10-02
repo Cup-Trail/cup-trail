@@ -174,7 +174,8 @@ export default function AuthPage() {
                 textAlign="center"
                 mb={2}
               >
-                Enter the 6-digit code sent to {email}
+                Enter the 6-digit code sent to {email}. Or if you have an
+                existing account, please confirm signup via verification link.
               </Typography>
               <Box>
                 <TextField
