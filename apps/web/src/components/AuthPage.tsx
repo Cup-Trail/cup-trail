@@ -22,7 +22,6 @@ export default function AuthPage() {
   const [message, setMessage] = useState<string>('');
   const [showOtpInput, setShowOtpInput] = useState(false);
   const [countdown, setCountdown] = useState(0);
-  const [isNewUser, setIsNewUser] = useState(false);
 
   // countdown for resend button
   useEffect(() => {
@@ -64,7 +63,6 @@ export default function AuthPage() {
           setShowOtpInput(false);
           setStatus('sent');
           setCountdown(60); // 60 sec cooldown
-          setIsNewUser(true);
           setMessage(`Verify your email through the link sent to ${email}`);
         } else {
           throw error;
@@ -73,7 +71,9 @@ export default function AuthPage() {
         setStatus('sent');
         setShowOtpInput(true);
         setCountdown(60); // 60 sec cooldown
-        setMessage('Check your email for the 6-digit verification code.');
+        setMessage(
+          'Check your email for the 6-digit verification code. If you have an existing account, please confirm signup via verification link'
+        );
       }
     } catch (e: any) {
       setStatus('error');
@@ -105,7 +105,6 @@ export default function AuthPage() {
     setStatus('idle');
     setMessage('');
     setCountdown(0);
-    setIsNewUser(false);
   }
 
   return (
@@ -176,15 +175,6 @@ export default function AuthPage() {
           {/* otp input (shown after email is sent) */}
           {showOtpInput && (
             <Box>
-              <Typography
-                variant="body2"
-                color="text.secondary"
-                textAlign="center"
-                mb={2}
-              >
-                Enter the 6-digit code sent to {email}. If you have an existing
-                account, please confirm signup via verification link.
-              </Typography>
               <Box>
                 <TextField
                   label="Verification Code"
