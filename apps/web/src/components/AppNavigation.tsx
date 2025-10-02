@@ -109,14 +109,8 @@ export default function AppNavigation() {
           </Typography>
           <Button
             component={Link}
-            onClick={() => {
-              if (location.pathname === '/auth') {
-                navigate(0); // refresh the page
-              } else {
-                navigate('/auth'); // go to auth
-              }
-            }}
             to="/auth"
+            state={{ reset: true }}
             variant="contained"
             size="small"
           >
