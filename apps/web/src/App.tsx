@@ -5,7 +5,9 @@ import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 
 import {
   AppNavigation,
+  AuthPage,
   InsertReviewPage,
+  ProfilePage,
   SearchPage,
   StorefrontPage,
 } from './components';
@@ -19,6 +21,8 @@ const router = createBrowserRouter(
       element: <AppNavigation />,
       children: [
         { index: true, element: <SearchPage /> },
+        { path: 'auth', element: <AuthPage /> },
+        { path: 'profile', element: <ProfilePage /> },
         { path: 'shop/:shopId', element: <StorefrontPage /> },
         { path: 'shop/:shopId/review', element: <InsertReviewPage /> },
       ],
