@@ -20,7 +20,7 @@
 import type { PlaceDetails, Prediction } from '@cuptrail/core';
 
 import { getEnv } from './env';
-import { apiGet, apiPost } from './fetchWrapper';
+import { apiGet } from './fetchWrapper';
 
 const { supabaseUrl } = getEnv();
 const mapsBaseUrl = `${supabaseUrl}/functions/v1/maps`;
@@ -47,48 +47,28 @@ export async function getAutocomplete(input: string): Promise<Prediction[]> {
     return [];
   }
 
-  // POST JSON body to edge function with endpoint=autocomplete
-  const url = `${mapsBaseUrl}?endpoint=autocomplete`;
-  const response = await apiPost<any>(
-    url,
-    { input: input.trim(), includedPrimaryTypes: ['food'] },
-    {
-      customHeaders: {
-        'X-Goog-FieldMask': [
-          'suggestions.placePrediction.placeId',
-          'suggestions.placePrediction.text',
-          'suggestions.placePrediction.structuredFormat.mainText',
-          'suggestions.placePrediction.structuredFormat.secondaryText',
-        ].join(','),
-      },
-    }
-  );
+  const url = `${mapsBaseUrl}?endpoint=autocomplete&search_text=${encodeURIComponent(
+    input
+  )}`;
+  const response = await apiGet<any>(url);
 
   if (!response.ok) {
     throw new Error(response.error || `HTTP error! status: ${response.status}`);
   }
 
-  const suggestions = (response.data as any)?.suggestions ?? [];
+  const suggestions = (response.data as any)?.results ?? [];
   const results: Prediction[] = suggestions
-    .map((s: any) => s?.placePrediction)
-    .filter(Boolean)
-    .map((pp: any) => {
+    .map((place: any) => {
       const prediction: Prediction = {
-        placeId: pp.placeId || '',
-        text: pp.text?.text || '',
-        structuredFormat: {
-          mainText: pp.structuredFormat?.mainText?.text || '',
-          secondaryText: pp.structuredFormat?.secondaryText?.text || '',
-        },
+        id: place.id || '',
+        name: place.displayLines[0] || '',
+        address: place.displayLines[1] || '',
       };
       return prediction;
     })
     .filter(
-      (p: Prediction) =>
-        Boolean(p.placeId) &&
-        Boolean(p.text) &&
-        Boolean(p.structuredFormat.mainText) &&
-        Boolean(p.structuredFormat.secondaryText)
+      (place: Prediction) =>
+        Boolean(place.id) && Boolean(place.name) && Boolean(place.address)
     );
 
   return results;
@@ -121,17 +101,7 @@ export async function getPlaceDetails(
     placeId
   )}`;
 
-  const response = await apiGet<any>(url, {
-    customHeaders: {
-      // Request the minimal fields needed; the edge defaults to '*', but we can be explicit
-      'X-Goog-FieldMask': [
-        'name',
-        'displayName',
-        'formattedAddress',
-        'location',
-      ].join(','),
-    },
-  });
+  const response = await apiGet<any>(url);
 
   if (!response.ok) {
     throw new Error(response.error || `HTTP error! status: ${response.status}`);
@@ -140,14 +110,14 @@ export async function getPlaceDetails(
   const data = response.data as any;
   if (!data) return null;
 
-  const displayName: string = data.displayName?.text || '';
-  const formattedAddress: string = data.formattedAddress || '';
-  const latitude: number | undefined = data.location?.latitude;
-  const longitude: number | undefined = data.location?.longitude;
+  const name: string = data.name || '';
+  const formattedAddressLines: string[] = data.formattedAddressLines || '';
+  const latitude: number | undefined = data.coordinate?.latitude;
+  const longitude: number | undefined = data.coordinate?.longitude;
 
   if (
-    !displayName ||
-    !formattedAddress ||
+    !name ||
+    !formattedAddressLines ||
     typeof latitude !== 'number' ||
     typeof longitude !== 'number'
   ) {
@@ -155,9 +125,9 @@ export async function getPlaceDetails(
   }
 
   const selectedPlace: PlaceDetails = {
-    displayName: displayName,
-    formattedAddress: formattedAddress,
-    location: { latitude, longitude },
+    name: name,
+    formattedAddress: formattedAddressLines.join(', '),
+    coordinate: { latitude, longitude },
   };
 
   return selectedPlace;

@@ -44,17 +44,17 @@ export default function SearchPage() {
     if (typeof suggestion === 'string') return;
 
     try {
-      const data = await getPlaceDetails(suggestion.placeId);
+      const data = await getPlaceDetails(suggestion.id);
       if (!data) return;
 
-      const { displayName, formattedAddress, location } = data;
+      const { name, formattedAddress, coordinate } = data;
 
-      if (displayName && formattedAddress && location) {
+      if (name && formattedAddress && location) {
         const result = await getOrInsertShop(
-          displayName,
+          name,
           formattedAddress,
-          location.latitude,
-          location.longitude
+          coordinate.latitude,
+          coordinate.longitude
         );
 
         if (!result?.success) return;
@@ -64,7 +64,7 @@ export default function SearchPage() {
 
         navigate(`/shop/${encodeURIComponent(shopId)}`, {
           state: {
-            shopName: displayName,
+            shopName: name,
             address: formattedAddress,
             shopId,
           } as LocationState,
@@ -82,8 +82,20 @@ export default function SearchPage() {
         filterOptions={x => x}
         freeSolo
         getOptionLabel={option =>
-          typeof option === 'string' ? option : option.text
+          typeof option === 'string'
+            ? option
+            : `${option.name}${option.address ? ` — ${option.address}` : ''}`
         }
+        renderOption={(props, option) => (
+          <li {...props} key={option.id}>
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
+              <span style={{ fontWeight: 500 }}>{option.name}</span>
+              <span style={{ fontSize: '0.85rem', color: '#666' }}>
+                {option.address}
+              </span>
+            </div>
+          </li>
+        )}
         onInputChange={(_, value) => handleAutocomplete(value)}
         onChange={(_, s) => handleSelectSuggestion(s)}
         renderInput={params => (
