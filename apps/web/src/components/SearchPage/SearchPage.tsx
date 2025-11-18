@@ -24,37 +24,43 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { useRecentReviewsQuery } from '../../queries';
-
 import CategoryFilters from './CategoryFilters';
 import ReviewItem from './ReviewItem';
 
 export default function SearchPage() {
   const navigate = useNavigate();
-  const [suggestions, setSuggestions] = useState<Prediction[]>([]);
-  const [searchError, setSearchError] = useState<boolean>(false);
 
-  const [userCoords, setUserCoords] = useState<UserCoordinates | null>(null);
-  const [locationLabel, setLocationLabel] = useState<string>('');
+  // shop search
+  const [suggestions, setSuggestions] = useState<Prediction[]>([]);
+  const [searchError, setSearchError] = useState(false);
+
+  // unified location state
+  const [activeCoords, setActiveCoords] = useState<UserCoordinates | null>(
+    null
+  );
+  const [locationInput, setLocationInput] = useState('');
   const [locationError, setLocationError] = useState<string | null>(null);
   const [isLocLoading, setIsLocLoading] = useState(false);
 
+  // city mode
   const [needsCity, setNeedsCity] = useState(false);
-  const [cityQuery, setCityQuery] = useState('');
-  const [cityCoords, setCityCoords] = useState<UserCoordinates | null>(null);
   const [citySuggestions, setCitySuggestions] = useState<Geocode[]>([]);
 
   const { data: reviews } = useRecentReviewsQuery();
 
   /** Shop Autocomplete */
   async function handleAutocomplete(input: string): Promise<void> {
-    if (!input) {
+    const trimmed = input.trim();
+    if (!trimmed) {
       setSuggestions([]);
       return;
     }
 
     try {
-      const coords = userCoords ?? cityCoords ?? undefined;
-      const predictions = await getAutocomplete(input, coords);
+      const coords: { latitude: number; longitude: number } | undefined =
+        activeCoords || undefined;
+
+      const predictions = await getAutocomplete(trimmed, coords);
       setSearchError(false);
       setSuggestions(predictions);
     } catch {
@@ -65,39 +71,37 @@ export default function SearchPage() {
 
   /**
    * City input / selection
-   * - Typing: fetch city suggestions via getCityCoords
-   * - Selecting: store selected city's coords in state
    */
   async function handleCitySelection(
     value: Geocode | string,
     fromSelect: boolean = false
   ): Promise<void> {
-    // If user picked an option from the list
+    // Selected a city from the list
     if (fromSelect) {
       if (typeof value === 'string') return;
 
-      // Assuming Geocode has latitude / longitude fields.
-      // If it's value.coordinate.{latitude,longitude}, adjust accordingly.
       const lat = (value as any).coordinate?.latitude;
       const lon = (value as any).coordinate?.longitude;
 
       if (typeof lat === 'number' && typeof lon === 'number') {
-        setCityCoords({ latitude: lat, longitude: lon });
-        setUserCoords(null); // city overrides device location
-        setLocationLabel(value.name);
+        setActiveCoords({ latitude: lat, longitude: lon });
+        setLocationInput(value.name);
+        setLocationError(null);
         setNeedsCity(false);
+        setCitySuggestions([]);
       }
       return;
     }
 
-    // Typing in the city field
+    // Typing city text
     const text = value as string;
-    setCityQuery(text);
+    setLocationInput(text);
+    setNeedsCity(true);
 
     const trimmed = text.trim();
     if (!trimmed) {
       setCitySuggestions([]);
-      setCityCoords(null);
+      setActiveCoords(null);
       return;
     }
 
@@ -113,6 +117,7 @@ export default function SearchPage() {
   async function handleUseCurrentLocation(): Promise<void> {
     if (!('geolocation' in navigator)) {
       setLocationError('Location not supported on this device.');
+      setNeedsCity(true);
       return;
     }
 
@@ -122,10 +127,10 @@ export default function SearchPage() {
     navigator.geolocation.getCurrentPosition(
       pos => {
         const { latitude, longitude } = pos.coords;
-        const coords = { latitude, longitude };
-        setUserCoords(coords);
-        setCityCoords(null); // device wins over city
-        setLocationLabel('Current location');
+        setActiveCoords({ latitude, longitude });
+        setLocationInput('Current location');
+        setNeedsCity(false);
+        setCitySuggestions([]);
         setIsLocLoading(false);
       },
       err => {
@@ -133,7 +138,7 @@ export default function SearchPage() {
         switch (err.code) {
           case err.PERMISSION_DENIED:
             setLocationError(
-              'Please allow location access in your browser to use this feature.'
+              'Please allow location access in your browser or choose a city.'
             );
             break;
           case err.POSITION_UNAVAILABLE:
@@ -145,13 +150,13 @@ export default function SearchPage() {
           default:
             setLocationError('Could not get your location.');
         }
-        setUserCoords(null);
-        setNeedsCity(true); // fall back to city input
+        setActiveCoords(null);
+        setNeedsCity(true);
       },
       {
         enableHighAccuracy: true,
         timeout: 10000,
-        maximumAge: 5 * 60 * 1000, // 5 minutes
+        maximumAge: 5 * 60 * 1000,
       }
     );
   }
@@ -160,9 +165,7 @@ export default function SearchPage() {
   async function handleSelectSuggestion(
     suggestion: Prediction | string | null
   ): Promise<void> {
-    if (!suggestion) return;
-    if (typeof suggestion === 'string') return;
-    if (!suggestion.id) return;
+    if (!suggestion || typeof suggestion === 'string' || !suggestion.id) return;
 
     try {
       const data = await getPlaceDetails(suggestion.id);
@@ -196,26 +199,35 @@ export default function SearchPage() {
     }
   }
 
+  // options for unified location box
+  const locationOptions: (Geocode | string)[] = needsCity
+    ? citySuggestions
+    : ['Use current location'];
+
   return (
     <Stack gap={2}>
       {/* Main search input: drinks / cafes */}
       <Autocomplete
         options={suggestions}
-        filterOptions={options => options.filter(o => !!o.id)}
+        filterOptions={options =>
+          options.filter(o => typeof o !== 'string' && !!o.id)
+        }
         freeSolo
-        getOptionLabel={() => ''} // always blank in the input
-        renderOption={(props, option) => (
-          <li {...props} key={option.id}>
-            <div style={{ display: 'flex', flexDirection: 'column' }}>
-              <span style={{ fontWeight: 500 }}>{option.name}</span>
-              <span style={{ fontSize: '0.85rem', color: '#666' }}>
-                {option.address}
-              </span>
-            </div>
-          </li>
-        )}
+        getOptionLabel={() => ''} // keep input blank, we only show text in dropdown
+        renderOption={(props, option) => {
+          if (typeof option === 'string') return null;
+          return (
+            <li {...props} key={option.id}>
+              <div style={{ display: 'flex', flexDirection: 'column' }}>
+                <span style={{ fontWeight: 500 }}>{option.name}</span>
+                <span style={{ fontSize: '0.85rem', color: '#666' }}>
+                  {option.address}
+                </span>
+              </div>
+            </li>
+          );
+        }}
         onInputChange={(_, value) => {
-          // shop predictions (uses device or city coords if present)
           void handleAutocomplete(value);
         }}
         onChange={(_, s) => {
@@ -240,22 +252,78 @@ export default function SearchPage() {
         )}
       />
 
-      {/* Device location picker */}
+      {/* Unified Location input: current location + city fallback */}
       <Autocomplete
-        options={locationLabel ? [locationLabel] : []}
-        value={locationLabel}
+        options={locationOptions}
         freeSolo
         filterOptions={x => x}
-        readOnly
+        value={null} // control via inputValue only
+        inputValue={locationInput}
+        onInputChange={(_, value, reason) => {
+          if (reason === 'clear') {
+            setLocationInput('');
+            setActiveCoords(null);
+            setCitySuggestions([]);
+            setNeedsCity(false);
+            setLocationError(null);
+            return;
+          }
+
+          // typing → treat as city text
+          void handleCitySelection(value);
+        }}
+        onChange={(_, value) => {
+          if (!value) return;
+
+          if (typeof value === 'string') {
+            if (value === 'Use current location') {
+              void handleUseCurrentLocation();
+            } else {
+              // freeSolo enter: treat as city text
+              void handleCitySelection(value);
+            }
+            return;
+          }
+
+          // City suggestion
+          void handleCitySelection(value, true);
+        }}
+        getOptionLabel={option =>
+          typeof option === 'string' ? option : option.name
+        }
+        renderOption={(props, option) => {
+          if (typeof option === 'string') {
+            return (
+              <li {...props} key={option}>
+                {option}
+              </li>
+            );
+          }
+          return (
+            <li {...props} key={option.name}>
+              <div style={{ display: 'flex', flexDirection: 'column' }}>
+                <span style={{ fontWeight: 500 }}>{option.name}</span>
+                {option.address && (
+                  <span style={{ fontSize: '0.85rem', color: '#666' }}>
+                    {option.address}
+                  </span>
+                )}
+              </div>
+            </li>
+          );
+        }}
         renderInput={params => (
           <TextField
             {...params}
             label="Location"
-            placeholder="Use current location"
+            placeholder={
+              needsCity
+                ? 'Enter a city (e.g. San Francisco)'
+                : 'Use current location or type a city'
+            }
             fullWidth
-            onClick={handleUseCurrentLocation}
-            error={Boolean(locationError)}
-            helperText={locationError || ''}
+            error={Boolean(locationError) && !activeCoords}
+            helperText={activeCoords ? '' : locationError || ''}
             slotProps={{
               input: {
                 ...params.InputProps,
@@ -273,61 +341,6 @@ export default function SearchPage() {
           />
         )}
       />
-
-      {/* City fallback when user denies location */}
-      {needsCity && (
-        <Autocomplete
-          options={citySuggestions ?? []}
-          freeSolo
-          filterOptions={x => x}
-          inputValue={cityQuery}
-          onInputChange={(_, value) => {
-            void handleCitySelection(value);
-          }}
-          onChange={(_, value) => {
-            if (value) void handleCitySelection(value, true);
-          }}
-          getOptionLabel={option =>
-            typeof option === 'string' ? option : option.name
-          }
-          renderOption={(props, option) => {
-            if (typeof option === 'string') {
-              return (
-                <li {...props} key={option}>
-                  {option}
-                </li>
-              );
-            }
-            return (
-              <li {...props} key={option.name}>
-                <div style={{ display: 'flex', flexDirection: 'column' }}>
-                  <span style={{ fontWeight: 500 }}>{option.name}</span>
-                  {option.address && (
-                    <span style={{ fontSize: '0.85rem', color: '#666' }}>
-                      {option.address}
-                    </span>
-                  )}
-                </div>
-              </li>
-            );
-          }}
-          renderInput={params => (
-            <TextField
-              {...params}
-              label="City"
-              placeholder="Enter a city (e.g. San Francisco)"
-              fullWidth
-              slotProps={{
-                input: {
-                  ...params.InputProps,
-                  startAdornment: <LocationOnOutlinedIcon />,
-                  endAdornment: null,
-                },
-              }}
-            />
-          )}
-        />
-      )}
 
       <CategoryFilters />
 
