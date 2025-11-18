@@ -26,14 +26,14 @@ import { useNavigate } from 'react-router-dom';
 import { useRecentReviewsQuery } from '../../queries';
 import CategoryFilters from './CategoryFilters';
 import ReviewItem from './ReviewItem';
-
+const CURRENT_LOC_LABEL = 'Use current location';
 export default function SearchPage() {
   const navigate = useNavigate();
 
   // shop search
   const [suggestions, setSuggestions] = useState<Prediction[]>([]);
   const [searchError, setSearchError] = useState(false);
-
+  const [searchInput, setSearchInput] = useState('');
   // unified location state
   const [activeCoords, setActiveCoords] = useState<UserCoordinates | null>(
     null
@@ -43,7 +43,7 @@ export default function SearchPage() {
   const [isLocLoading, setIsLocLoading] = useState(false);
 
   // city mode
-  const [needsCity, setNeedsCity] = useState(false);
+  // const [needsCity, setNeedsCity] = useState(false);
   const [citySuggestions, setCitySuggestions] = useState<Geocode[]>([]);
 
   const { data: reviews } = useRecentReviewsQuery();
@@ -87,26 +87,23 @@ export default function SearchPage() {
         setActiveCoords({ latitude: lat, longitude: lon });
         setLocationInput(value.name);
         setLocationError(null);
-        setNeedsCity(false);
         setCitySuggestions([]);
       }
       return;
     }
 
     // Typing city text
-    const text = value as string;
-    setLocationInput(text);
-    setNeedsCity(true);
+    const query = value as string;
+    setLocationInput(query);
 
-    const trimmed = text.trim();
-    if (!trimmed) {
+    if (!query) {
       setCitySuggestions([]);
       setActiveCoords(null);
       return;
     }
 
     try {
-      const preds = await getCityCoords(trimmed);
+      const preds = await getCityCoords(query);
       setCitySuggestions(preds);
     } catch {
       setCitySuggestions([]);
@@ -117,7 +114,6 @@ export default function SearchPage() {
   async function handleUseCurrentLocation(): Promise<void> {
     if (!('geolocation' in navigator)) {
       setLocationError('Location not supported on this device.');
-      setNeedsCity(true);
       return;
     }
 
@@ -128,8 +124,7 @@ export default function SearchPage() {
       pos => {
         const { latitude, longitude } = pos.coords;
         setActiveCoords({ latitude, longitude });
-        setLocationInput('Current location');
-        setNeedsCity(false);
+        setLocationInput(CURRENT_LOC_LABEL);
         setCitySuggestions([]);
         setIsLocLoading(false);
       },
@@ -151,7 +146,6 @@ export default function SearchPage() {
             setLocationError('Could not get your location.');
         }
         setActiveCoords(null);
-        setNeedsCity(true);
       },
       {
         enableHighAccuracy: true,
@@ -200,20 +194,21 @@ export default function SearchPage() {
   }
 
   // options for unified location box
-  const locationOptions: (Geocode | string)[] = needsCity
-    ? citySuggestions
-    : ['Use current location'];
+  const locationOptions: (Geocode | string)[] = [
+    CURRENT_LOC_LABEL,
+    ...citySuggestions,
+  ];
 
   return (
     <Stack gap={2}>
       {/* Main search input: drinks / cafes */}
       <Autocomplete
         options={suggestions}
-        filterOptions={options =>
-          options.filter(o => typeof o !== 'string' && !!o.id)
-        }
+        filterOptions={options => options.filter(o => !!o.id)}
         freeSolo
+        inputValue={searchInput}
         getOptionLabel={() => ''} // keep input blank, we only show text in dropdown
+        open={Boolean(searchInput.trim()) && suggestions.length > 0}
         renderOption={(props, option) => {
           if (typeof option === 'string') return null;
           return (
@@ -228,10 +223,22 @@ export default function SearchPage() {
           );
         }}
         onInputChange={(_, value) => {
+          setSearchInput(value);
+
+          // Clear via X button or manual backspace to empty
+          if (!value.trim()) {
+            setSuggestions([]);
+            setSearchError(false);
+            return;
+          }
+
+          // Otherwise, fetch suggestions
           void handleAutocomplete(value);
         }}
         onChange={(_, s) => {
           void handleSelectSuggestion(s);
+          setSearchInput('');
+          setSuggestions([]);
         }}
         renderInput={params => (
           <TextField
@@ -264,7 +271,6 @@ export default function SearchPage() {
             setLocationInput('');
             setActiveCoords(null);
             setCitySuggestions([]);
-            setNeedsCity(false);
             setLocationError(null);
             return;
           }
@@ -276,7 +282,7 @@ export default function SearchPage() {
           if (!value) return;
 
           if (typeof value === 'string') {
-            if (value === 'Use current location') {
+            if (value === CURRENT_LOC_LABEL) {
               void handleUseCurrentLocation();
             } else {
               // freeSolo enter: treat as city text
@@ -285,7 +291,7 @@ export default function SearchPage() {
             return;
           }
 
-          // City suggestion
+          // City suggestion (Geocode)
           void handleCitySelection(value, true);
         }}
         getOptionLabel={option =>
@@ -316,11 +322,7 @@ export default function SearchPage() {
           <TextField
             {...params}
             label="Location"
-            placeholder={
-              needsCity
-                ? 'Enter a city (e.g. San Francisco)'
-                : 'Use current location or type a city'
-            }
+            placeholder={'Use current location or type a city'}
             fullWidth
             error={Boolean(locationError) && !activeCoords}
             helperText={activeCoords ? '' : locationError || ''}

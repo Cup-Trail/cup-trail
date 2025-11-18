@@ -60,8 +60,7 @@ export async function getAutocomplete(
   input: string,
   userCoordinates?: { latitude: number; longitude: number }
 ): Promise<Prediction[]> {
-  const trimmed = input.trim();
-  if (!trimmed) {
+  if (!input) {
     return [];
   }
 
@@ -70,7 +69,7 @@ export async function getAutocomplete(
     : '';
 
   const url = `${mapsBaseUrl}?endpoint=autocomplete&search_text=${encodeURIComponent(
-    trimmed
+    input
   )}${coordParam}`;
 
   const response = await apiGet<any>(url);
@@ -196,13 +195,12 @@ export async function getPlaceDetails(
  * @returns           Array of city-level geocode results
  */
 export async function getCityCoords(cityQuery: string): Promise<Geocode[]> {
-  const trimmed = cityQuery.trim();
-  if (!trimmed) {
+  if (!cityQuery) {
     return [];
   }
 
   const url = `${mapsBaseUrl}?endpoint=geocode&search_text=${encodeURIComponent(
-    trimmed
+    cityQuery
   )}`;
 
   const response = await apiGet<any>(url);
