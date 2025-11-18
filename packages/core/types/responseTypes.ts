@@ -12,3 +12,17 @@ export interface Prediction {
   name: string;
   address: string;
 }
+
+export interface UserCoordinates {
+  latitude: number;
+  longitude: number;
+}
+
+export interface Geocode {
+  name: string;
+  address: string;
+  coordinate: {
+    latitude: number;
+    longitude: number;
+  };
+}
