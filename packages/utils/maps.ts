@@ -11,7 +11,7 @@
  *
  *  • `/autocomplete`
  *      → Text-based place autocomplete (cafes, restaurants, drinks, etc.)
- *      → Accepts optional `user_coord=<lat>,<lng>` to bias results.
+ *      → Accepts optional `userLocation=<lat>,<lng>` to bias results.
  *
  *  • `/details`
  *      → Detailed place lookup by Apple Place ID.
@@ -39,7 +39,7 @@ const mapsBaseUrl = `${supabaseUrl}/functions/v1/maps`;
  *   `${mapsBaseUrl}?endpoint=autocomplete&search_text=<query>`
  *
  * If `userCoordinates` is provided, the request includes:
- *   `&user_coord=<lat>,<lng>`
+ *   `&userLocation=<lat>,<lng>`
  *
  * The Apple Maps search service returns `displayLines[]` which is normalized
  * into the app’s `Prediction` structure:
@@ -65,10 +65,10 @@ export async function getAutocomplete(
   }
 
   const coordParam = userCoordinates
-    ? `&user_coord=${encodeURIComponent(`${userCoordinates.latitude},${userCoordinates.longitude}`)}`
+    ? `&userLocation=${encodeURIComponent(`${userCoordinates.latitude},${userCoordinates.longitude}`)}`
     : '';
 
-  const url = `${mapsBaseUrl}/autocomplete?search_text=${encodeURIComponent(
+  const url = `${mapsBaseUrl}/autocomplete?q=${encodeURIComponent(
     input
   )}${coordParam}`;
 
@@ -127,7 +127,7 @@ export async function getPlaceDetails(
     return null;
   }
 
-  const url = `${mapsBaseUrl}/details?place_id=${encodeURIComponent(placeId)}`;
+  const url = `${mapsBaseUrl}/details?id=${encodeURIComponent(placeId)}`;
 
   const response = await apiGet<any>(url);
 
@@ -197,9 +197,7 @@ export async function getCityCoords(cityQuery: string): Promise<Geocode[]> {
     return [];
   }
 
-  const url = `${mapsBaseUrl}/geocode?search_text=${encodeURIComponent(
-    cityQuery
-  )}`;
+  const url = `${mapsBaseUrl}/geocode?q=${encodeURIComponent(cityQuery)}`;
 
   const response = await apiGet<any>(url);
 
