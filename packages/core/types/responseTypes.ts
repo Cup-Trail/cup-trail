@@ -1,17 +1,28 @@
 export interface PlaceDetails {
-  displayName: string;
+  name: string;
   formattedAddress: string;
-  location: {
+  coordinate: {
     latitude: number;
     longitude: number;
   };
 }
 
 export interface Prediction {
-  placeId: string;
-  text: string;
-  structuredFormat: {
-    mainText: string;
-    secondaryText: string;
+  id: string;
+  name: string;
+  address: string;
+}
+
+export interface UserCoordinates {
+  latitude: number;
+  longitude: number;
+}
+
+export interface Geocode {
+  name: string;
+  address: string;
+  coordinate: {
+    latitude: number;
+    longitude: number;
   };
 }

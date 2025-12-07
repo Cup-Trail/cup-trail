@@ -1,113 +1,124 @@
 /**
- * GoogleMaps utilities
+ * Apple Maps Server API Utilities
  *
- * These helpers call a Supabase Edge Function at `${supabaseUrl}/functions/v1/maps`
- * which proxies Google Places API v1 and handles CORS. The function supports
- * two endpoints, selectable via the `endpoint` query param or path segment:
- * - `autocomplete`: POST JSON body to `...?endpoint=autocomplete` (for text predictions)
- * - `details`: GET to `...?endpoint=details&place_id=places/<PLACE_ID>` (for place details)
+ * These helpers call a Supabase Edge Function:
+ *    `${supabaseUrl}/functions/v1/maps`
  *
- * Field masks:
- * - You can pass desired fields by adding `X-Goog-FieldMask` header and it will be
- *   forwarded by the Edge Function to Google.
+ * The Edge Function proxies the Apple Maps Server API, adds auth tokens,
+ * and handles all CORS requirements for the client.
  *
- * Types and mapping:
- * - Autocomplete returns an array of `Prediction` with minimal fields used by the app:
- *   `placeId`, `text`, and `structuredFormat.{mainText,secondaryText}`.
- * - Details maps Google Places v1 fields to a simplified `PlaceDetails` shape
- *   used by the web UI.
+ * Supported endpoints (conventions implemented in the Edge Function):
+ *
+ *  • `endpoint=autocomplete`
+ *      → Text-based place autocomplete (cafes, restaurants, drinks, etc.)
+ *      → Accepts optional `user_coord=<lat>,<lng>` to bias results.
+ *
+ *  • `endpoint=details`
+ *      → Detailed place lookup by Apple Place ID.
+ *
+ *  • `endpoint=geocode`
+ *      → City / locality autocomplete intended for “fallback city selection”
+ *        when device location is unavailable or denied.
+ *
+ * Each endpoint returns normalized JSON so the client receives a consistent
+ * shape regardless of Apple’s internal response structure.
  */
-import type { PlaceDetails, Prediction } from '@cuptrail/core';
+
+import type { Geocode, PlaceDetails, Prediction } from '@cuptrail/core';
 
 import { getEnv } from './env';
-import { apiGet, apiPost } from './fetchWrapper';
+import { apiGet } from './fetchWrapper';
 
 const { supabaseUrl } = getEnv();
 const mapsBaseUrl = `${supabaseUrl}/functions/v1/maps`;
 
 /**
- * Get autocomplete suggestions for a search input.
+ * Fetch autocomplete predictions for shops / cafes / drinks.
  *
- * Makes a POST request to the Edge Function:
- *   `${supabaseUrl}/functions/v1/maps?endpoint=autocomplete`
- * with JSON body `{ input: string, includedPrimaryTypes: string[] }`.
- * The Edge Function forwards the request to Google Places v1
- * `places:autocomplete` and returns suggestions, which are mapped into the
- * app's `Prediction` shape.
+ * Calls:
+ *   `${mapsBaseUrl}?endpoint=autocomplete&search_text=<query>`
  *
- * @param input - Free-text user input; trimmed before sending
- * @returns Array of normalized `Prediction` rows
+ * If `userCoordinates` is provided, the request includes:
+ *   `&user_coord=<lat>,<lng>`
  *
- * @example
- * const items = await getAutocomplete('komeya no b');
- * items[0] => { placeId, text, structuredFormat: { mainText, secondaryText } }
+ * The Apple Maps search service returns `displayLines[]` which is normalized
+ * into the app’s `Prediction` structure:
+ *   {
+ *     id: string;
+ *     name: string;
+ *     address: string;
+ *   }
+ *
+ * The function filters out incomplete rows (e.g., missing ID, name, or address).
+ *
+ * @param input            User search text
+ * @param userCoordinates  Optional coordinate bias (device or selected city)
+ * @returns                Array of `Prediction` items
  */
-export async function getAutocomplete(input: string): Promise<Prediction[]> {
-  if (!input.trim()) {
+
+export async function getAutocomplete(
+  input: string,
+  userCoordinates?: { latitude: number; longitude: number }
+): Promise<Prediction[]> {
+  if (!input) {
     return [];
   }
 
-  // POST JSON body to edge function with endpoint=autocomplete
-  const url = `${mapsBaseUrl}?endpoint=autocomplete`;
-  const response = await apiPost<any>(
-    url,
-    { input: input.trim(), includedPrimaryTypes: ['food'] },
-    {
-      customHeaders: {
-        'X-Goog-FieldMask': [
-          'suggestions.placePrediction.placeId',
-          'suggestions.placePrediction.text',
-          'suggestions.placePrediction.structuredFormat.mainText',
-          'suggestions.placePrediction.structuredFormat.secondaryText',
-        ].join(','),
-      },
-    }
-  );
+  const coordParam = userCoordinates
+    ? `&user_coord=${encodeURIComponent(`${userCoordinates.latitude},${userCoordinates.longitude}`)}`
+    : '';
+
+  const url = `${mapsBaseUrl}?endpoint=autocomplete&search_text=${encodeURIComponent(
+    input
+  )}${coordParam}`;
+
+  const response = await apiGet<any>(url);
 
   if (!response.ok) {
     throw new Error(response.error || `HTTP error! status: ${response.status}`);
   }
 
-  const suggestions = (response.data as any)?.suggestions ?? [];
+  const suggestions = (response.data as any)?.results ?? [];
+
   const results: Prediction[] = suggestions
-    .map((s: any) => s?.placePrediction)
-    .filter(Boolean)
-    .map((pp: any) => {
+    .map((place: any) => {
+      const lines: string[] = place.displayLines ?? [];
+      const name = lines[0] || '';
+      const address = lines[1] || '';
       const prediction: Prediction = {
-        placeId: pp.placeId || '',
-        text: pp.text?.text || '',
-        structuredFormat: {
-          mainText: pp.structuredFormat?.mainText?.text || '',
-          secondaryText: pp.structuredFormat?.secondaryText?.text || '',
-        },
+        id: place.id || '',
+        name,
+        address,
       };
       return prediction;
     })
     .filter(
-      (p: Prediction) =>
-        Boolean(p.placeId) &&
-        Boolean(p.text) &&
-        Boolean(p.structuredFormat.mainText) &&
-        Boolean(p.structuredFormat.secondaryText)
+      (place: Prediction) =>
+        Boolean(place.id) && Boolean(place.name) && Boolean(place.address)
     );
 
   return results;
 }
 
 /**
- * Get detailed information about a place.
+ * Fetch detailed information for a specific place by its Apple Place ID.
  *
- * Makes a GET request to the Edge Function:
- *   `${supabaseUrl}/functions/v1/maps?endpoint=details&place_id=places/<ID>`
- * The Edge Function forwards to Google Places v1 `GET /places/<ID>` and the
- * result is mapped to a simplified `PlaceDetails` shape used by the app.
+ * Calls:
+ *   `${mapsBaseUrl}?endpoint=details&place_id=<ID>`
  *
- * @param placeId - Google Places ID (returned by `getAutocomplete`)
- * @returns Mapped place details or null if incomplete
+ * The Edge Function returns a mapped object containing:
+ *   - name: string
+ *   - formattedAddressLines: string[]
+ *   - coordinate: { latitude: number; longitude: number }
  *
- * @example
- * const data = await getPlaceDetails('ChIJzYNpB1DeAGAR3UexVosu4jM');
- * data.location.{latitude,longitude}
+ * This function normalizes the response into the app’s `PlaceDetails` shape:
+ *   {
+ *     name: string;
+ *     formattedAddress: string;
+ *     coordinate: { latitude: number; longitude: number };
+ *   }
+ *
+ * Returns `null` if the place details are incomplete or malformed.
  */
 export async function getPlaceDetails(
   placeId: string
@@ -116,22 +127,11 @@ export async function getPlaceDetails(
     return null;
   }
 
-  // GET with query params to edge function endpoint=details
   const url = `${mapsBaseUrl}?endpoint=details&place_id=${encodeURIComponent(
     placeId
   )}`;
 
-  const response = await apiGet<any>(url, {
-    customHeaders: {
-      // Request the minimal fields needed; the edge defaults to '*', but we can be explicit
-      'X-Goog-FieldMask': [
-        'name',
-        'displayName',
-        'formattedAddress',
-        'location',
-      ].join(','),
-    },
-  });
+  const response = await apiGet<any>(url);
 
   if (!response.ok) {
     throw new Error(response.error || `HTTP error! status: ${response.status}`);
@@ -140,14 +140,14 @@ export async function getPlaceDetails(
   const data = response.data as any;
   if (!data) return null;
 
-  const displayName: string = data.displayName?.text || '';
-  const formattedAddress: string = data.formattedAddress || '';
-  const latitude: number | undefined = data.location?.latitude;
-  const longitude: number | undefined = data.location?.longitude;
+  const name: string = data.name || '';
+  const formattedAddressLines: string[] = data.formattedAddressLines ?? [];
+  const latitude: number | undefined = data.coordinate?.latitude;
+  const longitude: number | undefined = data.coordinate?.longitude;
 
   if (
-    !displayName ||
-    !formattedAddress ||
+    !name ||
+    !formattedAddressLines.length ||
     typeof latitude !== 'number' ||
     typeof longitude !== 'number'
   ) {
@@ -155,10 +155,80 @@ export async function getPlaceDetails(
   }
 
   const selectedPlace: PlaceDetails = {
-    displayName: displayName,
-    formattedAddress: formattedAddress,
-    location: { latitude, longitude },
+    name,
+    formattedAddress: formattedAddressLines.join(', '),
+    coordinate: { latitude, longitude },
   };
 
   return selectedPlace;
+}
+
+/**
+ * Fetch city/locality autocomplete suggestions (fallback for when the user
+ * denies device location access).
+ *
+ * Calls:
+ *   `${mapsBaseUrl}?endpoint=geocode&search_text=<CITY>`
+ *
+ * Expected Edge Function normalization:
+ *   {
+ *     results: [
+ *       {
+ *         name: string;
+ *         formattedAddressLines: string[];
+ *         coordinate: { latitude: number; longitude: number };
+ *       },
+ *       ...
+ *     ];
+ *   }
+ *
+ * The result is converted into the app’s `Geocode` format:
+ *   {
+ *     name: string;
+ *     address: string;
+ *     coordinate: { latitude: number; longitude: number };
+ *   }
+ *
+ * Only results with name, address, and coordinates are returned.
+ *
+ * @param cityQuery   The text the user typed (e.g., "san francisco")
+ * @returns           Array of city-level geocode results
+ */
+export async function getCityCoords(cityQuery: string): Promise<Geocode[]> {
+  if (!cityQuery) {
+    return [];
+  }
+
+  const url = `${mapsBaseUrl}?endpoint=geocode&search_text=${encodeURIComponent(
+    cityQuery
+  )}`;
+
+  const response = await apiGet<any>(url);
+
+  if (!response.ok) {
+    throw new Error(response.error || `HTTP error! status: ${response.status}`);
+  }
+
+  const suggestions = (response.data as any)?.results ?? [];
+
+  const results: Geocode[] = suggestions
+    .map((place: any) => {
+      const name = place.name || '';
+      const address = place.formattedAddressLines.join(', ') || '';
+      const coordinate = place.coordinate || {};
+      const geolocation: Geocode = {
+        name,
+        address,
+        coordinate,
+      };
+      return geolocation;
+    })
+    .filter(
+      (geolocation: Geocode) =>
+        Boolean(geolocation.name) &&
+        Boolean(geolocation.address) &&
+        Boolean(geolocation.coordinate)
+    );
+
+  return results;
 }
