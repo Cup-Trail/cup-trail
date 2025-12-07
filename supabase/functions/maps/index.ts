@@ -85,6 +85,7 @@ app.use(
  * ?search_text=latte&user_coord=37.77,-122.41
  */
 app.get('/autocomplete', async c => {
+  console.log('[maps/autocomplete] handler hit');
   const q = c.req.query('search_text');
   const userCoord = c.req.query('user_coord'); // optional location bias
 
