@@ -7,16 +7,16 @@
  * The Edge Function proxies the Apple Maps Server API, adds auth tokens,
  * and handles all CORS requirements for the client.
  *
- * Supported endpoints (conventions implemented in the Edge Function):
+ * Routes:
  *
- *  • `endpoint=autocomplete`
+ *  • `/autocomplete`
  *      → Text-based place autocomplete (cafes, restaurants, drinks, etc.)
  *      → Accepts optional `user_coord=<lat>,<lng>` to bias results.
  *
- *  • `endpoint=details`
+ *  • `/details`
  *      → Detailed place lookup by Apple Place ID.
  *
- *  • `endpoint=geocode`
+ *  • `/geocode`
  *      → City / locality autocomplete intended for “fallback city selection”
  *        when device location is unavailable or denied.
  *
@@ -68,7 +68,7 @@ export async function getAutocomplete(
     ? `&user_coord=${encodeURIComponent(`${userCoordinates.latitude},${userCoordinates.longitude}`)}`
     : '';
 
-  const url = `${mapsBaseUrl}?endpoint=autocomplete&search_text=${encodeURIComponent(
+  const url = `${mapsBaseUrl}/autocomplete?search_text=${encodeURIComponent(
     input
   )}${coordParam}`;
 
@@ -127,9 +127,7 @@ export async function getPlaceDetails(
     return null;
   }
 
-  const url = `${mapsBaseUrl}?endpoint=details&place_id=${encodeURIComponent(
-    placeId
-  )}`;
+  const url = `${mapsBaseUrl}/details?place_id=${encodeURIComponent(placeId)}`;
 
   const response = await apiGet<any>(url);
 
@@ -199,7 +197,7 @@ export async function getCityCoords(cityQuery: string): Promise<Geocode[]> {
     return [];
   }
 
-  const url = `${mapsBaseUrl}?endpoint=geocode&search_text=${encodeURIComponent(
+  const url = `${mapsBaseUrl}/geocode?search_text=${encodeURIComponent(
     cityQuery
   )}`;
 
