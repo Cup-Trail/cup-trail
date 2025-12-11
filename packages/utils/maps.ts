@@ -7,16 +7,16 @@
  * The Edge Function proxies the Apple Maps Server API, adds auth tokens,
  * and handles all CORS requirements for the client.
  *
- * Supported endpoints (conventions implemented in the Edge Function):
+ * Routes:
  *
- *  • `endpoint=autocomplete`
+ *  • `/autocomplete`
  *      → Text-based place autocomplete (cafes, restaurants, drinks, etc.)
- *      → Accepts optional `user_coord=<lat>,<lng>` to bias results.
+ *      → Accepts optional `userLocation=<lat>,<lng>` to bias results.
  *
- *  • `endpoint=details`
+ *  • `/details`
  *      → Detailed place lookup by Apple Place ID.
  *
- *  • `endpoint=geocode`
+ *  • `/geocode`
  *      → City / locality autocomplete intended for “fallback city selection”
  *        when device location is unavailable or denied.
  *
@@ -39,7 +39,7 @@ const mapsBaseUrl = `${supabaseUrl}/functions/v1/maps`;
  *   `${mapsBaseUrl}?endpoint=autocomplete&search_text=<query>`
  *
  * If `userCoordinates` is provided, the request includes:
- *   `&user_coord=<lat>,<lng>`
+ *   `&userLocation=<lat>,<lng>`
  *
  * The Apple Maps search service returns `displayLines[]` which is normalized
  * into the app’s `Prediction` structure:
@@ -65,10 +65,10 @@ export async function getAutocomplete(
   }
 
   const coordParam = userCoordinates
-    ? `&user_coord=${encodeURIComponent(`${userCoordinates.latitude},${userCoordinates.longitude}`)}`
+    ? `&userLocation=${encodeURIComponent(`${userCoordinates.latitude},${userCoordinates.longitude}`)}`
     : '';
 
-  const url = `${mapsBaseUrl}?endpoint=autocomplete&search_text=${encodeURIComponent(
+  const url = `${mapsBaseUrl}/autocomplete?q=${encodeURIComponent(
     input
   )}${coordParam}`;
 
@@ -127,9 +127,7 @@ export async function getPlaceDetails(
     return null;
   }
 
-  const url = `${mapsBaseUrl}?endpoint=details&place_id=${encodeURIComponent(
-    placeId
-  )}`;
+  const url = `${mapsBaseUrl}/details?id=${encodeURIComponent(placeId)}`;
 
   const response = await apiGet<any>(url);
 
@@ -199,9 +197,7 @@ export async function getCityCoords(cityQuery: string): Promise<Geocode[]> {
     return [];
   }
 
-  const url = `${mapsBaseUrl}?endpoint=geocode&search_text=${encodeURIComponent(
-    cityQuery
-  )}`;
+  const url = `${mapsBaseUrl}/geocode?q=${encodeURIComponent(cityQuery)}`;
 
   const response = await apiGet<any>(url);
 
