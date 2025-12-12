@@ -39,7 +39,7 @@ export interface ShopDrinkRow {
   id: string;
   price: number | null;
   avg_rating: number;
-  cover_photo_url: string | null;
+  cover_photo_url: string | undefined;
   drinks: {
     id?: string;
     name: string;
