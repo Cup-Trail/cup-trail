@@ -5,6 +5,7 @@ import {
   setShopDrinkCategories,
 } from '@cuptrail/core';
 import { slugToLabel, suggestCategoriesByKeyword } from '@cuptrail/utils';
+import { uploadReviewMedia } from '@cuptrail/utils/storage'; // ⭐ make sure the path matches your setup
 import DeleteIcon from '@mui/icons-material/Delete';
 import PhotoCameraIcon from '@mui/icons-material/PhotoCamera';
 import {
@@ -19,13 +20,11 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
-
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useLocation, useParams } from 'react-router-dom';
-import type { SnackState } from '../types';
 
-import { uploadReviewMedia } from '@cuptrail/utils/storage'; // ⭐ make sure the path matches your setup
+import type { SnackState } from '../types';
 
 export default function InsertReviewPage() {
   const { shopId } = useParams<{ shopId: string }>();
