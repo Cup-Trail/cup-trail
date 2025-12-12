@@ -24,6 +24,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { useRecentReviewsQuery } from '../../queries';
+
 import CategoryFilters from './CategoryFilters';
 import ReviewItem from './ReviewItem';
 const CURRENT_LOC_LABEL = 'Use current location';

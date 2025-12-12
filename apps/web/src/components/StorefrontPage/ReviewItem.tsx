@@ -3,9 +3,6 @@ import { Box, Typography } from '@mui/material';
 
 import { renderStars } from '../../utils';
 
-const PLACEHOLDER_IMAGE_URL =
-  'https://s3-media0.fl.yelpcdn.com/bphoto/t4tE4oVYwdLbfvgm4wtbdA/348s.jpg';
-
 interface ReviewItemProps {
   item: ShopDrinkRow;
 }
@@ -30,7 +27,7 @@ const ReviewItem = ({ item }: ReviewItemProps) => {
         </Box>
       </Box>
       <img
-        src={PLACEHOLDER_IMAGE_URL}
+        src={item.cover_photo_url}
         alt={title}
         width={300}
         height={200}
