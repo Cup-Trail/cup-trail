@@ -67,7 +67,7 @@ type MediaInput = {
 };
 
 const generateUniqueName = (base: string, ext: string) =>
-  `${base.replace(/\.[^.]+$/, '')}-${crypto.randomUUID().slice(0, 8)}.${ext}`;
+  `${crypto.randomUUID().slice(0, 8)}.${ext}`;
 
 const normalizeBaseName = (name: string | undefined, ext: string) =>
   (name || `media.${ext}`).replace(/\s+/g, '_');
@@ -75,10 +75,10 @@ const normalizeBaseName = (name: string | undefined, ext: string) =>
 export async function uploadReviewMedia(reviewId: string, media: MediaInput) {
   const base = normalizeBaseName(media.fileName, media.ext);
   const fileName = generateUniqueName(base, media.ext);
-  const filePath = `reviews/${sanitizePathSegment(reviewId.toLowerCase())}/${fileName}`;
+  const filePath = `${sanitizePathSegment(reviewId.toLowerCase())}/${fileName}`;
 
   return uploadToSupabase({
-    bucket: 'media',
+    bucket: 'reviews',
     content: media.content,
     filePath,
     mimeType: media.mime,
