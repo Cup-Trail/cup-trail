@@ -1,179 +1,101 @@
 import { supabase } from '@cuptrail/utils';
-
-import type { DrinkRow, Err, Ok, Result, ShopDrinkRow } from './types/types';
+import type { DrinkRow, Result, ShopDrinkRow } from './types/types';
 
 const DRINKS_TABLE = 'drinks';
 const SHOP_DRINKS_TABLE = 'shop_drinks';
+
 const SHOP_DRINK_SELECT = `
   id,
   price,
-  drinks (
-    id,
-    name
-  ),
-  shops (
-    id,
-    name
-  ),
   avg_rating,
-  cover_photo_url
+  cover_photo_url,
+  drinks ( id, name ),
+  shops ( id, name )
 `;
-
-// DrinkRow and ShopDrinkRow types are now imported from ./types
-
-// Normalize Supabase nested array relations into single objects
-function normalizeShopDrink(row: any): ShopDrinkRow {
-  const d = Array.isArray(row.drinks) ? row.drinks[0] : row.drinks;
-  const s = Array.isArray(row.shops) ? row.shops[0] : row.shops;
-  return {
-    id: row.id,
-    price: row.price ?? null,
-    avg_rating: row.avg_rating ?? null,
-    cover_photo_url: row.cover_photo_url ?? null,
-    drinks: {
-      id: d?.id,
-      name: d?.name ?? '',
-    },
-    shops: {
-      id: s?.id,
-      name: s?.name ?? '',
-    },
-  } as ShopDrinkRow;
-}
 
 export async function getHighlyRatedDrinks(
   shopId: string
 ): Promise<Result<ShopDrinkRow[]>> {
-  try {
-    const { data, error } = await supabase
-      .from(SHOP_DRINKS_TABLE)
-      .select(SHOP_DRINK_SELECT)
-      .eq('shop_id', shopId)
-      .order('avg_rating', { ascending: false })
-      .limit(10);
+  const { data, error } = await supabase
+    .from(SHOP_DRINKS_TABLE)
+    .select(SHOP_DRINK_SELECT)
+    .eq('shop_id', shopId)
+    .order('avg_rating', { ascending: false })
+    .limit(10);
 
-    if (error) {
-      return {
-        success: false,
-        source: 'supabase',
-        message: error.message,
-      } satisfies Err<ShopDrinkRow[]>;
-    }
+  if (error) {
+    return { success: false, source: 'supabase', message: error.message };
+  }
 
-    if (!data || data.length === 0) {
-      return {
-        success: false,
-        source: 'supabase',
-        message: `No drink ratings found at ${shopId}`,
-      } satisfies Err<ShopDrinkRow[]>;
-    }
-
-    const normalized = (data as any[]).map(normalizeShopDrink);
-    return { success: true, data: normalized } satisfies Ok<ShopDrinkRow[]>;
-  } catch (err) {
+  if (!data || data.length === 0) {
     return {
       success: false,
-      source: 'exception',
-      message: (err as any)?.message ?? 'Unknown error',
-    } satisfies Err<ShopDrinkRow[]>;
+      source: 'supabase',
+      message: `No drink ratings found at ${shopId}`,
+    };
   }
+
+  return { success: true, data: data as ShopDrinkRow[] };
 }
 
 export async function getShopDrinkByName(
   shopName: string,
   drinkName: string
 ): Promise<Result<ShopDrinkRow>> {
-  try {
-    const { data, error } = await supabase
-      .from(SHOP_DRINKS_TABLE)
-      .select(
-        `
-        id,
-        price,
-        drinks (id, name),
-        shops (id, name),
-        avg_rating,
-        cover_photo_url
-      `
-      )
-      .eq('drinks.name', drinkName)
-      .eq('shops.name', shopName)
-      .maybeSingle();
+  const { data, error } = await supabase
+    .from(SHOP_DRINKS_TABLE)
+    .select(SHOP_DRINK_SELECT)
+    .eq('drinks.name', drinkName)
+    .eq('shops.name', shopName)
+    .maybeSingle();
 
-    if (error) {
-      return {
-        success: false,
-        source: 'supabase',
-        message: error.message,
-      } satisfies Err<ShopDrinkRow>;
-    }
+  if (error) {
+    return { success: false, source: 'supabase', message: error.message };
+  }
 
-    if (!data) {
-      return {
-        success: false,
-        source: 'supabase',
-        message: `${drinkName} at ${shopName} not found`,
-      } satisfies Err<ShopDrinkRow>;
-    }
-
-    const normalized = normalizeShopDrink(data);
-    return { success: true, data: normalized } satisfies Ok<ShopDrinkRow>;
-  } catch (err) {
+  if (!data) {
     return {
       success: false,
-      source: 'exception',
-      message: (err as any)?.message ?? 'Unknown error',
-    } satisfies Err<ShopDrinkRow>;
+      source: 'supabase',
+      message: `${drinkName} at ${shopName} not found`,
+    };
   }
+
+  return { success: true, data: data as ShopDrinkRow };
 }
 
 export async function getOrInsertDrink(
   name: string
 ): Promise<Result<DrinkRow>> {
-  try {
-    const { data: getData, error: getError } = await supabase
-      .from(DRINKS_TABLE)
-      .select('*')
-      .eq('name', name)
-      .maybeSingle();
+  const { data, error } = await supabase
+    .from(DRINKS_TABLE)
+    .select('*')
+    .eq('name', name)
+    .maybeSingle();
 
-    if (getError) {
-      return {
-        success: false,
-        source: 'supabase',
-        message: getError.message,
-      } satisfies Err<DrinkRow>;
-    }
+  if (error) {
+    return { success: false, source: 'supabase', message: error.message };
+  }
 
-    if (getData) {
-      return { success: true, data: getData } satisfies Ok<DrinkRow>;
-    }
+  if (data) {
+    return { success: true, data: data as DrinkRow };
+  }
 
-    const { data: insertData, error: insertError } = await supabase
-      .from(DRINKS_TABLE)
-      .insert([{ name }])
-      .select()
-      .maybeSingle();
+  const { data: inserted, error: insertError } = await supabase
+    .from(DRINKS_TABLE)
+    .insert({ name })
+    .select()
+    .single();
 
-    if (insertError) {
-      return {
-        success: false,
-        source: 'supabase',
-        message: insertError.message,
-      } satisfies Err<DrinkRow>;
-    }
-
-    return {
-      success: true,
-      data: insertData as DrinkRow,
-    } satisfies Ok<DrinkRow>;
-  } catch (err) {
+  if (insertError) {
     return {
       success: false,
-      source: 'exception',
-      message: (err as any)?.message ?? 'Unknown error',
-    } satisfies Err<DrinkRow>;
+      source: 'supabase',
+      message: insertError.message,
+    };
   }
+
+  return { success: true, data: inserted as DrinkRow };
 }
 
 export async function getOrInsertShopDrink(
@@ -181,88 +103,81 @@ export async function getOrInsertShopDrink(
   drinkId: string,
   price: number | null = null
 ): Promise<Result<ShopDrinkRow>> {
-  try {
-    const { data: getData, error: getError } = await supabase
-      .from(SHOP_DRINKS_TABLE)
-      .select(SHOP_DRINK_SELECT)
-      .eq('shop_id', shopId)
-      .eq('drink_id', drinkId)
-      .maybeSingle();
+  const { data, error } = await supabase
+    .from(SHOP_DRINKS_TABLE)
+    .select(SHOP_DRINK_SELECT)
+    .eq('shop_id', shopId)
+    .eq('drink_id', drinkId)
+    .maybeSingle();
 
-    if (getError) {
-      return {
-        success: false,
-        source: 'supabase',
-        message: getError.message,
-      } satisfies Err<ShopDrinkRow>;
-    }
+  if (error) {
+    return { success: false, source: 'supabase', message: error.message };
+  }
 
-    if (getData) {
-      return {
-        success: true,
-        data: normalizeShopDrink(getData),
-      } satisfies Ok<ShopDrinkRow>;
-    }
+  if (data) {
+    return { success: true, data: data as ShopDrinkRow };
+  }
 
-    const { data: insertData, error: insertError } = await supabase
-      .from(SHOP_DRINKS_TABLE)
-      .insert([{ shop_id: shopId, drink_id: drinkId, price }])
-      .select(SHOP_DRINK_SELECT)
-      .maybeSingle();
+  const { data: inserted, error: insertError } = await supabase
+    .from(SHOP_DRINKS_TABLE)
+    .insert({ shop_id: shopId, drink_id: drinkId, price })
+    .select(SHOP_DRINK_SELECT)
+    .single();
 
-    if (insertError) {
-      return {
-        success: false,
-        source: 'supabase',
-        message: insertError.message,
-      } satisfies Err<ShopDrinkRow>;
-    }
-
-    return {
-      success: true,
-      data: normalizeShopDrink(insertData),
-    } satisfies Ok<ShopDrinkRow>;
-  } catch (err) {
+  if (insertError) {
     return {
       success: false,
-      source: 'exception',
-      message: (err as any)?.message ?? 'Unknown error',
-    } satisfies Err<ShopDrinkRow>;
+      source: 'supabase',
+      message: insertError.message,
+    };
   }
+
+  return { success: true, data: inserted as ShopDrinkRow };
 }
 
 export async function updateShopDrink(
   shopDrinkId: string,
-  updateFieldsObj: Partial<
+  updates: Partial<
     Pick<ShopDrinkRow, 'price' | 'avg_rating' | 'cover_photo_url'>
-  > &
-    Record<string, any>
+  >
 ): Promise<Result<ShopDrinkRow>> {
-  try {
-    const { data, error } = await supabase
-      .from(SHOP_DRINKS_TABLE)
-      .update(updateFieldsObj)
-      .eq('id', shopDrinkId)
-      .select(SHOP_DRINK_SELECT)
-      .maybeSingle();
+  const { data, error } = await supabase
+    .from(SHOP_DRINKS_TABLE)
+    .update(updates)
+    .eq('id', shopDrinkId)
+    .select(SHOP_DRINK_SELECT)
+    .single();
 
-    if (error) {
-      return {
-        success: false,
-        source: 'supabase',
-        message: error.message,
-      } satisfies Err<ShopDrinkRow>;
-    }
-
-    return {
-      success: true,
-      data: normalizeShopDrink(data),
-    } satisfies Ok<ShopDrinkRow>;
-  } catch (err) {
+  if (error || !data) {
     return {
       success: false,
-      source: 'exception',
-      message: (err as any)?.message ?? 'Unknown error',
-    } satisfies Err<ShopDrinkRow>;
+      source: 'supabase',
+      message: error?.message ?? 'Update failed',
+    };
   }
+
+  return { success: true, data: data as ShopDrinkRow };
+}
+export function pickCoverPhotoFromMedia(mediaUrls: string[]): string | null {
+  if (!mediaUrls || mediaUrls.length === 0) return null;
+
+  // Prefer images
+  const image = mediaUrls.find(url => /\.(jpe?g|png|webp)$/i.test(url));
+
+  return image ?? mediaUrls[0] ?? null;
+}
+export async function updateShopDrinkCoverFromMedia(
+  shopDrinkId: string,
+  mediaUrls: string[]
+): Promise<Result<ShopDrinkRow | null>> {
+  const cover = pickCoverPhotoFromMedia(mediaUrls);
+
+  // Nothing to update
+  if (!cover) {
+    return { success: true, data: null };
+  }
+
+  return updateShopDrink(shopDrinkId, {
+    cover_photo_url: cover,
+  });
 }

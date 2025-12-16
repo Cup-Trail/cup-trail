@@ -3,23 +3,25 @@
  */
 export type Result<T> =
   | { success: true; data: T }
-  | { success: false; source: 'supabase' | 'exception'; message: string };
+  | {
+      success: false;
+      source: 'supabase' | 'exception' | 'client';
+      message: string;
+    };
 
-/** Optional helpers */
 export type Ok<T> = Extract<Result<T>, { success: true }>;
 export type Err<T> = Extract<Result<T>, { success: false }>;
 
 export function isOk<T>(r: Result<T>): r is Ok<T> {
-  return r.success === true;
+  return r.success;
 }
 
 export function isErr<T>(r: Result<T>): r is Err<T> {
-  return r.success === false;
+  return !r.success;
 }
 
-// Database row types
 export interface ShopRow {
-  id?: string | number;
+  id: string;
   name: string;
   address: string;
   latitude: number;
@@ -29,25 +31,18 @@ export interface ShopRow {
   created_at?: string;
   updated_at?: string;
 }
-
 export interface DrinkRow {
   id: string;
   name: string;
 }
-
 export interface ShopDrinkRow {
   id: string;
   price: number | null;
   avg_rating: number;
-  cover_photo_url: string | undefined;
-  drinks: {
-    id?: string;
-    name: string;
-  };
-  shops: {
-    id?: string;
-    name: string;
-  };
+  cover_photo_url: string | null;
+
+  drinks: DrinkRow[];
+  shops: ShopRow[];
 }
 
 export interface ReviewRow {
@@ -56,50 +51,22 @@ export interface ReviewRow {
   comment: string | null;
   media_urls: string[] | null;
   created_at: string;
-  shop_drinks: {
-    id: string;
-    price: number | null;
-    drinks: {
-      id?: string;
-      name: string;
-    };
-    shops: {
-      id?: string;
-      name: string;
-    };
-  };
-}
 
-export interface ShopDrinkCategoryRow {
-  shop_drinks: {
-    id: string;
-    price: number | null;
-    drinks: {
-      id?: string;
-      name: string;
-    };
-    shops: {
-      id?: string;
-      name: string;
-    };
-  };
-  categories: {
-    id: string;
-    slug: string;
-    sort_order: number;
-    label: string;
-  };
+  shop_drinks: ShopDrinkRow[];
 }
-
 export interface CategoryRow {
   id: string;
   slug: string;
   sort_order?: number;
   label?: string;
 }
+export interface ShopDrinkCategoryRow {
+  shop_drinks: ShopDrinkRow[];
+  categories: CategoryRow[];
+}
 
 export type ShopsByCategory = {
-  shop_drinks?: { shops?: ShopRow };
+  shop_drinks?: ShopDrinkRow[];
 };
 
 // Business logic types
