@@ -1,8 +1,11 @@
 import {
+  calculateAndUpdateAvgRating,
   insertReview,
   LocationState,
   RATING_SCALE,
   setShopDrinkCategories,
+  updateReview,
+  updateShopDrinkCoverFromMedia,
 } from '@cuptrail/core';
 import { slugToLabel, suggestCategoriesByKeyword } from '@cuptrail/utils';
 import { uploadReviewMedia } from '@cuptrail/utils/storage'; // ⭐ make sure the path matches your setup
@@ -101,7 +104,7 @@ export default function InsertReviewPage() {
     if (!shopId) return;
 
     // ----------------------------
-    // 1. INSERT REVIEW (NO MEDIA YET)
+    // 1. INSERT REVIEW (TEXT + RATING ONLY)
     // ----------------------------
     const reviewResult = await insertReview(
       shopId,
@@ -110,7 +113,7 @@ export default function InsertReviewPage() {
       comments.trim()
     );
 
-    if (!reviewResult?.success || !reviewResult.data?.id) {
+    if (!reviewResult.success) {
       setSnack({
         open: true,
         message: 'Failed to add review.',
@@ -120,10 +123,12 @@ export default function InsertReviewPage() {
     }
 
     const reviewId = reviewResult.data.id;
+    const shopDrinkId = reviewResult.data.shop_drinks?.id ?? null;
+
     const uploadedUrls: string[] = [];
 
     // ----------------------------
-    // 2. UPLOAD MEDIA UNDER reviewId/
+    // 2. UPLOAD MEDIA
     // ----------------------------
     for (const file of mediaArr) {
       try {
@@ -146,29 +151,38 @@ export default function InsertReviewPage() {
     }
 
     // ----------------------------
-    // 3. UPDATE REVIEW WITH MEDIA URLS
+    // 3. UPDATE REVIEW MEDIA (NON-FATAL)
     // ----------------------------
     if (uploadedUrls.length > 0) {
-      await insertReview(
-        shopId,
-        drinkName.trim(),
-        parsed,
-        comments.trim(),
-        uploadedUrls,
-        reviewId // <-- assuming your API supports updating by id
-      );
+      const updateResult = await updateReview(reviewId, {
+        media_urls: uploadedUrls,
+      });
+
+      if (!updateResult.success) {
+        console.error('Failed to update review media:', updateResult.message);
+      }
+
+      if (shopDrinkId) {
+        await updateShopDrinkCoverFromMedia(shopDrinkId, uploadedUrls);
+      }
     }
 
     // ----------------------------
-    // 4. OPTIONAL: CATEGORIES
+    // 4. UPDATE AVG RATING (ONCE)
     // ----------------------------
-    const shopDrinkId = reviewResult.data.shop_drinks?.id;
+    if (shopDrinkId) {
+      await calculateAndUpdateAvgRating(shopDrinkId);
+    }
+
+    // ----------------------------
+    // 5. OPTIONAL: CATEGORIES
+    // ----------------------------
     if (shopDrinkId && suggestedCategories.length > 0) {
       await setShopDrinkCategories(shopDrinkId, suggestedCategories);
     }
 
     // ----------------------------
-    // 5. SUCCESS + RESET
+    // 6. SUCCESS + RESET
     // ----------------------------
     setSnack({
       open: true,
@@ -180,7 +194,6 @@ export default function InsertReviewPage() {
     setSuggestedCategories([]);
     setMediaArr([]);
   }
-
   return (
     <Stack gap={2}>
       <Typography variant="h5" textAlign="center" fontWeight={700}>
