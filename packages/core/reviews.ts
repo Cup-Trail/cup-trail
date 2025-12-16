@@ -9,7 +9,10 @@ import type { Err, Ok, Result, ReviewRow } from './types/types';
 
 // ReviewRow type is now imported from ./types
 const REVIEWS_TABLE = 'reviews';
-
+export type ReviewInsertRef = {
+  id: string;
+  shop_drinks: { id: string }[];
+};
 // Centralize the nested select and normalization so both queries stay in sync
 const REVIEW_SELECT = `
   id,
@@ -173,7 +176,7 @@ export async function insertReview(
   comment: string,
   mediaUrlArr?: string[] | null,
   userId?: string | null
-): Promise<Result<ReviewRow>> {
+): Promise<Result<ReviewInsertRef>> {
   try {
     const drinkResult = await getOrInsertDrink(drinkName);
     if (!drinkResult?.success)
@@ -213,11 +216,6 @@ export async function insertReview(
       } satisfies Err<ReviewRow>;
     }
 
-    const avgResult = await calculateAndUpdateAvgRating(
-      shopDrinkResult.data.id
-    );
-    if (!avgResult?.success) return avgResult as any satisfies Err<ReviewRow>;
-
     if (mediaUrlArr && mediaUrlArr.length > 0) {
       let mediaUrl = null;
 
@@ -240,7 +238,12 @@ export async function insertReview(
       }
     }
 
-    return { success: true, data: inserted } satisfies Ok<ReviewRow>;
+    const avgResult = await calculateAndUpdateAvgRating(
+      shopDrinkResult.data.id
+    );
+    if (!avgResult?.success) return avgResult as any satisfies Err<ReviewRow>;
+
+    return { success: true, data: inserted } satisfies Ok<ReviewInsertRef>;
   } catch (err) {
     // Log for debugging in development
     if (
