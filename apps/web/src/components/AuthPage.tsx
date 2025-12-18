@@ -32,7 +32,7 @@ export default function AuthPage() {
 
   // Compute redirect base for PR previews or prod
   function computeRedirect(): string {
-    const { origin, pathname } = window.location;
+    const { origin, pathname } = globalThis.location;
     const prMatch = pathname.match(/\/cup-trail\/pr-\d+\//);
     const base = prMatch ? prMatch[0] : import.meta.env.BASE_URL || '/';
     return `${origin}${base}`;
@@ -63,22 +63,21 @@ export default function AuthPage() {
   const resendConfirmationEmail = useCallback(async () => {
     if (!isValidEmail || isBusy) return;
 
-    try {
-      setStatus('sending');
-      const { error } = await supabase.auth.resend({
-        type: 'signup',
-        email: cleanedEmail,
-        options: { emailRedirectTo: computeRedirect() },
-      });
-      if (error) throw error;
-
-      setStatus('sent');
-      setMessage(`Verification link sent to ${cleanedEmail}.`);
-      setCountdown(60);
-    } catch (e: any) {
+    setStatus('sending');
+    const { error } = await supabase.auth.resend({
+      type: 'signup',
+      email: cleanedEmail,
+      options: { emailRedirectTo: computeRedirect() },
+    });
+    if (error) {
       setStatus('error');
-      setMessage(e?.message || 'Failed to send verification link.');
+      setMessage(error.message || 'Failed to send verification link.');
+      return;
     }
+
+    setStatus('sent');
+    setMessage(`Verification link sent to ${cleanedEmail}.`);
+    setCountdown(60);
   }, [cleanedEmail, isValidEmail, isBusy]);
 
   const sendOtpCode = useCallback(async () => {
@@ -88,46 +87,44 @@ export default function AuthPage() {
     setMessage('');
     resetFlowFlags();
 
-    try {
-      const { error } = await supabase.auth.signInWithOtp({
-        email: cleanedEmail,
-        options: { shouldCreateUser: false },
-      });
+    const { error } = await supabase.auth.signInWithOtp({
+      email: cleanedEmail,
+      options: { shouldCreateUser: false },
+    });
 
-      if (error) {
-        if (error.message === 'Signups not allowed for otp') {
-          const { error: signUpErr } = await supabase.auth.signInWithOtp({
-            email: cleanedEmail,
-            options: {
-              shouldCreateUser: true,
-              emailRedirectTo: computeRedirect(),
-            },
-          });
-          if (signUpErr) throw signUpErr;
-
-          setCanResendConfirm(true);
-          setStatus('sent');
-          setCountdown(60);
-          setMessage(
-            `Almost there—check ${cleanedEmail} to confirm your email.`
-          );
+    if (error) {
+      if (error.message === 'Signups not allowed for otp') {
+        const { error: signUpErr } = await supabase.auth.signInWithOtp({
+          email: cleanedEmail,
+          options: {
+            shouldCreateUser: true,
+            emailRedirectTo: computeRedirect(),
+          },
+        });
+        if (signUpErr) {
+          setStatus('error');
+          setMessage(signUpErr.message || 'Failed to send email');
           return;
         }
-        throw error;
+        setCanResendConfirm(true);
+        setStatus('sent');
+        setCountdown(60);
+        setMessage(`Almost there—check ${cleanedEmail} to confirm your email.`);
+        return;
       }
-
-      // OTP accepted
-      setStatus('sent');
-      setCountdown(60);
-      setCanTryOtp(true);
-      setCanResendConfirm(true);
-      setMessage(
-        'Check your email for a 6-digit code, or confirm sign-up using the link.'
-      );
-    } catch (e: any) {
       setStatus('error');
-      setMessage(e?.message || 'Failed to send email');
+      setMessage(error.message || 'Failed to send email');
+      return;
     }
+
+    // OTP accepted
+    setStatus('sent');
+    setCountdown(60);
+    setCanTryOtp(true);
+    setCanResendConfirm(true);
+    setMessage(
+      'Check your email for a 6-digit code, or confirm sign-up using the link.'
+    );
   }, [isBusy, isValidEmail, cleanedEmail]);
 
   const verifyOtpCode = useCallback(async () => {
@@ -135,19 +132,21 @@ export default function AuthPage() {
 
     setStatus('verifying');
     setMessage('');
-    try {
-      const { error } = await supabase.auth.verifyOtp({
-        email: cleanedEmail,
-        token: otp.trim(),
-        type: 'email',
-      });
-      if (error) throw error;
 
-      navigate('/');
-    } catch (e: any) {
+    const { error } = await supabase.auth.verifyOtp({
+      email: cleanedEmail,
+      token: otp.trim(),
+      type: 'email',
+    });
+    if (error) {
       setStatus('error');
-      setMessage(e?.message || 'Invalid verification code. Please try again.');
+      setMessage(
+        error.message || 'Invalid verification code. Please try again.'
+      );
+      return;
     }
+
+    navigate('/');
   }, [isBusy, cleanedEmail, otp, navigate]);
 
   function resetForm() {

@@ -81,8 +81,8 @@ export default function SearchPage() {
     if (fromSelect) {
       if (typeof value === 'string') return;
 
-      const lat = (value as any).coordinate?.latitude;
-      const lon = (value as any).coordinate?.longitude;
+      const lat = value.coordinate?.latitude;
+      const lon = value.coordinate?.longitude;
 
       if (typeof lat === 'number' && typeof lon === 'number') {
         setActiveCoords({ latitude: lat, longitude: lon });
@@ -353,9 +353,7 @@ export default function SearchPage() {
           {reviews.length === 0 && <Typography>No recent reviews</Typography>}
           {reviews.length > 0 && (
             <Stack gap={1}>
-              {reviews.map((item: ReviewRow) => (
-                <ReviewItem key={item.id} item={item} />
-              ))}
+              {reviews.map((item) => <ReviewItem key={item.id} item={item} />)}
             </Stack>
           )}
         </>
