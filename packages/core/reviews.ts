@@ -9,7 +9,7 @@ import type { Result, ReviewRow } from './types/types';
 
 export type ReviewInsertRef = {
   id: string;
-  shop_drinks: { id: string }[];
+  shop_drinks: { id: string };
 };
 
 export type ReviewUpdateInput = {
@@ -52,7 +52,7 @@ export async function getReviewsByShopAndDrink(
 ): Promise<Result<ReviewRow[]>> {
   const { data, error } = await supabase
     .from(REVIEWS_TABLE)
-    .select(REVIEW_SELECT)
+    .select<string, ReviewRow>(REVIEW_SELECT)
     .eq('shop_drinks.drinks.name', drinkName)
     .eq('shop_drinks.shops.name', shopName)
     .order('created_at', { ascending: false });
@@ -69,7 +69,7 @@ export async function getReviewsByShopAndDrink(
     };
   }
 
-  return { success: true, data: data as ReviewRow[] };
+  return { success: true, data: data };
 }
 /**
  * Get 10 recent reviews to display on the Home screen.
@@ -78,7 +78,7 @@ export async function getReviewsByShopAndDrink(
 export async function getRecentReviews(): Promise<Result<ReviewRow[]>> {
   const { data, error } = await supabase
     .from(REVIEWS_TABLE)
-    .select(REVIEW_SELECT)
+    .select<string, ReviewRow>(REVIEW_SELECT)
     .order('created_at', { ascending: false })
     .limit(10);
 
@@ -130,7 +130,7 @@ export async function insertReview(
       comment,
       media_urls: media_urls ?? null,
     })
-    .select('id, shop_drinks(id)')
+    .select<string, ReviewInsertRef>('id, shop_drinks(id)')
     .single();
 
   if (error || !data) {

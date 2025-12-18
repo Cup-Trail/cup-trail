@@ -41,8 +41,8 @@ export interface ShopDrinkRow {
   avg_rating: number;
   cover_photo_url: string | null;
 
-  drinks: DrinkRow[];
-  shops: ShopRow[];
+  drinks: DrinkRow;
+  shops: ShopRow;
 }
 
 export interface ReviewRow {
@@ -52,7 +52,7 @@ export interface ReviewRow {
   media_urls: string[] | null;
   created_at: string;
 
-  shop_drinks: ShopDrinkRow[];
+  shop_drinks: ShopDrinkRow;
 }
 export interface CategoryRow {
   id: string;
@@ -66,7 +66,7 @@ export interface ShopDrinkCategoryRow {
 }
 
 export type ShopsByCategory = {
-  shop_drinks?: ShopDrinkRow[];
+  shop_drinks?: ShopDrinkRow;
 };
 
 // Business logic types

@@ -27,7 +27,7 @@ const ReviewItem = ({ item }: ReviewItemProps) => {
         </Box>
       </Box>
       <img
-        src={item.cover_photo_url}
+        src={item.cover_photo_url ?? ''}
         alt={title}
         width={300}
         height={200}
