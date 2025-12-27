@@ -26,13 +26,13 @@ const ReviewItem = ({ item }: ReviewItemProps) => {
           {renderStars(item.avg_rating)}
         </Box>
       </Box>
-      <img
+      {!!item.cover_photo_url && <img
         src={item.cover_photo_url ?? ''}
         alt={title}
         width={300}
         height={200}
         style={{ objectFit: 'cover' }}
-      />
+      />}
     </Box>
   );
 };
