@@ -8,7 +8,7 @@ interface QueryProps {
 
 const useUserReviewsQuery = ({ shopId }: QueryProps): UseQueryResult<ReviewRow[], Error> =>
   useQuery({
-    queryKey: ['userReviews'],
+    queryKey: ['userReviews', shopId],
     queryFn: async () => {
       const user = await getUser();
       if (!user) return [];
