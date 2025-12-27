@@ -22,23 +22,66 @@ const REVIEWS_TABLE = 'reviews';
 // Centralize the nested select and normalization so both queries stay in sync
 const REVIEW_SELECT = `
   id,
+  user_id,
   rating,
   comment,
   media_urls,
   created_at,
-  shop_drinks (
+  shop_drinks!inner (
     id,
     price,
-    drinks (
+    drinks!inner (
       id,
       name
     ),
-    shops (
+    shops!inner (
       id,
       name
     )
   )
 ` as const;
+
+/**
+ * Get all review made by a user
+ */
+export async function getReviewsByUser(
+  userId: string
+): Promise<Result<ReviewRow[]>> {
+  const { data, error } = await supabase
+    .from(REVIEWS_TABLE)
+    .select<string, ReviewRow>(REVIEW_SELECT)
+    .eq('user_id', userId)
+    .order('created_at', {ascending: false});
+
+    if (error) {
+      return { success: false, source: 'supabase', message: error.message };
+    }
+
+    return { success: true, data: data };
+}
+
+/**
+ * Get all review made by a user at a shop
+ */
+export async function getReviewsByUserShop(
+  userId: string,
+  shopId: string
+): Promise<Result<ReviewRow[]>> {
+  const { data, error } = await supabase
+    .from(REVIEWS_TABLE)
+    .select<string, ReviewRow>(REVIEW_SELECT)
+    .eq('user_id', userId)
+    .eq('shop_drinks.shops.id', shopId)
+    .order('created_at', {ascending: false});
+  
+  if (error) {
+    return { success: false, source: 'supabase', message: error.message };
+  }
+
+  console.log("get reviews by user shop", shopId)
+
+  return { success: true, data: data };
+}
 
 /**
  * Get all reviews for a drink at a particular shop.

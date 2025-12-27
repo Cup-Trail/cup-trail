@@ -14,16 +14,8 @@ import {
 } from '@mui/material';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-
-interface User {
-  id: string;
-  email: string;
-  created_at: string;
-  user_metadata: {
-    display_name?: string;
-    username?: string;
-  };
-}
+import { getReviewsByUser, type User, type ReviewRow } from '@cuptrail/core';
+import ReviewItem from './SearchPage/ReviewItem';
 
 export default function ProfilePage() {
   const navigate = useNavigate();
@@ -32,6 +24,7 @@ export default function ProfilePage() {
   const [editing, setEditing] = useState(false);
   const [displayName, setDisplayName] = useState('');
   const [saving, setSaving] = useState(false);
+  const [reviews, setReviews] = useState<ReviewRow[]>([]);
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data, error }) => {
@@ -42,6 +35,12 @@ export default function ProfilePage() {
       setUser(data.user as User);
       setDisplayName(data.user.user_metadata?.display_name || 'User');
       setLoading(false);
+      getReviewsByUser(data.user.id).then((data) => {
+        if (data.success) {
+          setReviews(data.data)
+          console.log(data.data)
+        }
+      })
     });
   }, [navigate]);
 
@@ -191,6 +190,17 @@ export default function ProfilePage() {
           <Button variant="outlined" color="error" onClick={signOut}>
             Sign out
           </Button>
+          {reviews && (
+            <>
+              <Typography variant="h6">Your Reviews</Typography>
+              {reviews.length === 0 && <Typography>No recent reviews</Typography>}
+              {reviews.length > 0 && (
+                <Stack gap={1}>
+                  {reviews.map((item) => <ReviewItem key={item.id} item={item} />)}
+                </Stack>
+              )}
+            </>
+          )}
         </Stack>
       </Box>
     </Box>
