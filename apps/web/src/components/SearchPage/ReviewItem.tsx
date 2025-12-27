@@ -1,5 +1,5 @@
 import { ReviewRow } from '@cuptrail/core';
-import { Box, Typography } from '@mui/material';
+import { Box, Typography, Link } from '@mui/material';
 
 import { renderStars } from '../../utils';
 
@@ -21,7 +21,8 @@ const ReviewItem = ({ item }: ReviewItemProps) => {
       flexDirection="column"
       gap={2}
     >
-      <Typography fontWeight={600}>{title}</Typography>
+      <Typography fontWeight={600}><Link color="textPrimary" underline="hover" href={`/shop/${item.shop_drinks.shops.id}`}>{title}</Link></Typography>
+      
       <Box color="warning.main" fontSize="20px">
         {renderStars(item.rating)}
       </Box>
