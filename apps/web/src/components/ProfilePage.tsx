@@ -54,32 +54,31 @@ export default function ProfilePage() {
     if (!displayName.trim()) return;
 
     setSaving(true);
-    try {
-      const { error } = await supabase.auth.updateUser({
-        data: { display_name: displayName.trim() },
-      });
+    const { error } = await supabase.auth.updateUser({
+      data: { display_name: displayName.trim() },
+    });
 
-      if (error) throw error;
-
-      // Update local user state
-      setUser(prev =>
-        prev
-          ? {
-              ...prev,
-              user_metadata: {
-                ...prev.user_metadata,
-                display_name: displayName.trim(),
-              },
-            }
-          : null
-      );
-
-      setEditing(false);
-    } catch (error: any) {
-      console.error('Failed to update display name:', error);
-    } finally {
+    if (error) {
+      console.error("Failed to update display name:", error);
       setSaving(false);
+      return;
     }
+
+    // Update local user state
+    setUser((prev) =>
+      prev
+        ? {
+          ...prev,
+          user_metadata: {
+            ...prev.user_metadata,
+            display_name: displayName.trim(),
+          },
+        }
+        : null
+    );
+
+    setEditing(false);
+    setSaving(false);
   }
 
   function cancelEdit(): void {

@@ -8,9 +8,9 @@ interface ReviewItemProps {
 }
 
 const ReviewItem = ({ item }: ReviewItemProps) => {
-  const shopName = item.shop_drinks?.shops?.name;
-  const drinkName = item.shop_drinks?.drinks?.name;
-  const title = drinkName ? `${drinkName} @ ${shopName}` : 'Review';
+  const shopName = item.shop_drinks.shops?.name;
+  const drinkName = item.shop_drinks.drinks?.name;
+  const title = drinkName ? `${drinkName} @ ${shopName}` : "Review";
   const reviewDate = new Date(item.created_at).toLocaleDateString();
   return (
     <Box

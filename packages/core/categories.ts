@@ -60,7 +60,7 @@ export async function getShopsByCategorySlug(
   try {
     const { data, error } = await supabase
       .from('shop_drink_categories')
-      .select(
+      .select<string, ShopsByCategory>(
         `
         shop_drinks:shop_drinks!inner (
           shops:shops!inner (
