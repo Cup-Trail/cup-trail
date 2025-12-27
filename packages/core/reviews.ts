@@ -36,7 +36,8 @@ const REVIEW_SELECT = `
     ),
     shops!inner (
       id,
-      name
+      name,
+      address
     )
   )
 ` as const;
