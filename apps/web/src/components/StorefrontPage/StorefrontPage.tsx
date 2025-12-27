@@ -1,10 +1,10 @@
-import type { LocationState, ShopDrinkRow } from '@cuptrail/core';
+import type { LocationState, ShopDrinkRow, ReviewRow } from '@cuptrail/core';
 import AddOutlinedIcon from '@mui/icons-material/AddOutlined';
 import { Box, Button, Stack, Tab, Tabs, Typography } from '@mui/material';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 
-import { usePopularDrinksQuery } from '../../queries';
+import { usePopularDrinksQuery, useUserReviewsQuery } from '../../queries';
 
 import ReviewItem from './ReviewItem';
 
@@ -18,7 +18,12 @@ const StorefrontPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
+  useEffect(() => {
+    if (!shopId) navigate('/');
+  }, [shopId])
+
   const { data: drinks } = usePopularDrinksQuery({ shopId: shopId ?? '' });
+  const { data: userDrinks } = useUserReviewsQuery({ shopId });
 
   const [selectedView, setSelectedView] = useState<string>(
     STOREFRONT_TAB_VIEWS.PopularDrinks
@@ -76,6 +81,25 @@ const StorefrontPage = () => {
             >
               {drinks.map((item: ShopDrinkRow) => (
                 <ReviewItem key={item.id} item={item} />
+              ))}
+            </Stack>
+          )}
+        </>
+      )}
+
+      {selectedView === STOREFRONT_TAB_VIEWS.MyReviews && (
+        <>
+          {userDrinks && userDrinks.length === 0 && (
+            <Typography>You haven't reviewed any drinks here yet...</Typography>
+          )}
+          {userDrinks && userDrinks.length > 0 && (
+            <Stack
+              direction="row"
+              spacing={2}
+              sx={{ overflowX: 'auto', pb: 1 }}
+            >
+              {userDrinks.map((item: ReviewRow) => (
+                <ReviewItem key={item.shop_drinks.id} item={item.shop_drinks} />
               ))}
             </Stack>
           )}
