@@ -9,7 +9,7 @@ const usePopularDrinksQuery = ({
   shopId,
 }: QueryProps): UseQueryResult<ShopDrinkRow[], Error> =>
   useQuery({
-    queryKey: ['popularDrinks'],
+    queryKey: ['popularDrinks', shopId],
     enabled: !!shopId,
     queryFn: async () => {
       const res = await getHighlyRatedDrinks(shopId);

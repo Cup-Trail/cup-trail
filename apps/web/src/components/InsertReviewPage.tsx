@@ -7,7 +7,7 @@ import {
   updateReview,
   updateShopDrinkCoverFromMedia,
 } from '@cuptrail/core';
-import { slugToLabel, suggestCategoriesByKeyword } from '@cuptrail/utils';
+import { slugToLabel, suggestCategoriesByKeyword, supabase } from '@cuptrail/utils';
 import { uploadReviewMedia } from '@cuptrail/utils/storage'; // ⭐ make sure the path matches your setup
 import DeleteIcon from '@mui/icons-material/Delete';
 import PhotoCameraIcon from '@mui/icons-material/PhotoCamera';
@@ -23,16 +23,30 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { useLocation, useParams } from 'react-router-dom';
+import { useLocation, useParams, useNavigate } from 'react-router-dom';
 
 import type { SnackState } from '../types';
+import type { User } from '@cuptrail/core';
 
 export default function InsertReviewPage() {
   const { shopId } = useParams<{ shopId: string }>();
   const location = useLocation();
   const shopName = (location.state as LocationState)?.shopName ?? '';
+  const navigate = useNavigate();
+
+  const [isSaving, setIsSaving] = useState(false);
+  const [user, setUser] = useState<User | null>(null)
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data, error }) => {
+      if (error || !data.user) {
+        return;
+      }
+      setUser(data.user as User);
+    });
+  }, []);
 
   const { register, getValues, reset } = useForm({
     defaultValues: {
@@ -68,6 +82,7 @@ export default function InsertReviewPage() {
   async function handleSubmitReview() {
     const { rating, drinkName, comments } = getValues();
     const parsed = parseFloat(rating);
+    setIsSaving(true);
 
     // ------- VALIDATION -------
     if (!drinkName.trim()) {
@@ -76,6 +91,7 @@ export default function InsertReviewPage() {
         message: 'Please enter a valid drink.',
         severity: 'error',
       });
+      setIsSaving(false);
       return;
     }
 
@@ -89,6 +105,7 @@ export default function InsertReviewPage() {
         message: `Rating must be between ${RATING_SCALE.MIN} and ${RATING_SCALE.MAX}.`,
         severity: 'error',
       });
+      setIsSaving(false);
       return;
     }
 
@@ -98,6 +115,7 @@ export default function InsertReviewPage() {
         message: 'Please enter a valid review.',
         severity: 'error',
       });
+      setIsSaving(false);
       return;
     }
 
@@ -110,7 +128,9 @@ export default function InsertReviewPage() {
       shopId,
       drinkName.trim(),
       parsed,
-      comments.trim()
+      comments.trim(),
+      null,
+      user ? user.id : null
     );
 
     if (!reviewResult.success) {
@@ -119,6 +139,7 @@ export default function InsertReviewPage() {
         message: 'Failed to add review.',
         severity: 'error',
       });
+      setIsSaving(false);
       return;
     }
 
@@ -145,8 +166,16 @@ export default function InsertReviewPage() {
         if (upload.success) {
           uploadedUrls.push(upload.url);
         }
+        if (!upload.success) {
+          setIsSaving(false);
+          globalThis.alert("There was an error uploading your media for this review.")
+          return;
+        }
       } catch (err) {
         console.error('Media upload failed:', err);
+        setIsSaving(false);
+        globalThis.alert("There was an error uploading your media for this review.")
+        return;
       }
     }
 
@@ -160,6 +189,9 @@ export default function InsertReviewPage() {
 
       if (!updateResult.success) {
         console.error('Failed to update review media:', updateResult.message);
+        setIsSaving(false);
+        globalThis.alert("There was a problem uploading your review.")
+        return;
       }
 
       if (shopDrinkId) {
@@ -189,7 +221,8 @@ export default function InsertReviewPage() {
       message: 'Review added successfully!',
       severity: 'success',
     });
-
+    navigate(`/shop/${shopId}`);
+    setIsSaving(false);
     reset();
     setSuggestedCategories([]);
     setMediaArr([]);
@@ -310,7 +343,7 @@ export default function InsertReviewPage() {
 
       {/* SUBMIT BUTTON */}
       <Box display="flex" justifyContent="center">
-        <Button variant="contained" onClick={handleSubmitReview} fullWidth>
+        <Button variant="contained" onClick={handleSubmitReview} fullWidth disabled={isSaving}>
           Save Review
         </Button>
       </Box>
