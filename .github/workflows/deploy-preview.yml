@@ -84,11 +84,19 @@ jobs:
           comment-author: 'github-actions[bot]'
           body-includes: Preview deployed
       - name: Comment preview URL on PR (create or update)
+        if: steps.comment.outputs.comment-id == ''
         uses: peter-evans/create-or-update-comment@v4
         with:
           comment-id: ${{ steps.comment.outputs.comment-id }}
           issue-number: ${{ github.event.pull_request.number }}
           body: |
-            <!-- preview-url-comment -->
-            🚀 Preview deployed: ${{ steps.preview.outputs.url }}
-          edit-mode: replace
+            Preview deployed: ${{ steps.preview.outputs.url }}
+          reactions: rocket
+      - name: Update comment
+        if: steps.comment.outputs.comment-id != ''
+        uses: peter-evans/create-or-update-comment@v5
+        with:
+          comment-id: ${{ steps.comment.outputs.comment-id }}
+          body: |
+            Preview updated: ${{ steps.preview.outputs.url }}
+          reactions: hooray
