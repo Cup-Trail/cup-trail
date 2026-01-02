@@ -100,3 +100,4 @@ jobs:
           body: |
             Preview updated: ${{ steps.preview.outputs.url }}
           reactions: hooray
+          edit-mode: replace
