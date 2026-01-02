@@ -76,9 +76,17 @@ jobs:
         id: preview
         run: |
           echo "url=${{ format('{0}pr-{1}/', steps.deployment.outputs.page_url, github.event.pull_request.number) }}" >> "$GITHUB_OUTPUT"
+      - name: Find Comment
+        uses: peter-evans/find-comment@v3
+        id: comment
+        with:
+          issue-number: ${{ github.event.pull_request.number }}
+          comment-author: 'github-actions[bot]'
+          body-includes: Preview deployed
       - name: Comment preview URL on PR (create or update)
         uses: peter-evans/create-or-update-comment@v4
         with:
+          comment-id: ${{ steps.comment.outputs.comment-id }}
           issue-number: ${{ github.event.pull_request.number }}
           body: |
             <!-- preview-url-comment -->
