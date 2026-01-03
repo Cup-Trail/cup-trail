@@ -7,7 +7,7 @@ import {
   updateReview,
   updateShopDrinkCoverFromMedia,
 } from '@cuptrail/core';
-import { slugToLabel, suggestCategoriesByKeyword, supabase } from '@cuptrail/utils';
+import { getUser, slugToLabel, suggestCategoriesByKeyword, supabase } from '@cuptrail/utils';
 import { uploadReviewMedia } from '@cuptrail/utils/storage'; // ⭐ make sure the path matches your setup
 import DeleteIcon from '@mui/icons-material/Delete';
 import PhotoCameraIcon from '@mui/icons-material/PhotoCamera';
@@ -40,12 +40,7 @@ export default function InsertReviewPage() {
   const [user, setUser] = useState<User | null>(null)
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data, error }) => {
-      if (error || !data.user) {
-        return;
-      }
-      setUser(data.user as User);
-    });
+    getUser().then(res => setUser(res));
   }, []);
 
   const { register, getValues, reset } = useForm({

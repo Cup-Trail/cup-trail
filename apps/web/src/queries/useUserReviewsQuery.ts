@@ -1,6 +1,6 @@
 import { getReviewsByUser, getReviewsByUserShop, type ReviewRow } from '@cuptrail/core';
 import { useQuery, UseQueryResult } from '@tanstack/react-query';
-import { getUser } from '../utils';
+import { getUser } from '@cuptrail/utils';
 
 interface QueryProps {
   shopId?: string;
