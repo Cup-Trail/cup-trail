@@ -1,4 +1,5 @@
 import { supabase } from '@cuptrail/utils';
+
 import type { DrinkRow, Result, ShopDrinkRow } from './types/types';
 
 const DRINKS_TABLE = 'drinks';

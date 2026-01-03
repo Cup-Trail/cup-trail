@@ -19,24 +19,20 @@ export default function IdleSessionManager({
   const [showModal, setShowModal] = useState(false);
   const [deadlineId, setDeadlineId] = useState<number | null>(null);
   const [secondsLeft, setSecondsLeft] = useState<number | null>(null);
-  const clearDeadline = () => {
+  const clearDeadline = useCallback(() => {
     if (deadlineId !== null) {
       clearTimeout(deadlineId);
       setDeadlineId(null);
     }
-  };
-  const handleStay = () => {
-    clearDeadline();
-    setShowModal(false);
-    reset(); // resets the idle timer back to full timeout
-  };
+  }, [deadlineId]);
 
   // auto logout
-  const handleLogout = async () => {
+  const handleLogout = useCallback(async () => {
     clearDeadline();
     setShowModal(false);
     await onLogout();
-  };
+  }, [clearDeadline, setShowModal, onLogout]);
+
   // when user becomes idle
   const onIdle = useCallback(() => {
     setShowModal(true);
@@ -50,7 +46,7 @@ export default function IdleSessionManager({
     } else {
       setSecondsLeft(null);
     }
-  }, [autoLogoutMs]);
+  }, [autoLogoutMs, handleLogout]);
 
   const { reset } = useIdleTimer({
     timeout: timeoutMs,
@@ -59,6 +55,12 @@ export default function IdleSessionManager({
     throttle: 500,
     // crossTab: true // enable later for multi-tab
   });
+
+  const handleStay = useCallback(() => {
+    clearDeadline();
+    setShowModal(false);
+    reset(); // resets the idle timer back to full timeout
+  }, [clearDeadline, reset]);
 
   useEffect(() => {
     if (!showModal || secondsLeft == null) return;
@@ -74,16 +76,16 @@ export default function IdleSessionManager({
       open={showModal}
       onClose={handleStay}
       fullWidth
-      maxWidth="xs"
-      aria-labelledby="idle-title"
-      aria-describedby="idle-desc"
+      maxWidth='xs'
+      aria-labelledby='idle-title'
+      aria-describedby='idle-desc'
     >
       <Box sx={{ p: 3 }}>
-        <Typography id="idle-title" fontWeight={700} gutterBottom>
+        <Typography id='idle-title' fontWeight={700} gutterBottom>
           Are you still there?
         </Typography>
 
-        <Typography id="idle-desc" sx={{ color: 'text.secondary', mb: 2 }}>
+        <Typography id='idle-desc' sx={{ color: 'text.secondary', mb: 2 }}>
           You’ve been inactive for a while.{' '}
           {secondsLeft != null ? (
             <>

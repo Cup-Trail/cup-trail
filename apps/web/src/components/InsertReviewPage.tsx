@@ -7,7 +7,12 @@ import {
   updateReview,
   updateShopDrinkCoverFromMedia,
 } from '@cuptrail/core';
-import { getUser, slugToLabel, suggestCategoriesByKeyword, supabase } from '@cuptrail/utils';
+import type { User } from '@cuptrail/core';
+import {
+  getUser,
+  slugToLabel,
+  suggestCategoriesByKeyword,
+} from '@cuptrail/utils';
 import { uploadReviewMedia } from '@cuptrail/utils/storage'; // ⭐ make sure the path matches your setup
 import DeleteIcon from '@mui/icons-material/Delete';
 import PhotoCameraIcon from '@mui/icons-material/PhotoCamera';
@@ -28,7 +33,6 @@ import { useForm } from 'react-hook-form';
 import { useLocation, useParams, useNavigate } from 'react-router-dom';
 
 import type { SnackState } from '../types';
-import type { User } from '@cuptrail/core';
 
 export default function InsertReviewPage() {
   const { shopId } = useParams<{ shopId: string }>();
@@ -37,7 +41,7 @@ export default function InsertReviewPage() {
   const navigate = useNavigate();
 
   const [isSaving, setIsSaving] = useState(false);
-  const [user, setUser] = useState<User | null>(null)
+  const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
     getUser().then(res => setUser(res));
@@ -163,13 +167,17 @@ export default function InsertReviewPage() {
         }
         if (!upload.success) {
           setIsSaving(false);
-          globalThis.alert("There was an error uploading your media for this review.")
+          globalThis.alert(
+            'There was an error uploading your media for this review.'
+          );
           return;
         }
       } catch (err) {
         console.error('Media upload failed:', err);
         setIsSaving(false);
-        globalThis.alert("There was an error uploading your media for this review.")
+        globalThis.alert(
+          'There was an error uploading your media for this review.'
+        );
         return;
       }
     }
@@ -185,7 +193,7 @@ export default function InsertReviewPage() {
       if (!updateResult.success) {
         console.error('Failed to update review media:', updateResult.message);
         setIsSaving(false);
-        globalThis.alert("There was a problem uploading your review.")
+        globalThis.alert('There was a problem uploading your review.');
         return;
       }
 
@@ -224,14 +232,14 @@ export default function InsertReviewPage() {
   }
   return (
     <Stack gap={2}>
-      <Typography variant="h5" textAlign="center" fontWeight={700}>
+      <Typography variant='h5' textAlign='center' fontWeight={700}>
         Add a Review
       </Typography>
 
       {/* DRINK NAME */}
       <TextField
         {...register('drinkName')}
-        label="Drink Name (required)"
+        label='Drink Name (required)'
         onBlur={() => {
           const inputValue = getValues('drinkName').trim();
           setSuggestedCategories(suggestCategoriesByKeyword(inputValue));
@@ -241,7 +249,7 @@ export default function InsertReviewPage() {
 
       {/* SUGGESTED CATEGORIES */}
       {suggestedCategories.length > 0 && (
-        <Stack direction="row" gap={1} flexWrap="wrap">
+        <Stack direction='row' gap={1} flexWrap='wrap'>
           {suggestedCategories.map(cat => (
             <Chip
               key={cat}
@@ -249,20 +257,20 @@ export default function InsertReviewPage() {
               onDelete={() =>
                 setSuggestedCategories(prev => prev.filter(c => c !== cat))
               }
-              variant="outlined"
-              size="small"
+              variant='outlined'
+              size='small'
             />
           ))}
         </Stack>
       )}
 
       {/* SHOP NAME (locked) */}
-      <TextField label="Shop" value={shopName} fullWidth disabled />
+      <TextField label='Shop' value={shopName} fullWidth disabled />
 
       {/* RATING */}
       <TextField
         {...register('rating')}
-        type="number"
+        type='number'
         label={`Rating (${RATING_SCALE.MIN} - ${RATING_SCALE.MAX})`}
         slotProps={{
           htmlInput: { min: RATING_SCALE.MIN, max: RATING_SCALE.MAX },
@@ -273,7 +281,7 @@ export default function InsertReviewPage() {
       {/* COMMENTS */}
       <TextField
         {...register('comments')}
-        label="Comments"
+        label='Comments'
         fullWidth
         multiline
         minRows={4}
@@ -281,15 +289,15 @@ export default function InsertReviewPage() {
 
       {/* MEDIA UPLOAD BUTTON */}
       <Button
-        variant="outlined"
+        variant='outlined'
         startIcon={<PhotoCameraIcon />}
-        component="label"
+        component='label'
         sx={{ alignSelf: 'flex-start' }}
       >
         Upload Media
         <input
-          type="file"
-          accept="image/*"
+          type='file'
+          accept='image/*'
           multiple
           hidden
           onChange={e => handleMediaSelect(e.target.files)}
@@ -298,7 +306,7 @@ export default function InsertReviewPage() {
 
       {/* MEDIA PREVIEW STRIP */}
       {mediaArr.length > 0 && (
-        <Stack direction="row" spacing={2} sx={{ overflowX: 'auto', py: 1 }}>
+        <Stack direction='row' spacing={2} sx={{ overflowX: 'auto', py: 1 }}>
           {mediaArr.map((file, idx) => (
             <Paper
               key={idx}
@@ -315,7 +323,7 @@ export default function InsertReviewPage() {
             >
               <img
                 src={URL.createObjectURL(file)}
-                alt="preview"
+                alt='preview'
                 style={{
                   width: '100%',
                   height: '100%',
@@ -324,12 +332,12 @@ export default function InsertReviewPage() {
                 }}
               />
               <IconButton
-                size="small"
-                color="error"
+                size='small'
+                color='error'
                 onClick={() => handleRemoveMedia(idx)}
                 sx={{ position: 'absolute', top: 2, right: 2 }}
               >
-                <DeleteIcon fontSize="small" />
+                <DeleteIcon fontSize='small' />
               </IconButton>
             </Paper>
           ))}
@@ -337,8 +345,13 @@ export default function InsertReviewPage() {
       )}
 
       {/* SUBMIT BUTTON */}
-      <Box display="flex" justifyContent="center">
-        <Button variant="contained" onClick={handleSubmitReview} fullWidth disabled={isSaving}>
+      <Box display='flex' justifyContent='center'>
+        <Button
+          variant='contained'
+          onClick={handleSubmitReview}
+          fullWidth
+          disabled={isSaving}
+        >
           Save Review
         </Button>
       </Box>
@@ -352,7 +365,7 @@ export default function InsertReviewPage() {
         <Alert
           onClose={() => setSnack((s: SnackState) => ({ ...s, open: false }))}
           severity={snack.severity}
-          variant="filled"
+          variant='filled'
         >
           {snack.message}
         </Alert>

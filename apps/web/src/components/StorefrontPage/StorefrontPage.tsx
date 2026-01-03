@@ -20,7 +20,7 @@ const StorefrontPage = () => {
 
   useEffect(() => {
     if (!shopId) navigate('/');
-  }, [shopId])
+  }, [shopId, navigate]);
 
   const { data: drinks } = usePopularDrinksQuery({ shopId: shopId ?? '' });
   const { data: userDrinks } = useUserReviewsQuery({ shopId });
@@ -34,14 +34,14 @@ const StorefrontPage = () => {
 
   return (
     <Stack gap={2}>
-      <Typography variant="h4" fontWeight={700}>
+      <Typography variant='h4' fontWeight={700}>
         {shopName}
       </Typography>
-      <Box display="flex" justifyContent="space-between">
+      <Box display='flex' justifyContent='space-between'>
         <Typography>{address}</Typography>
         <Button
           startIcon={<AddOutlinedIcon />}
-          variant="contained"
+          variant='contained'
           onClick={() =>
             navigate(`/shop/${shopId}/review`, {
               state: { shopName } as LocationState,
@@ -52,7 +52,7 @@ const StorefrontPage = () => {
         </Button>
       </Box>
 
-      <Box display="flex" justifyContent="center">
+      <Box display='flex' justifyContent='center'>
         <Tabs
           value={selectedView}
           onChange={(_, view) => setSelectedView(view)}
@@ -75,7 +75,7 @@ const StorefrontPage = () => {
           )}
           {drinks && drinks.length > 0 && (
             <Stack
-              direction="row"
+              direction='row'
               spacing={2}
               sx={{ overflowX: 'auto', pb: 1 }}
             >
@@ -94,7 +94,7 @@ const StorefrontPage = () => {
           )}
           {userDrinks && userDrinks.length > 0 && (
             <Stack
-              direction="row"
+              direction='row'
               spacing={2}
               sx={{ overflowX: 'auto', pb: 1 }}
             >

@@ -2,7 +2,6 @@ import type {
   Geocode,
   LocationState,
   Prediction,
-  ReviewRow,
   UserCoordinates,
 } from '@cuptrail/core';
 import { getOrInsertShop } from '@cuptrail/core';
@@ -244,7 +243,7 @@ export default function SearchPage() {
         renderInput={params => (
           <TextField
             {...params}
-            label="Search by cafe"
+            label='Search by cafe'
             fullWidth
             error={searchError}
             helperText={
@@ -322,7 +321,7 @@ export default function SearchPage() {
         renderInput={params => (
           <TextField
             {...params}
-            label="Location"
+            label='Location'
             placeholder={'Use current location or type a city'}
             fullWidth
             error={Boolean(locationError) && !activeCoords}
@@ -349,11 +348,13 @@ export default function SearchPage() {
 
       {reviews && (
         <>
-          <Typography variant="h6">Recently Reviewed Shops</Typography>
+          <Typography variant='h6'>Recently Reviewed Shops</Typography>
           {reviews.length === 0 && <Typography>No recent reviews</Typography>}
           {reviews.length > 0 && (
             <Stack gap={1}>
-              {reviews.map((item) => <ReviewItem key={item.id} item={item} />)}
+              {reviews.map(item => (
+                <ReviewItem key={item.id} item={item} />
+              ))}
             </Stack>
           )}
         </>

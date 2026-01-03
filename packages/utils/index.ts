@@ -14,4 +14,4 @@ export * from './categorizeDrinks';
 export * from './fetchWrapper';
 
 // User utilities
-export * from './user'
+export * from './user';

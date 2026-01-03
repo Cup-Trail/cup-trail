@@ -78,12 +78,13 @@ export interface LocationState {
   longitude: number;
 }
 
+// Subset of supabase User type
 export interface User {
   id: string;
-  email: string;
+  email?: string;
   created_at: string;
   user_metadata: {
     display_name?: string;
     username?: string;
-  }
+  };
 }

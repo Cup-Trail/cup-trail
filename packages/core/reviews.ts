@@ -52,13 +52,13 @@ export async function getReviewsByUser(
     .from(REVIEWS_TABLE)
     .select<string, ReviewRow>(REVIEW_SELECT)
     .eq('user_id', userId)
-    .order('created_at', {ascending: false});
+    .order('created_at', { ascending: false });
 
-    if (error) {
-      return { success: false, source: 'supabase', message: error.message };
-    }
+  if (error) {
+    return { success: false, source: 'supabase', message: error.message };
+  }
 
-    return { success: true, data: data };
+  return { success: true, data: data };
 }
 
 /**
@@ -73,13 +73,11 @@ export async function getReviewsByUserShop(
     .select<string, ReviewRow>(REVIEW_SELECT)
     .eq('user_id', userId)
     .eq('shop_drinks.shops.id', shopId)
-    .order('created_at', {ascending: false});
-  
+    .order('created_at', { ascending: false });
+
   if (error) {
     return { success: false, source: 'supabase', message: error.message };
   }
-
-  console.log("get reviews by user shop", shopId)
 
   return { success: true, data: data };
 }

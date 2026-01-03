@@ -161,7 +161,7 @@ export default function SearchScreen() {
           handleAutocomplete(text);
         }}
         onBlur={handleInputBlur}
-        placeholder="Search shops, drinks, or cities..."
+        placeholder='Search shops, drinks, or cities...'
         value={name}
       />
       {suggestions.length > 0 && (
@@ -174,7 +174,7 @@ export default function SearchScreen() {
           {/* suggestions dropdown */}
           <View style={styles.suggestionsDropdown}>
             <FlatList<Prediction>
-              keyboardShouldPersistTaps="handled"
+              keyboardShouldPersistTaps='handled'
               data={suggestions}
               keyExtractor={item => item.place_id}
               renderItem={({ item }) => (
