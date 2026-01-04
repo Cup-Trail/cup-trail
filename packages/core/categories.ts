@@ -91,11 +91,11 @@ export async function getShopsByCategorySlug(
       }
     }
     return { success: true, data: Array.from(uniqueMap.values()) };
-  } catch (err: any) {
+  } catch (err: unknown) {
     return {
       success: false,
       source: 'exception',
-      message: err?.message ?? 'Unknown error',
+      message: err instanceof TypeError ? err.message : 'Unknown error',
     };
   }
 }
@@ -116,11 +116,11 @@ export async function getCategories(
     }
 
     return { success: true, data: (data ?? []) as CategoryRow[] };
-  } catch (err: any) {
+  } catch (err: unknown) {
     return {
       success: false,
       source: 'exception',
-      message: err?.message ?? 'Unknown error',
+      message: err instanceof TypeError ? err?.message : 'Unknown error',
     };
   }
 }

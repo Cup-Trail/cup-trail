@@ -1,3 +1,4 @@
+import { getReviewsByUser, type User, type ReviewRow } from '@cuptrail/core';
 import { supabase } from '@cuptrail/utils';
 import {
   Cancel as CancelIcon,
@@ -15,15 +16,7 @@ import {
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-interface User {
-  id: string;
-  email: string;
-  created_at: string;
-  user_metadata: {
-    display_name?: string;
-    username?: string;
-  };
-}
+import ReviewItem from './SearchPage/ReviewItem';
 
 export default function ProfilePage() {
   const navigate = useNavigate();
@@ -32,6 +25,7 @@ export default function ProfilePage() {
   const [editing, setEditing] = useState(false);
   const [displayName, setDisplayName] = useState('');
   const [saving, setSaving] = useState(false);
+  const [reviews, setReviews] = useState<ReviewRow[]>([]);
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data, error }) => {
@@ -42,6 +36,11 @@ export default function ProfilePage() {
       setUser(data.user as User);
       setDisplayName(data.user.user_metadata?.display_name || 'User');
       setLoading(false);
+      getReviewsByUser(data.user.id).then(data => {
+        if (data.success) {
+          setReviews(data.data);
+        }
+      });
     });
   }, [navigate]);
 
@@ -59,21 +58,21 @@ export default function ProfilePage() {
     });
 
     if (error) {
-      console.error("Failed to update display name:", error);
+      console.error('Failed to update display name:', error);
       setSaving(false);
       return;
     }
 
     // Update local user state
-    setUser((prev) =>
+    setUser(prev =>
       prev
         ? {
-          ...prev,
-          user_metadata: {
-            ...prev.user_metadata,
-            display_name: displayName.trim(),
-          },
-        }
+            ...prev,
+            user_metadata: {
+              ...prev.user_metadata,
+              display_name: displayName.trim(),
+            },
+          }
         : null
     );
 
@@ -124,16 +123,16 @@ export default function ProfilePage() {
       >
         <Box sx={{ textAlign: 'center', mb: 3 }}>
           <Typography
-            variant="h4"
+            variant='h4'
             fontWeight={700}
-            color="primary.main"
+            color='primary.main'
             gutterBottom
           >
             Profile
           </Typography>
         </Box>
         <Stack gap={3}>
-          <Stack direction="row" gap={2} alignItems="center">
+          <Stack direction='row' gap={2} alignItems='center'>
             <Avatar
               sx={{
                 width: 64,
@@ -146,16 +145,16 @@ export default function ProfilePage() {
             </Avatar>
             <Box sx={{ flex: 1 }}>
               {editing ? (
-                <Stack direction="row" gap={1} alignItems="center">
+                <Stack direction='row' gap={1} alignItems='center'>
                   <TextField
                     value={displayName}
                     onChange={e => setDisplayName(e.target.value)}
-                    size="small"
+                    size='small'
                     autoFocus
                     sx={{ flex: 1 }}
                   />
                   <Button
-                    size="small"
+                    size='small'
                     onClick={saveDisplayName}
                     disabled={saving || !displayName.trim()}
                     startIcon={<SaveIcon />}
@@ -163,7 +162,7 @@ export default function ProfilePage() {
                     {saving ? 'Saving...' : 'Save'}
                   </Button>
                   <Button
-                    size="small"
+                    size='small'
                     onClick={cancelEdit}
                     disabled={saving}
                     startIcon={<CancelIcon />}
@@ -172,10 +171,10 @@ export default function ProfilePage() {
                   </Button>
                 </Stack>
               ) : (
-                <Stack direction="row" gap={1} alignItems="center">
-                  <Typography variant="h6">{currentDisplayName}</Typography>
+                <Stack direction='row' gap={1} alignItems='center'>
+                  <Typography variant='h6'>{currentDisplayName}</Typography>
                   <Button
-                    size="small"
+                    size='small'
                     onClick={() => setEditing(true)}
                     startIcon={<EditIcon />}
                   >
@@ -183,14 +182,29 @@ export default function ProfilePage() {
                   </Button>
                 </Stack>
               )}
-              <Typography variant="body2" color="text.secondary">
+              <Typography variant='body2' color='text.secondary'>
                 {email}
               </Typography>
             </Box>
           </Stack>
-          <Button variant="outlined" color="error" onClick={signOut}>
+          <Button variant='outlined' color='error' onClick={signOut}>
             Sign out
           </Button>
+          {reviews && (
+            <>
+              <Typography variant='h6'>Your Reviews</Typography>
+              {reviews.length === 0 && (
+                <Typography>No recent reviews</Typography>
+              )}
+              {reviews.length > 0 && (
+                <Stack gap={1}>
+                  {reviews.map(item => (
+                    <ReviewItem key={item.id} item={item} />
+                  ))}
+                </Stack>
+              )}
+            </>
+          )}
         </Stack>
       </Box>
     </Box>

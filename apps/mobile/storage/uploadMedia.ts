@@ -134,10 +134,10 @@ export async function uploadMedia(
       .getPublicUrl(filePath);
 
     return { success: true, url: urlData.publicUrl, path: filePath };
-  } catch (err: any) {
+  } catch (err: unknown) {
     return {
       success: false,
-      message: err?.message ?? 'Unknown error',
+      message: err instanceof TypeError ? err?.message : 'Unknown error',
       source: 'unknown',
       error: err,
     };

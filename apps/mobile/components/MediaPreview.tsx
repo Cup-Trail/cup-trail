@@ -48,7 +48,7 @@ export default function MediaPreview({ media, onRemove }: MediaPreviewProps) {
           {isVideo ? (
             <VideoView
               player={player}
-              contentFit="cover"
+              contentFit='cover'
               style={StyleSheet.absoluteFill}
               allowsFullscreen
               allowsPictureInPicture
