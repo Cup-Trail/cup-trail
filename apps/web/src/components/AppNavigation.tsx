@@ -1,6 +1,7 @@
 import { supabase } from '@cuptrail/utils';
 import { useEffect, useState } from 'react';
 import { Outlet } from 'react-router-dom';
+
 import Header from './Header';
 
 export default function AppNavigation() {
@@ -31,7 +32,6 @@ export default function AppNavigation() {
   return (
     <div className='min-h-screen bg-[#fafafa]'>
       <Header signedIn={signedIn} displayName={displayName} />
-
       <main className='w-full max-w-[768px] mx-auto px-4 py-8'>
         <Outlet />
       </main>
