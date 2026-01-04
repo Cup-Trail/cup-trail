@@ -31,7 +31,7 @@ const CategoryFilters = () => {
     <>
       {cats && (
         <Stack
-          direction="row"
+          direction='row'
           spacing={1}
           sx={{ justifyContent: 'center', overflowX: 'auto', pb: 1 }}
         >
@@ -40,7 +40,7 @@ const CategoryFilters = () => {
               key={c.id}
               label={c.label}
               variant={c.id === selectedCategory?.id ? 'filled' : 'outlined'}
-              color="success"
+              color='success'
               onClick={() => handleCategorySelect(c)}
             />
           ))}
@@ -49,7 +49,7 @@ const CategoryFilters = () => {
 
       {selectedCategory && (
         <>
-          <Typography variant="h6">
+          <Typography variant='h6'>
             Shops for {selectedCategory.label}
           </Typography>
           {categoryShops.length === 0 && (
@@ -58,10 +58,10 @@ const CategoryFilters = () => {
           {categoryShops.length > 0 && (
             <Stack gap={1}>
               {categoryShops.map(s => (
-                <Paper key={String(s.id)} variant="outlined" sx={{ p: 2 }}>
+                <Paper key={String(s.id)} variant='outlined' sx={{ p: 2 }}>
                   <Typography fontWeight={600}>{s.name}</Typography>
                   {s.address && (
-                    <Typography mt={0.5} color="text.secondary">
+                    <Typography mt={0.5} color='text.secondary'>
                       {s.address}
                     </Typography>
                   )}

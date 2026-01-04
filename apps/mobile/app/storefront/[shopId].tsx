@@ -64,7 +64,7 @@ export default function StoreFrontScreen() {
               <Image
                 source={{ uri: item.cover_photo_url }}
                 style={styles.drinkImage}
-                resizeMode="cover"
+                resizeMode='cover'
               />
             )}
             <Text style={styles.drinkName}>{item.drinks.name}</Text>

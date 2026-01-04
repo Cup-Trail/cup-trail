@@ -171,16 +171,16 @@ export default function AuthPage() {
       <Box sx={{ textAlign: 'center' }}>
         <Box sx={{ mb: 2 }}>
           <Typography
-            variant="h4"
+            variant='h4'
             gutterBottom
             fontWeight={500}
-            color="primary.main"
+            color='primary.main'
           >
             Welcome to Cup Trail!
           </Typography>
           <Typography
-            variant="body1"
-            color="text.secondary"
+            variant='body1'
+            color='text.secondary'
             gutterBottom
             sx={{ mb: 4 }}
           >
@@ -198,7 +198,7 @@ export default function AuthPage() {
             <Alert
               onClose={() => setMessage('')}
               severity={status === 'error' ? 'error' : 'success'}
-              variant="filled"
+              variant='filled'
               sx={{ width: '100%' }}
             >
               {message}
@@ -207,8 +207,8 @@ export default function AuthPage() {
 
           {/* Email */}
           <TextField
-            label="Email Address"
-            type="email"
+            label='Email Address'
+            type='email'
             value={email}
             helperText={
               !isValidEmail && email ? 'Enter a valid email address' : ' '
@@ -219,7 +219,7 @@ export default function AuthPage() {
               setMessage('');
               resetFlowFlags();
             }}
-            placeholder="you@example.com"
+            placeholder='you@example.com'
             fullWidth
             disabled={showOtpInput || isBusy}
             onKeyDown={e => {
@@ -236,14 +236,14 @@ export default function AuthPage() {
           {/* OTP */}
           {showOtpInput && (
             <TextField
-              label="Verification Code"
+              label='Verification Code'
               value={otp}
               onChange={e =>
                 setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))
               }
-              placeholder="123456"
+              placeholder='123456'
               fullWidth
-              variant="outlined"
+              variant='outlined'
               slotProps={{
                 htmlInput: {
                   maxLength: 6,
@@ -258,7 +258,7 @@ export default function AuthPage() {
                   },
                 },
               }}
-              helperText="Enter the 6-digit code from your email"
+              helperText='Enter the 6-digit code from your email'
               onKeyDown={e => {
                 if (e.key === 'Enter' && otp.length === 6) verifyOtpCode();
               }}
@@ -274,18 +274,18 @@ export default function AuthPage() {
           )}
 
           {/* Actions */}
-          <Stack direction="row" spacing={2}>
+          <Stack direction='row' spacing={2}>
             {!showOtpInput ? (
               canTryOtp || canResendConfirm ? (
                 <>
                   {canTryOtp && (
                     <Button
-                      variant="contained"
+                      variant='contained'
                       onClick={() => {
                         setMessage('');
                         setShowOtpInput(true);
                       }}
-                      size="large"
+                      size='large'
                       fullWidth
                     >
                       Enter 6-digit code
@@ -293,10 +293,10 @@ export default function AuthPage() {
                   )}
                   {canResendConfirm && (
                     <Button
-                      variant="outlined"
+                      variant='outlined'
                       onClick={resendConfirmationEmail}
                       disabled={countdown > 0 || status === 'sending'}
-                      size="large"
+                      size='large'
                       fullWidth
                     >
                       {status === 'sending'
@@ -309,10 +309,10 @@ export default function AuthPage() {
                 </>
               ) : (
                 <Button
-                  variant="contained"
+                  variant='contained'
                   onClick={sendOtpCode}
                   disabled={!isValidEmail || isBusy}
-                  size="large"
+                  size='large'
                   fullWidth
                 >
                   {status === 'sending' ? 'Sending…' : 'Continue'}
@@ -321,18 +321,18 @@ export default function AuthPage() {
             ) : (
               <>
                 <Button
-                  variant="contained"
+                  variant='contained'
                   onClick={verifyOtpCode}
                   disabled={otp.length !== 6 || isBusy}
-                  size="large"
+                  size='large'
                   fullWidth
                 >
                   {status === 'verifying' ? 'Verifying…' : 'Sign in'}
                 </Button>
                 <Button
-                  variant="outlined"
+                  variant='outlined'
                   onClick={() => setShowOtpInput(false)}
-                  size="large"
+                  size='large'
                 >
                   Back
                 </Button>
@@ -342,12 +342,12 @@ export default function AuthPage() {
 
           {/* Resend code inside OTP view */}
           {showOtpInput && (
-            <Box textAlign="center">
+            <Box textAlign='center'>
               <Button
-                variant="text"
+                variant='text'
                 onClick={sendOtpCode}
                 disabled={countdown > 0}
-                size="small"
+                size='small'
               >
                 {countdown > 0 ? `Resend code in ${countdown}s` : 'Resend code'}
               </Button>
@@ -355,9 +355,9 @@ export default function AuthPage() {
           )}
 
           <Typography
-            variant="caption"
-            color="text.secondary"
-            textAlign="center"
+            variant='caption'
+            color='text.secondary'
+            textAlign='center'
           >
             By signing in, you agree to our Terms of Service and Privacy Policy
           </Typography>

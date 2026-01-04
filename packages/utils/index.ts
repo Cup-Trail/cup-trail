@@ -12,3 +12,6 @@ export * from './categorizeDrinks';
 
 // Fetch wrapper utilities
 export * from './fetchWrapper';
+
+// User utilities
+export * from './user';
