@@ -1,0 +1,10 @@
+{
+  "name": "@cuptrail/ui",
+  "private": true,
+  "files": [
+    "styles"
+  ],
+  "exports": {
+    "./styles/style.css": "./styles/style.css"
+  }
+}
