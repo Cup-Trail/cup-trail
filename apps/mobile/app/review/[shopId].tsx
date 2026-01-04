@@ -202,7 +202,7 @@ export default function InsertReviewScreen() {
         style={styles.textArea}
         multiline
         numberOfLines={5}
-        placeholder="Name of Drink"
+        placeholder='Name of Drink'
         value={drink}
         onChangeText={setDrink}
       />
@@ -212,7 +212,7 @@ export default function InsertReviewScreen() {
         style={styles.textArea}
         multiline
         numberOfLines={5}
-        placeholder="Name of Shop"
+        placeholder='Name of Shop'
         value={shopName}
         editable={false}
       />
@@ -220,8 +220,8 @@ export default function InsertReviewScreen() {
       <Text style={styles.label}>Rating</Text>
       <TextInput
         style={styles.textArea}
-        placeholder="0 - 5"
-        keyboardType="decimal-pad"
+        placeholder='0 - 5'
+        keyboardType='decimal-pad'
         value={rating}
         onChangeText={setRating}
       />
@@ -231,7 +231,7 @@ export default function InsertReviewScreen() {
         style={styles.textArea}
         multiline
         numberOfLines={5}
-        placeholder="Write your thoughts here..."
+        placeholder='Write your thoughts here...'
         value={review}
         onChangeText={setReview}
       />

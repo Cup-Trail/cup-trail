@@ -1,4 +1,5 @@
 import { supabase } from '@cuptrail/utils';
+
 import type { DrinkRow, Result, ShopDrinkRow } from './types/types';
 
 const DRINKS_TABLE = 'drinks';
@@ -18,7 +19,7 @@ export async function getHighlyRatedDrinks(
 ): Promise<Result<ShopDrinkRow[]>> {
   const { data, error } = await supabase
     .from(SHOP_DRINKS_TABLE)
-    .select(SHOP_DRINK_SELECT)
+    .select<string, ShopDrinkRow>(SHOP_DRINK_SELECT)
     .eq('shop_id', shopId)
     .order('avg_rating', { ascending: false })
     .limit(10);
@@ -35,7 +36,7 @@ export async function getHighlyRatedDrinks(
     };
   }
 
-  return { success: true, data: data as ShopDrinkRow[] };
+  return { success: true, data };
 }
 
 export async function getShopDrinkByName(
@@ -44,7 +45,7 @@ export async function getShopDrinkByName(
 ): Promise<Result<ShopDrinkRow>> {
   const { data, error } = await supabase
     .from(SHOP_DRINKS_TABLE)
-    .select(SHOP_DRINK_SELECT)
+    .select<string, ShopDrinkRow>(SHOP_DRINK_SELECT)
     .eq('drinks.name', drinkName)
     .eq('shops.name', shopName)
     .maybeSingle();
@@ -61,7 +62,7 @@ export async function getShopDrinkByName(
     };
   }
 
-  return { success: true, data: data as ShopDrinkRow };
+  return { success: true, data };
 }
 
 export async function getOrInsertDrink(
@@ -105,7 +106,7 @@ export async function getOrInsertShopDrink(
 ): Promise<Result<ShopDrinkRow>> {
   const { data, error } = await supabase
     .from(SHOP_DRINKS_TABLE)
-    .select(SHOP_DRINK_SELECT)
+    .select<string, ShopDrinkRow>(SHOP_DRINK_SELECT)
     .eq('shop_id', shopId)
     .eq('drink_id', drinkId)
     .maybeSingle();
@@ -115,13 +116,13 @@ export async function getOrInsertShopDrink(
   }
 
   if (data) {
-    return { success: true, data: data as ShopDrinkRow };
+    return { success: true, data };
   }
 
   const { data: inserted, error: insertError } = await supabase
     .from(SHOP_DRINKS_TABLE)
     .insert({ shop_id: shopId, drink_id: drinkId, price })
-    .select(SHOP_DRINK_SELECT)
+    .select<string, ShopDrinkRow>(SHOP_DRINK_SELECT)
     .single();
 
   if (insertError) {
@@ -132,7 +133,7 @@ export async function getOrInsertShopDrink(
     };
   }
 
-  return { success: true, data: inserted as ShopDrinkRow };
+  return { success: true, data: inserted };
 }
 
 export async function updateShopDrink(
@@ -145,7 +146,7 @@ export async function updateShopDrink(
     .from(SHOP_DRINKS_TABLE)
     .update(updates)
     .eq('id', shopDrinkId)
-    .select(SHOP_DRINK_SELECT)
+    .select<string, ShopDrinkRow>(SHOP_DRINK_SELECT)
     .single();
 
   if (error || !data) {
@@ -156,7 +157,7 @@ export async function updateShopDrink(
     };
   }
 
-  return { success: true, data: data as ShopDrinkRow };
+  return { success: true, data };
 }
 export function pickCoverPhotoFromMedia(mediaUrls: string[]): string | null {
   if (!mediaUrls || mediaUrls.length === 0) return null;

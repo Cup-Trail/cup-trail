@@ -1,3 +1,4 @@
+import { type User } from '@cuptrail/core';
 import { supabase } from '@cuptrail/utils';
 import {
   AppBar,
@@ -9,13 +10,11 @@ import {
   Typography,
 } from '@mui/material';
 import { useEffect, useState } from 'react';
-import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { Link, Outlet } from 'react-router-dom';
 
 export default function AppNavigation() {
-  const location = useLocation();
-  const navigate = useNavigate();
   const [signedIn, setSignedIn] = useState<boolean>(false);
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
   useEffect(() => {
     let mounted = true;
     // fetch curr session
@@ -23,7 +22,7 @@ export default function AppNavigation() {
       if (!mounted) return;
       const session = data.session;
       setSignedIn(Boolean(session));
-      setUser(session?.user || null);
+      setUser(session?.user ?? null);
     });
     // updates when auth state changes
     const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
@@ -50,23 +49,23 @@ export default function AppNavigation() {
     return (
       <Box sx={{ minHeight: '100vh', bgcolor: '#fafafa' }}>
         <AppBar
-          position="static"
-          color="inherit"
+          position='static'
+          color='inherit'
           elevation={0}
           sx={{ borderBottom: '1px solid #eee' }}
         >
           <Toolbar sx={{ display: 'flex', justifyContent: 'space-between' }}>
             <Typography
-              variant="h6"
+              variant='h6'
               component={Link}
-              to="/"
+              to='/'
               sx={{ textDecoration: 'none', color: 'inherit', fontWeight: 700 }}
             >
               Cup Trail
             </Typography>
             <Avatar
               component={Link}
-              to="/profile"
+              to='/profile'
               sx={{
                 cursor: 'pointer',
                 bgcolor: 'primary.main',
@@ -82,7 +81,7 @@ export default function AppNavigation() {
             </Avatar>
           </Toolbar>
         </AppBar>
-        <Container maxWidth="md" sx={{ py: 4 }}>
+        <Container maxWidth='md' sx={{ py: 4 }}>
           <Outlet />
         </Container>
       </Box>
@@ -93,32 +92,32 @@ export default function AppNavigation() {
   return (
     <Box sx={{ minHeight: '100vh', bgcolor: '#fafafa' }}>
       <AppBar
-        position="static"
-        color="inherit"
+        position='static'
+        color='inherit'
         elevation={0}
         sx={{ borderBottom: '1px solid #eee' }}
       >
         <Toolbar sx={{ display: 'flex', justifyContent: 'space-between' }}>
           <Typography
-            variant="h6"
+            variant='h6'
             component={Link}
-            to="/"
+            to='/'
             sx={{ textDecoration: 'none', color: 'inherit', fontWeight: 700 }}
           >
             Cup Trail
           </Typography>
           <Button
             component={Link}
-            to="/auth"
+            to='/auth'
             state={{ reset: true }}
-            variant="contained"
-            size="small"
+            variant='contained'
+            size='small'
           >
             Login
           </Button>
         </Toolbar>
       </AppBar>
-      <Container maxWidth="md" sx={{ py: 4 }}>
+      <Container maxWidth='md' sx={{ py: 4 }}>
         <Outlet />
       </Container>
     </Box>
