@@ -1,3 +1,4 @@
+import type { User } from '@cuptrail/core';
 import {
   calculateAndUpdateAvgRating,
   insertReview,
@@ -7,7 +8,6 @@ import {
   updateReview,
   updateShopDrinkCoverFromMedia,
 } from '@cuptrail/core';
-import type { User } from '@cuptrail/core';
 import {
   getUser,
   slugToLabel,
@@ -30,7 +30,7 @@ import {
 } from '@mui/material';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { useLocation, useParams, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 
 import type { SnackState } from '../types';
 
@@ -63,7 +63,6 @@ export default function InsertReviewPage() {
 
   const [suggestedCategories, setSuggestedCategories] = useState<string[]>([]);
 
-  // ⭐ NEW: Media array of Files
   const [mediaArr, setMediaArr] = useState<File[]>([]);
 
   // Remove one photo
