@@ -21,6 +21,7 @@ import {
 } from '@mui/material';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import Hero from './Hero';
 
 import { useRecentReviewsQuery } from '../../queries';
 
@@ -201,6 +202,7 @@ export default function SearchPage() {
 
   return (
     <Stack gap={2}>
+      <Hero></Hero>
       {/* Main search input: drinks / cafes */}
       <Autocomplete
         options={suggestions}
