@@ -10,7 +10,7 @@ export default function Hero({ children }: HeroProps) {
       <div className='grid grid-cols-1 md:grid-cols-2 items-center gap-12'>
         <div className='flex justify-center md:justify-start'>
           <img
-            src='/favicon-light.svg'
+            src={`${import.meta.env.BASE_URL}favicon-light.svg`}
             alt='Cup Trail'
             className='w-full max-w-sm'
           />
