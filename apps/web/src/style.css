@@ -18,3 +18,9 @@
   --text-on-primary: #fcf5e8; /* text and icons on primary buttons, chips, primary-filled states */
   --text-on-secondary: #e7eae3; /* text/icons on secondary buttons and secondary filled-chips */
 }
+html,
+body {
+  background-color: var(--surface-1);
+  margin: 0;
+  min-height: 100%;
+}

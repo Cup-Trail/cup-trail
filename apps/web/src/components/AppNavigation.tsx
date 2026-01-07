@@ -30,7 +30,7 @@ export default function AppNavigation() {
   }, []);
 
   return (
-    <div className='min-h-screen bg-[#fafafa]'>
+    <div className='min-h-screen'>
       <Header signedIn={signedIn} displayName={displayName} />
       <main className='w-full max-w-[768px] mx-auto px-4 py-8'>
         <Outlet />

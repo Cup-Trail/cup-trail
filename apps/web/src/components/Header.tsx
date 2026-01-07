@@ -19,7 +19,7 @@ export default function Header({ signedIn, displayName }: HeaderProps) {
   const initials = getInitials(displayName);
 
   return (
-    <header className='w-full bg-[var(--surface-1)] py-4'>
+    <header className='w-full py-4'>
       <div className='mx-auto w-[min(1488px,calc(100%-48px))]'>
         <div className='relative h-16 rounded-full bg-[var(--primary-default)] px-8 flex items-center justify-between'>
           {/* left */}
@@ -39,7 +39,6 @@ export default function Header({ signedIn, displayName }: HeaderProps) {
           >
             <img
               src={`${import.meta.env.BASE_URL}logos/light.png`}
-              //   alt='cup ✿ trail'
               className='h-6 w-auto'
             />
           </Link>
@@ -57,13 +56,13 @@ export default function Header({ signedIn, displayName }: HeaderProps) {
               <>
                 <Link
                   to='/auth'
-                  className='rounded-full px-4 py-1.5 text-sm text-[var(--text-on-primary)] border border-[var(--border-on-active)] hover:bg-white/10 no-underline'
+                  className='rounded-full px-4 py-1.5 text-sm bg-[var(--primary-default)] text-[var(--text-on-primary)] border border-[var(--border-on-active)] hover:bg-[var(--primary-hover)] no-underline transition-colors duration-150'
                 >
                   Log in
                 </Link>
                 <Link
                   to='/'
-                  className='rounded-full px-4 py-1.5 text-sm bg-[var(--primary-active)] text-[var(--text-on-primary)] hover:bg-[var(--primary-on-hover)] no-underline'
+                  className='rounded-full px-4 py-1.5 text-sm bg-[var(--primary-active)] text-[var(--text-on-primary)] border border-[var(--border-default)] hover:bg-[var(--primary-hover)] no-underline transition-colors duration-150'
                 >
                   Sign up
                 </Link>
