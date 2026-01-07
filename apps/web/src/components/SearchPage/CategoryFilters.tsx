@@ -21,28 +21,26 @@ const CategoryFilters = ({
   if (list.length === 0) return null;
   return (
     <div className={className}>
-      <div className="flex justify-center">
-        <div className="flex gap-2 overflow-x-auto pb-2 px-1 [-webkit-overflow-scrolling:touch]">
-          {list.map((c) => {
-            const active = c.id === selectedCategoryId;
+      <div className="flex gap-2 justify-center flex-wrap overflow-x-auto pb-2 px-1 [-webkit-overflow-scrolling:touch]">
+        {list.map((c) => {
+          const active = c.id === selectedCategoryId;
 
-            return (
-              <button
-                key={c.id}
-                type="button"
-                onClick={() => onSelectCategory(c)}
-                className={[
-                  "whitespace-nowrap rounded-full border px-4 py-2 text-sm font-medium transition",
-                  active
-                    ? "bg-primary-active text-text-on-primary border-border-on-active hover:bg-primary-hover transition-colors duration-150"
-                    : "bg-primary-default text-text-on-primary border--border-default hover:bg-primary-hover transition-colors duration-150",
-                ].join(" ")}
-              >
-                {c.label}
-              </button>
-            );
-          })}
-        </div>
+          return (
+            <button
+              key={c.id}
+              type="button"
+              onClick={() => onSelectCategory(c)}
+              className={[
+                "whitespace-nowrap rounded-full border px-4 py-2 text-sm font-medium transition",
+                active
+                  ? "bg-primary-active text-text-on-primary border-border-on-active hover:bg-primary-hover transition-colors duration-150"
+                  : "bg-primary-default text-text-on-primary border--border-default hover:bg-primary-hover transition-colors duration-150",
+              ].join(" ")}
+            >
+              {c.label}
+            </button>
+          );
+        })}
       </div>
     </div>
   );
