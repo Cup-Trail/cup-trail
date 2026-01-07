@@ -1,26 +1,26 @@
 @import 'tailwindcss';
-:root {
-  --font-sans: 'Bricolage Grotesque', system-ui, sans-serif;
 
-  --surface-1: #fcf5e8; /* primary app background */
-  --surface-2: #e7eae3; /* card, panel, modal, dropdown bg */
+@theme {
+  --color-surface-1: #fcf5e8; /* primary app background */
+  --color-surface-2: #e7eae3; /* card, panel, modal, dropdown bg */
 
-  --primary-default: #7f7d2d; /*default bg for primary buttons, main CTAs, key toggles, selected tabs */
-  --primary-hover: #666323; /* hover state */
-  --primary-active: #4f4b1a; /* pressed/active state */
-  --primary-subtle-bg: #e7eae3; /* subtle backgrounds for primary tags, selected list items, informative highlights */
+  --color-primary-default: #7f7d2d; /*default bg for primary buttons, main CTAs, key toggles, selected tabs */
+  --color-primary-hover: #666323; /* hover state */
+  --color-primary-active: #4f4b1a; /* pressed/active state */
+  --color-primary-subtle-bg: #e7eae3; /* subtle backgrounds for primary tags, selected list items, informative highlights */
 
-  --border-default: #7f7d2d; /* any border */
-  --border-on-active: #c5bba9; /* border on primary-default bg */
+  --color-border-default: #7f7d2d; /* any border */
+  --color-border-on-active: #c5bba9; /* border on primary-default bg */
 
-  --text-primary: #2e2a24; /* main body text, icons */
-  --text-secondary: #828180; /* supporting text, secondary labels, supporting icons */
-  --text-on-primary: #fcf5e8; /* text and icons on primary buttons, chips, primary-filled states */
-  --text-on-secondary: #e7eae3; /* text/icons on secondary buttons and secondary filled-chips */
+  --color-text-primary: #2e2a24; /* main body text, icons */
+  --color-text-secondary: #828180; /* supporting text, secondary labels, supporting icons */
+  --color-text-on-primary: #fcf5e8; /* text and icons on primary buttons, chips, primary-filled states */
+  --color-text-on-secondary: #e7eae3; /* text/icons on secondary buttons and secondary filled-chips */
+
+  --font-display: 'Bricolage Grotesque', system-ui, sans-serif;
 }
+
 html,
 body {
-  background-color: var(--surface-1);
-  margin: 0;
-  min-height: 100%;
+  @apply bg-surface-1 m-0 min-h-full font-display
 }

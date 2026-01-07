@@ -1,8 +1,8 @@
-import { supabase } from '@cuptrail/utils';
-import { useEffect, useState } from 'react';
-import { Outlet } from 'react-router-dom';
+import { supabase } from "@cuptrail/utils";
+import { useEffect, useState } from "react";
+import { Outlet } from "react-router-dom";
 
-import Header from './Header';
+import Header from "./Header";
 
 export default function AppNavigation() {
   const [signedIn, setSignedIn] = useState(false);
@@ -30,9 +30,9 @@ export default function AppNavigation() {
   }, []);
 
   return (
-    <div className='min-h-screen'>
+    <div className="min-h-screen">
       <Header signedIn={signedIn} displayName={displayName} />
-      <main className='w-full max-w-[768px] mx-auto px-4 py-8'>
+      <main className="w-full max-w-3xl mx-auto px-4 py-8">
         <Outlet />
       </main>
     </div>
