@@ -1,10 +1,12 @@
 import type {
+  CategoryRow,
   Geocode,
   LocationState,
   Prediction,
+  ShopRow,
   UserCoordinates,
 } from '@cuptrail/core';
-import { getOrInsertShop } from '@cuptrail/core';
+import { getOrInsertShop, getShopsByCategorySlug } from '@cuptrail/core';
 import {
   getAutocomplete,
   getCityCoords,
@@ -17,15 +19,13 @@ import {
   CircularProgress,
   Stack,
   TextField,
-  Typography,
 } from '@mui/material';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Hero from './Hero';
 
 import { useRecentReviewsQuery } from '../../queries';
-
 import CategoryFilters from './CategoryFilters';
+import Hero from './Hero';
 import ReviewItem from './ReviewItem';
 const CURRENT_LOC_LABEL = 'Use current location';
 export default function SearchPage() {
@@ -46,6 +46,12 @@ export default function SearchPage() {
   // city mode
   // const [needsCity, setNeedsCity] = useState(false);
   const [citySuggestions, setCitySuggestions] = useState<Geocode[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<CategoryRow | null>(
+    null
+  );
+  const [categoryShops, setCategoryShops] = useState<ShopRow[]>([]);
+  const [isLoadingShops, setIsLoadingShops] = useState(false);
+  const [hasFetchedShops, setHasFetchedShops] = useState(false);
 
   const { data: reviews } = useRecentReviewsQuery();
 
@@ -194,172 +200,245 @@ export default function SearchPage() {
     }
   }
 
+  const handleSelectCategory = async (clickedCategory: CategoryRow) => {
+    // toggle off
+    if (selectedCategory?.id === clickedCategory.id) {
+      setSelectedCategory(null);
+      setCategoryShops([]);
+      setHasFetchedShops(false);
+      return;
+    }
+
+    setSelectedCategory(clickedCategory);
+    setIsLoadingShops(true);
+    setHasFetchedShops(false);
+
+    try {
+      const res = await getShopsByCategorySlug(clickedCategory.slug);
+      if (res.success) setCategoryShops(res.data);
+      else setCategoryShops([]);
+    } finally {
+      setIsLoadingShops(false);
+      setHasFetchedShops(true);
+    }
+  };
   // options for unified location box
   const locationOptions: (Geocode | string)[] = [
     CURRENT_LOC_LABEL,
     ...citySuggestions,
   ];
-
   return (
     <Stack gap={2}>
-      <Hero></Hero>
-      {/* Main search input: drinks / cafes */}
-      <Autocomplete
-        options={suggestions}
-        filterOptions={options => options.filter(o => !!o.id)}
-        freeSolo
-        inputValue={searchInput}
-        getOptionLabel={() => ''} // keep input blank, we only show text in dropdown
-        open={Boolean(searchInput.trim()) && suggestions.length > 0}
-        renderOption={(props, option) => {
-          if (typeof option === 'string') return null;
-          return (
-            <li {...props} key={option.id}>
-              <div style={{ display: 'flex', flexDirection: 'column' }}>
-                <span style={{ fontWeight: 500 }}>{option.name}</span>
-                <span style={{ fontSize: '0.85rem', color: '#666' }}>
-                  {option.address}
-                </span>
-              </div>
-            </li>
-          );
-        }}
-        onInputChange={(_, value) => {
-          setSearchInput(value);
-
-          // Clear via X button or manual backspace to empty
-          if (!value.trim()) {
-            setSuggestions([]);
-            setSearchError(false);
-            return;
-          }
-
-          // Otherwise, fetch suggestions
-          void handleAutocomplete(value);
-        }}
-        onChange={(_, s) => {
-          void handleSelectSuggestion(s);
-          setSearchInput('');
-          setSuggestions([]);
-        }}
-        renderInput={params => (
-          <TextField
-            {...params}
-            label='Search by cafe'
-            fullWidth
-            error={searchError}
-            helperText={
-              searchError ? 'Error getting results. Please try again' : ''
-            }
-            slotProps={{
-              input: {
-                ...params.InputProps,
-                startAdornment: <SearchIcon />,
-              },
+      <Hero>
+        <Stack gap={2}>
+          {/* Main search input: drinks / cafes */}
+          <Autocomplete
+            options={suggestions}
+            filterOptions={options => options.filter(o => !!o.id)}
+            freeSolo
+            inputValue={searchInput}
+            getOptionLabel={() => ''} // keep input blank, we only show text in dropdown
+            open={Boolean(searchInput.trim()) && suggestions.length > 0}
+            renderOption={(props, option) => {
+              if (typeof option === 'string') return null;
+              return (
+                <li {...props} key={option.id}>
+                  <div style={{ display: 'flex', flexDirection: 'column' }}>
+                    <span style={{ fontWeight: 500 }}>{option.name}</span>
+                    <span style={{ fontSize: '0.85rem', color: '#666' }}>
+                      {option.address}
+                    </span>
+                  </div>
+                </li>
+              );
             }}
+            onInputChange={(_, value) => {
+              setSearchInput(value);
+
+              // Clear via X button or manual backspace to empty
+              if (!value.trim()) {
+                setSuggestions([]);
+                setSearchError(false);
+                return;
+              }
+
+              // Otherwise, fetch suggestions
+              void handleAutocomplete(value);
+            }}
+            onChange={(_, s) => {
+              void handleSelectSuggestion(s);
+              setSearchInput('');
+              setSuggestions([]);
+            }}
+            renderInput={params => (
+              <TextField
+                {...params}
+                label='Search by cafe'
+                fullWidth
+                error={searchError}
+                helperText={
+                  searchError ? 'Error getting results. Please try again' : ''
+                }
+                slotProps={{
+                  input: {
+                    ...params.InputProps,
+                    startAdornment: <SearchIcon />,
+                  },
+                }}
+              />
+            )}
           />
-        )}
-      />
+          {/* Unified Location input: current location + city fallback */}
+          <Autocomplete
+            options={locationOptions}
+            freeSolo
+            filterOptions={x => x}
+            value={null} // control via inputValue only
+            inputValue={locationInput}
+            onInputChange={(_, value, reason) => {
+              if (reason === 'clear') {
+                setLocationInput('');
+                setActiveCoords(null);
+                setCitySuggestions([]);
+                setLocationError(null);
+                return;
+              }
 
-      {/* Unified Location input: current location + city fallback */}
-      <Autocomplete
-        options={locationOptions}
-        freeSolo
-        filterOptions={x => x}
-        value={null} // control via inputValue only
-        inputValue={locationInput}
-        onInputChange={(_, value, reason) => {
-          if (reason === 'clear') {
-            setLocationInput('');
-            setActiveCoords(null);
-            setCitySuggestions([]);
-            setLocationError(null);
-            return;
-          }
-
-          // typing → treat as city text
-          void handleCitySelection(value);
-        }}
-        onChange={(_, value) => {
-          if (!value) return;
-
-          if (typeof value === 'string') {
-            if (value === CURRENT_LOC_LABEL) {
-              void handleUseCurrentLocation();
-            } else {
-              // freeSolo enter: treat as city text
+              // typing → treat as city text
               void handleCitySelection(value);
-            }
-            return;
-          }
-
-          // City suggestion (Geocode)
-          void handleCitySelection(value, true);
-        }}
-        getOptionLabel={option =>
-          typeof option === 'string' ? option : option.name
-        }
-        renderOption={(props, option) => {
-          if (typeof option === 'string') {
-            return (
-              <li {...props} key={option}>
-                {option}
-              </li>
-            );
-          }
-          return (
-            <li {...props} key={option.name}>
-              <div style={{ display: 'flex', flexDirection: 'column' }}>
-                <span style={{ fontWeight: 500 }}>{option.name}</span>
-                {option.address && (
-                  <span style={{ fontSize: '0.85rem', color: '#666' }}>
-                    {option.address}
-                  </span>
-                )}
-              </div>
-            </li>
-          );
-        }}
-        renderInput={params => (
-          <TextField
-            {...params}
-            label='Location'
-            placeholder={'Use current location or type a city'}
-            fullWidth
-            error={Boolean(locationError) && !activeCoords}
-            helperText={activeCoords ? '' : locationError || ''}
-            slotProps={{
-              input: {
-                ...params.InputProps,
-                startAdornment: <LocationOnOutlinedIcon />,
-                endAdornment: (
-                  <>
-                    {isLocLoading && (
-                      <CircularProgress size={18} sx={{ mr: 1 }} />
-                    )}
-                    {params.InputProps.endAdornment}
-                  </>
-                ),
-              },
             }}
+            onChange={(_, value) => {
+              if (!value) return;
+
+              if (typeof value === 'string') {
+                if (value === CURRENT_LOC_LABEL) {
+                  void handleUseCurrentLocation();
+                } else {
+                  // freeSolo enter: treat as city text
+                  void handleCitySelection(value);
+                }
+                return;
+              }
+
+              // City suggestion (Geocode)
+              void handleCitySelection(value, true);
+            }}
+            getOptionLabel={option =>
+              typeof option === 'string' ? option : option.name
+            }
+            renderOption={(props, option) => {
+              if (typeof option === 'string') {
+                return (
+                  <li {...props} key={option}>
+                    {option}
+                  </li>
+                );
+              }
+              return (
+                <li {...props} key={option.name}>
+                  <div style={{ display: 'flex', flexDirection: 'column' }}>
+                    <span style={{ fontWeight: 500 }}>{option.name}</span>
+                    {option.address && (
+                      <span style={{ fontSize: '0.85rem', color: '#666' }}>
+                        {option.address}
+                      </span>
+                    )}
+                  </div>
+                </li>
+              );
+            }}
+            renderInput={params => (
+              <TextField
+                {...params}
+                label='Location'
+                placeholder={'Use current location or type a city'}
+                fullWidth
+                error={Boolean(locationError) && !activeCoords}
+                helperText={activeCoords ? '' : locationError || ''}
+                slotProps={{
+                  input: {
+                    ...params.InputProps,
+                    startAdornment: <LocationOnOutlinedIcon />,
+                    endAdornment: (
+                      <>
+                        {isLocLoading && (
+                          <CircularProgress size={18} sx={{ mr: 1 }} />
+                        )}
+                        {params.InputProps.endAdornment}
+                      </>
+                    ),
+                  },
+                }}
+              />
+            )}
           />
-        )}
-      />
-
-      <CategoryFilters />
-
-      {reviews && (
+          <CategoryFilters
+            selectedCategoryId={selectedCategory?.id ?? null}
+            onSelectCategory={handleSelectCategory}
+            className='mt-4'
+          />
+        </Stack>
+      </Hero>
+      {selectedCategory && (
         <>
-          <Typography variant='h6'>Recently Reviewed Shops</Typography>
-          {reviews.length === 0 && <Typography>No recent reviews</Typography>}
-          {reviews.length > 0 && (
-            <Stack gap={1}>
-              {reviews.map(item => (
-                <ReviewItem key={item.id} item={item} />
-              ))}
-            </Stack>
-          )}
+          <div className='max-w-[1488px] mx-0 px-6'>
+            <h2 className='text-lg font-semibold text-[var(--text-primary)]'>
+              Shops for {selectedCategory.label}
+            </h2>
+
+            {isLoadingShops ? (
+              <p className='mt-2 text-sm text-[var(--text-secondary)]'>
+                Loading…
+              </p>
+            ) : hasFetchedShops && categoryShops.length === 0 ? (
+              <p className='mt-2 text-sm text-[var(--text-secondary)]'>
+                No shops match the criteria.
+              </p>
+            ) : (
+              <div className='mt-3 grid gap-3'>
+                {categoryShops.map(s => (
+                  <div
+                    key={String(s.id)}
+                    className='rounded-2xl border border-[var(--border-default)] bg-[var(--surface-2)] p-4'
+                  >
+                    <div className='font-semibold text-[var(--text-primary)]'>
+                      {s.name}
+                    </div>
+                    {s.address && (
+                      <div className='mt-1 text-sm text-[var(--text-secondary)]'>
+                        {s.address}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </>
+      )}
+      {reviews && (
+        <div className='max-w-[1488px] mx-0 px-6'>
+          <h2 className='text-lg font-semibold text-[var(--text-primary)]'>
+            Recently Reviewed Shops
+          </h2>
+
+          {reviews.length === 0 ? (
+            <p className='mt-2 text-sm text-[var(--text-secondary)]'>
+              No recent reviews
+            </p>
+          ) : (
+            <div className='mt-3 grid gap-3'>
+              {reviews.map(item => (
+                <div
+                  key={item.id}
+                  className='rounded-2xl border border-[var(--border-default)] bg-[var(--surface-2)] p-4'
+                >
+                  <ReviewItem item={item} />
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       )}
     </Stack>
   );
