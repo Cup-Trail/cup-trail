@@ -19,7 +19,7 @@ export default function Header({ signedIn, displayName }: HeaderProps) {
   const initials = getInitials(displayName);
 
   return (
-    <nav className="w-full pt-1.5 md:pt-4">
+    <nav className="w-full pt-1.5 md:pt-4 h-13.5 md:h-24">
       <div className="fixed z-40 w-[min(1488px,calc(100%-24px))] md:w-[min(1488px,calc(100%-48px))] -translate-y-2.5 md:-translate-y-5 mx-3 md:mx-6 h-9 md:h-13 bg-surface-1">
       </div>
       <div className="z-50 fixed w-[min(1488px,calc(100%-24px))] md:w-[min(1488px,calc(100%-48px))] mx-3 md:mx-6 h-12 md:h-16 rounded-full bg-primary-default px-2 md:px-4 flex items-center justify-between">

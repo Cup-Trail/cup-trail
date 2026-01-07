@@ -32,7 +32,7 @@ export default function AppNavigation() {
   return (
     <div className="min-h-screen">
       <Header signedIn={signedIn} displayName={displayName} />
-      <main className="w-full max-w-3xl mx-auto px-4 py-8">
+      <main className="w-full max-w-3xl mx-auto px-4 pt-2 pb-8">
         <Outlet />
       </main>
     </div>
