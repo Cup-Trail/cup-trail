@@ -111,3 +111,5 @@ This project wouldn't have been possible without the creativity, technical skill
 [Ly Nguyen] – Frontend Developer
 
 [Tracy Nguyen] – UI/UX Designer
+
+[John Adams] – Big Nerd
