@@ -3,12 +3,14 @@
 Cup Trail is a cross‑platform app for discovering and reviewing drinks at cafés. Search shops, log reviews with ratings and photos, and browse recent activity.
 
 ## Features
+
 - Discover shops and drinks via Google Places
 - Add reviews (rating, comment, photos, videos)
 - Auto-suggest drink categories and filter shops by category
 - Web and mobile apps powered by a shared core
 
 ## Tech Stack
+
 - Web: React + Vite
 - Mobile: React Native (Expo)
 - Backend: Supabase (PostgreSQL, Auth, Storage, Edge Functions)
@@ -16,6 +18,7 @@ Cup Trail is a cross‑platform app for discovering and reviewing drinks at caf�
 - Shared: TypeScript monorepo (pnpm workspaces)
 
 ## Monorepo Structure
+
 ```
 cup-trail/
 ├─ apps/
@@ -24,7 +27,7 @@ cup-trail/
 │  │  │  └─ components/
 │  │  │     ├─ App.tsx
 │  │  │     ├─ SearchPage.tsx        # Home Page
-│  │  │     ├─ StorefrontPage.tsx  
+│  │  │     ├─ StorefrontPage.tsx
 │  │  │     └─ InsertReviewPage.tsx
 │  │  ├─ vite.config.ts              # Vite config + package aliases
 │  │  └─ tsconfig.json
@@ -60,25 +63,30 @@ cup-trail/
 ├─ package.json                      # Root scripts (dev, lint, typecheck)
 └─ README.md
 ```
+
 ## 🛠️ Setup Instructions
 
 1. **Clone the repo**
+
 ```
 git clone https://github.com/Cup-Trail/cup-trail.git
 cd cup-trail
 ```
+
 2. **Install dependencies**
 
 Prerequisites:
+
 - Node 18+
 - pnpm 10+
 - Supabase project (URL + anon key)
+
 ```
 pnpm install
 ```
 
 3. **Set up environment variables**
-Create a .env file in the each respective app:
+   Create a .env file in the each respective app:
 
 apps/mobile/.env
 
@@ -86,6 +94,7 @@ apps/mobile/.env
 EXPO_PUBLIC_SUPABASE_URL=your-supabase-url
 EXPO_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
 ```
+
 apps/web/.env
 
 ```
@@ -94,22 +103,25 @@ VITE_SUPABASE_ANON_KEY=your-supabase-anon-key
 ```
 
 4. **Run the app**
+
 - mobile: `pnpm run dev:mobile`
 - web: `pnpm run dev:web`
 
 5. **Run linter**
-From repo root:
+   From repo root:
+
 - Lint all: `pnpm lint`
 - Fix lint: `pnpm lint:fix`
 - Typecheck: `pnpm typecheck`
 
 ## Meet the Team
+
 This project wouldn't have been possible without the creativity, technical skill, and thoughtful feedback of the following team members:
 
-[Katherine Wong] – Full-stack Developer 
+[Katherine Wong] – Full-stack Developer
 
 [Ly Nguyen] – Frontend Developer
 
 [Tracy Nguyen] – UI/UX Designer
 
-[John Adams] – Big Nerd
+[John Adams] – Full-stack Developer
