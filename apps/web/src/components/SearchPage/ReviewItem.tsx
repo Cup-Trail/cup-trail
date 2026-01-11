@@ -1,5 +1,4 @@
 import type { LocationState, ReviewRow } from '@cuptrail/core';
-import { Box, Typography, Link } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 
 import { renderStars } from '../../utils';
@@ -10,46 +9,45 @@ interface ReviewItemProps {
 
 const ReviewItem = ({ item }: ReviewItemProps) => {
   const navigate = useNavigate();
-  const shopName = item.shop_drinks.shops?.name;
-  const drinkName = item.shop_drinks.drinks?.name;
-  const title = drinkName ? `${drinkName} @ ${shopName}` : 'Review';
+
+  const shop = item.shop_drinks.shops;
+  const drink = item.shop_drinks.drinks;
+
+  const title = drink ? `${drink.name} @ ${shop?.name}` : 'Review';
   const reviewDate = new Date(item.created_at).toLocaleDateString();
-  const navigateToShop = () =>
-    navigate(`/shop/${item.shop_drinks.shops.id}`, {
+
+  const navigateToShop = () => {
+    if (!shop) return;
+
+    navigate(`/shop/${shop.id}`, {
       state: {
-        shopName,
-        address: item.shop_drinks.shops.address,
-        shopId: item.shop_drinks.shops.id,
+        shopName: shop.name,
+        address: shop.address,
+        shopId: shop.id,
       } as LocationState,
     });
+  };
+
   return (
-    <Box
-      key={item.id}
-      p={2}
-      bgcolor='#FFF6EB'
-      display='flex'
-      flexDirection='column'
-      gap={2}
-    >
-      <Typography fontWeight={600}>
-        <Link color='textPrimary' underline='hover' onClick={navigateToShop}>
-          {title}
-        </Link>
-      </Typography>
+    <div className='flex flex-col gap-2'>
+      {/* Title */}
+      <button
+        onClick={navigateToShop}
+        className='text-left font-semibold text-text-primary hover:underline'
+      >
+        {title}
+      </button>
 
-      <Box color='warning.main' fontSize='20px'>
-        {renderStars(item.rating)}
-      </Box>
+      {/* Rating */}
+      <div className='text-lg text-yellow-500'>{renderStars(item.rating)}</div>
 
+      {/* Comment */}
       {item.comment && (
-        <Typography fontStyle='italic' color='text.secondary'>
-          {item.comment}
-        </Typography>
+        <p className='text-sm text-text-secondary'>{item.comment}</p>
       )}
-      <Typography variant='caption' color='text.secondary'>
-        {reviewDate}
-      </Typography>
-    </Box>
+
+      <span className='text-xs text-text-secondary'>{reviewDate}</span>
+    </div>
   );
 };
 
