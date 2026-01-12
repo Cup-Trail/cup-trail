@@ -111,9 +111,6 @@ importers:
       '@cuptrail/core':
         specifier: workspace:*
         version: link:../../packages/core
-      '@cuptrail/ui':
-        specifier: workspace:*
-        version: link:../../packages/ui
       '@cuptrail/utils':
         specifier: workspace:*
         version: link:../../packages/utils
@@ -211,8 +208,6 @@ importers:
       typescript:
         specifier: ^5.8.0
         version: 5.9.2
-
-  packages/ui: {}
 
   packages/utils:
     dependencies:
