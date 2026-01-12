@@ -18,9 +18,9 @@ import SearchIcon from '@mui/icons-material/Search';
 import { Stack } from '@mui/material';
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import AutocompleteInput from '../AutocompleteInput';
 
 import { useRecentReviewsQuery } from '../../queries';
+import AutocompleteInput from '../AutocompleteInput';
 
 import CategoryFilters from './CategoryFilters';
 import Hero from './Hero';
@@ -44,7 +44,6 @@ export default function SearchPage() {
   );
   const [locationInput, setLocationInput] = useState('');
   const [locationError, setLocationError] = useState<string | null>(null);
-  const [isLocLoading, setIsLocLoading] = useState(false);
 
   // city mode
   const [citySuggestions, setCitySuggestions] = useState<Geocode[]>([]);
@@ -130,7 +129,6 @@ export default function SearchPage() {
       return;
     }
 
-    setIsLocLoading(true);
     setLocationError(null);
 
     navigator.geolocation.getCurrentPosition(
@@ -139,10 +137,8 @@ export default function SearchPage() {
         setActiveCoords({ latitude, longitude });
         setLocationInput(CURRENT_LOC_LABEL);
         setCitySuggestions([]);
-        setIsLocLoading(false);
       },
       err => {
-        setIsLocLoading(false);
         switch (err.code) {
           case err.PERMISSION_DENIED:
             setLocationError(
@@ -254,7 +250,7 @@ export default function SearchPage() {
 
               void handleAutocomplete(v);
             }}
-            items={Boolean(searchInput.trim()) ? suggestionItems : []}
+            items={searchInput.trim() ? suggestionItems : []}
             getKey={o => o.id}
             onSelect={o => {
               void handleSelectSuggestion(o);

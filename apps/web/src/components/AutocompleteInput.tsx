@@ -1,23 +1,23 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 
 type AutocompleteInputProps<T> = {
   placeholder?: string;
 
   value: string;
   onFocus?: () => void;
-
   onChange: (next: string) => void;
 
   items: T[];
   getKey: (item: T) => string;
   onSelect: (item: T) => void;
-  renderItem: (item: T) => React.ReactNode;
+  renderItem: (item: T) => ReactNode;
 
-  leftIcon?: React.ReactNode;
-  rightIcon?: React.ReactNode;
+  leftIcon?: ReactNode;
+  rightIcon?: ReactNode;
 
   error?: string | null;
   disabled?: boolean;
+
   openWhenEmpty?: boolean;
 };
 
@@ -39,9 +39,10 @@ export default function AutocompleteInput<T>({
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement | null>(null);
 
-  const showMenu = open && (openWhenEmpty || items.length > 0);
+  const hasValue = value.trim().length > 0;
 
-  // close on outside click
+  const showMenu = open && hasValue && (openWhenEmpty || items.length > 0);
+
   useEffect(() => {
     const onPointerDown = (e: PointerEvent) => {
       const el = rootRef.current;
@@ -77,6 +78,7 @@ export default function AutocompleteInput<T>({
           onChange={e => {
             const next = e.target.value;
             onChange(next);
+
             if (!next.trim()) {
               setOpen(false);
               return;
@@ -85,20 +87,21 @@ export default function AutocompleteInput<T>({
             setOpen(true);
           }}
           onFocus={() => {
-            // only open on focus if there's something to show
-            if (value.trim()) setOpen(true);
+            // only open on focus if there's text to show suggestions for
+            if (hasValue) setOpen(true);
             onFocus?.();
           }}
-          className={
-            'leading-0 w-full bg-transparent outline-none text-sm text-text-primary placeholder:text-text-secondary'
-          }
+          onKeyDown={e => {
+            if (e.key === 'Escape') setOpen(false);
+          }}
+          className='leading-0 w-full bg-transparent outline-none text-sm text-text-primary placeholder:text-text-secondary'
         />
 
-        {value && (
+        {hasValue && (
           <button
             type='button'
             aria-label='Clear'
-            onMouseDown={e => e.preventDefault()} // prevent blur -> prevents flicker
+            onMouseDown={e => e.preventDefault()}
             onClick={() => {
               onChange('');
               setOpen(false);
@@ -121,7 +124,7 @@ export default function AutocompleteInput<T>({
           >
             <ul className='max-h-72 overflow-auto py-1'>
               {items.length === 0 ? (
-                <li className='px-4 py-3 text-sm text-[var(--text-secondary)]'>
+                <li className='px-4 py-3 text-sm text-text-secondary'>
                   No results
                 </li>
               ) : (
