@@ -15,7 +15,7 @@ function getInitials(name?: string | null) {
     .slice(0, 2);
 }
 
-export default function Header({ signedIn, displayName }: HeaderProps) {
+export default function Nav({ signedIn, displayName }: HeaderProps) {
   const initials = getInitials(displayName);
 
   return (

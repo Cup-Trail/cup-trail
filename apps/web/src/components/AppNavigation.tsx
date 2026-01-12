@@ -2,7 +2,7 @@ import { supabase } from '@cuptrail/utils';
 import { useEffect, useState } from 'react';
 import { Outlet } from 'react-router-dom';
 
-import Header from './Header';
+import Nav from './Nav';
 
 export default function AppNavigation() {
   const [signedIn, setSignedIn] = useState(false);
@@ -31,7 +31,7 @@ export default function AppNavigation() {
 
   return (
     <div className='min-h-screen'>
-      <Header signedIn={signedIn} displayName={displayName} />
+      <Nav signedIn={signedIn} displayName={displayName} />
       <main className='w-full max-w-3xl mx-auto px-4 pt-2 pb-8'>
         <Outlet />
       </main>
