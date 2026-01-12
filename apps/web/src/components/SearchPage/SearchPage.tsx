@@ -13,27 +13,29 @@ import {
   getPlaceDetails,
 } from '@cuptrail/utils';
 import LocationOnOutlinedIcon from '@mui/icons-material/LocationOnOutlined';
+import MyLocationIcon from '@mui/icons-material/MyLocation';
 import SearchIcon from '@mui/icons-material/Search';
-import {
-  Autocomplete,
-  CircularProgress,
-  Stack,
-  TextField,
-} from '@mui/material';
-import { useState } from 'react';
+import { Stack } from '@mui/material';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import AutocompleteInput from '../AutocompleteInput';
 
 import { useRecentReviewsQuery } from '../../queries';
 
 import CategoryFilters from './CategoryFilters';
 import Hero from './Hero';
 import ReviewItem from './ReviewItem';
-const CURRENT_LOC_LABEL = 'Use current location';
+const CURRENT_LOC_LABEL = 'My current location';
 export default function SearchPage() {
   const navigate = useNavigate();
 
   // shop search
+
   const [suggestions, setSuggestions] = useState<Prediction[]>([]);
+  const suggestionItems = useMemo(
+    () => suggestions.filter(s => !!s.id),
+    [suggestions]
+  );
   const [searchError, setSearchError] = useState(false);
   const [searchInput, setSearchInput] = useState('');
   // unified location state
@@ -45,7 +47,6 @@ export default function SearchPage() {
   const [isLocLoading, setIsLocLoading] = useState(false);
 
   // city mode
-  // const [needsCity, setNeedsCity] = useState(false);
   const [citySuggestions, setCitySuggestions] = useState<Geocode[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<CategoryRow | null>(
     null
@@ -55,7 +56,7 @@ export default function SearchPage() {
   const [hasFetchedShops, setHasFetchedShops] = useState(false);
 
   const { data: reviews } = useRecentReviewsQuery();
-
+  // options for unified location box
   /** Shop Autocomplete */
   async function handleAutocomplete(input: string): Promise<void> {
     const trimmed = input.trim();
@@ -76,7 +77,11 @@ export default function SearchPage() {
       setSuggestions([]);
     }
   }
-
+  const handleCafeFocus = () => {
+    const q = searchInput.trim();
+    if (!q) return;
+    void handleAutocomplete(q); // this uses latest activeCoords inside
+  };
   /**
    * City input / selection
    */
@@ -223,155 +228,114 @@ export default function SearchPage() {
       setHasFetchedShops(true);
     }
   };
-  // options for unified location box
-  const locationOptions: (Geocode | string)[] = [
-    CURRENT_LOC_LABEL,
-    ...citySuggestions,
-  ];
+  useEffect(() => {
+    const q = searchInput.trim();
+    if (!q) return;
+    void handleAutocomplete(q);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeCoords]); // rerun cafe suggestions when location changes
   return (
     <Stack gap={2}>
       <Hero>
         <Stack gap={2}>
           {/* Main search input: drinks / cafes */}
-          <Autocomplete
-            options={suggestions}
-            filterOptions={options => options.filter(o => !!o.id)}
-            freeSolo
-            inputValue={searchInput}
-            getOptionLabel={() => ''} // keep input blank, we only show text in dropdown
-            open={Boolean(searchInput.trim()) && suggestions.length > 0}
-            renderOption={(props, option) => {
-              if (typeof option === 'string') return null;
-              return (
-                <li {...props} key={option.id}>
-                  <div style={{ display: 'flex', flexDirection: 'column' }}>
-                    <span style={{ fontWeight: 500 }}>{option.name}</span>
-                    <span style={{ fontSize: '0.85rem', color: '#666' }}>
-                      {option.address}
-                    </span>
-                  </div>
-                </li>
-              );
-            }}
-            onInputChange={(_, value) => {
-              setSearchInput(value);
+          <AutocompleteInput
+            placeholder='Search by cafe'
+            value={searchInput}
+            onFocus={handleCafeFocus}
+            onChange={v => {
+              setSearchInput(v);
 
-              // Clear via X button or manual backspace to empty
-              if (!value.trim()) {
+              if (!v.trim()) {
                 setSuggestions([]);
                 setSearchError(false);
                 return;
               }
 
-              // Otherwise, fetch suggestions
-              void handleAutocomplete(value);
+              void handleAutocomplete(v);
             }}
-            onChange={(_, s) => {
-              void handleSelectSuggestion(s);
+            items={Boolean(searchInput.trim()) ? suggestionItems : []}
+            getKey={o => o.id}
+            onSelect={o => {
+              void handleSelectSuggestion(o);
               setSearchInput('');
               setSuggestions([]);
             }}
-            renderInput={params => (
-              <TextField
-                {...params}
-                label='Search by cafe'
-                fullWidth
-                error={searchError}
-                helperText={
-                  searchError ? 'Error getting results. Please try again' : ''
-                }
-                slotProps={{
-                  input: {
-                    ...params.InputProps,
-                    startAdornment: <SearchIcon />,
-                  },
-                }}
-              />
+            leftIcon={
+              <span className='text-text-secondary'>
+                <SearchIcon />
+              </span>
+            }
+            error={
+              searchError ? 'Error getting results. Please try again' : null
+            }
+            renderItem={o => (
+              <div className='flex flex-col'>
+                <span className='text-sm font-semibold text-text-p'>
+                  {o.name}
+                </span>
+                <span className='text-xs text-text-secondary'>{o.address}</span>
+              </div>
             )}
           />
           {/* Unified Location input: current location + city fallback */}
-          <Autocomplete
-            options={locationOptions}
-            freeSolo
-            filterOptions={x => x}
-            value={null} // control via inputValue only
-            inputValue={locationInput}
-            onInputChange={(_, value, reason) => {
-              if (reason === 'clear') {
-                setLocationInput('');
+          <AutocompleteInput<Geocode>
+            placeholder='Search by current location or city'
+            value={locationInput}
+            onChange={next => {
+              setLocationInput(next);
+              if (!next.trim()) {
                 setActiveCoords(null);
                 setCitySuggestions([]);
                 setLocationError(null);
                 return;
               }
-
-              // typing → treat as city text
-              void handleCitySelection(value);
+              void handleCitySelection(next);
             }}
-            onChange={(_, value) => {
-              if (!value) return;
-
-              if (typeof value === 'string') {
-                if (value === CURRENT_LOC_LABEL) {
-                  void handleUseCurrentLocation();
-                } else {
-                  // freeSolo enter: treat as city text
-                  void handleCitySelection(value);
-                }
-                return;
-              }
-
-              // City suggestion (Geocode)
-              void handleCitySelection(value, true);
+            items={citySuggestions}
+            openWhenEmpty={false}
+            getKey={item => item.name}
+            onSelect={item => {
+              void handleCitySelection(item, true);
             }}
-            getOptionLabel={option =>
-              typeof option === 'string' ? option : option.name
-            }
-            renderOption={(props, option) => {
-              if (typeof option === 'string') {
-                return (
-                  <li {...props} key={option}>
-                    {option}
-                  </li>
-                );
-              }
-              return (
-                <li {...props} key={option.name}>
-                  <div style={{ display: 'flex', flexDirection: 'column' }}>
-                    <span style={{ fontWeight: 500 }}>{option.name}</span>
-                    {option.address && (
-                      <span style={{ fontSize: '0.85rem', color: '#666' }}>
-                        {option.address}
-                      </span>
-                    )}
-                  </div>
-                </li>
-              );
-            }}
-            renderInput={params => (
-              <TextField
-                {...params}
-                label='Location'
-                placeholder={'Use current location or type a city'}
-                fullWidth
-                error={Boolean(locationError) && !activeCoords}
-                helperText={activeCoords ? '' : locationError || ''}
-                slotProps={{
-                  input: {
-                    ...params.InputProps,
-                    startAdornment: <LocationOnOutlinedIcon />,
-                    endAdornment: (
-                      <>
-                        {isLocLoading && (
-                          <CircularProgress size={18} sx={{ mr: 1 }} />
-                        )}
-                        {params.InputProps.endAdornment}
-                      </>
-                    ),
-                  },
-                }}
-              />
+            renderItem={item => (
+              <div className='flex flex-col'>
+                <span className='text-sm font-medium text-text-primary'>
+                  {item.name}
+                </span>
+                {item.address && (
+                  <span className='text-xs text-text-secondary'>
+                    {item.address}
+                  </span>
+                )}
+              </div>
             )}
+            leftIcon={
+              <span className='text-text-secondary'>
+                <LocationOnOutlinedIcon />
+              </span>
+            }
+            rightIcon={
+              <button
+                type='button'
+                onClick={async () => {
+                  await handleUseCurrentLocation();
+                  setLocationInput('My current location');
+                  setCitySuggestions([]); // ensure dropdown is empty
+                }}
+                className='
+                  flex items-center justify-center
+                  rounded-full p-1
+                  text-text-secondary
+                  hover:text-text-primary
+                  transition
+                '
+                aria-label='Use current location'
+              >
+                <MyLocationIcon fontSize='small' />
+              </button>
+            }
+            error={locationError}
           />
           <CategoryFilters
             selectedCategoryId={selectedCategory?.id ?? null}
