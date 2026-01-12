@@ -19,13 +19,13 @@ export default function Header({ signedIn, displayName }: HeaderProps) {
   const initials = getInitials(displayName);
 
   return (
-    <nav className='w-full pt-1.5 md:pt-4 h-13.5 md:h-24 flex flex-col items-center'>
-      <div className='fixed z-40 w-[min(1488px,calc(100%-24px))] md:w-[min(1488px,calc(100%-48px))] -translate-y-2.5 md:-translate-y-5 mx-3 md:mx-6 h-9 md:h-13 bg-surface-1'></div>
-      <div className='z-50 fixed w-[min(1488px,calc(100%-24px))] md:w-[min(1488px,calc(100%-48px))] mx-3 md:mx-6 h-12 md:h-16 rounded-full bg-primary-default px-2 md:px-4 flex items-center justify-between'>
+    <nav className='w-full pt-4 h-24 flex flex-col items-center'>
+      <div className='fixed z-40 w-[min(1488px,calc(100%-24px))] md:w-[min(1488px,calc(100%-48px))] -translate-y-2.5 md:-translate-y-5 mx-3 md:mx-6 h-13 bg-surface-1'></div>
+      <div className='z-50 fixed w-[min(1488px,calc(100%-24px))] md:w-[min(1488px,calc(100%-48px))] mx-3 md:mx-6 h-16 rounded-full bg-primary-default px-4 flex items-center justify-between'>
         {/* center */}
         <Link
           to='/'
-          className='absolute left-4 md:left-1/2 md:-translate-x-1/2 text-surface-1 font-semibold tracking-wide text-lg no-underline'
+          className='absolute left-5 md:left-1/2 md:-translate-x-1/2 text-surface-1 font-semibold tracking-wide text-lg no-underline'
         >
           <img
             src={`${import.meta.env.BASE_URL}logos/light.png`}
