@@ -42,7 +42,6 @@ function isAllowedOrigin(origin?: string) {
       origin.endsWith('.cup-trail.pages.dev'))
   );
 }
-
 /*──────────────────────────────────────────────────────────────
   DATABASE HELPERS
 ──────────────────────────────────────────────────────────────*/
@@ -138,7 +137,7 @@ async function getAccessToken(): Promise<string> {
   const now = Math.floor(Date.now() / 1000);
 
   const cached = await loadCache('access_token');
-  // console.log('🔎 EXPIRES AT:', cached.expiresAt, 'NOW+30:', now + 30);
+  console.log('🔎 EXPIRES AT:', cached.expiresAt, 'NOW+30:', now + 30);
 
   if (cached && cached.expiresAt > now + 30) {
     console.log('♻️ Using cached ACCESS TOKEN');
@@ -169,7 +168,7 @@ async function getAccessToken(): Promise<string> {
 
   await saveCache('access_token', token, expiresAt);
 
-  console.log('🔑 New access token expires:', new Date(expiresAt * 1000));
+  console.log('🔑 Access token expires:', new Date(expiresAt * 1000));
 
   return token;
 }
