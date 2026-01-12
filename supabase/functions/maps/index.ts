@@ -35,6 +35,14 @@ const ALLOWED_ORIGINS = [
   'capacitor://localhost',
 ];
 
+function isAllowedOrigin(origin?: string) {
+  return (
+    !!origin &&
+    (ALLOWED_ORIGINS.includes(origin) ||
+      origin.endsWith('.cup-trail.pages.dev'))
+  );
+}
+
 /*──────────────────────────────────────────────────────────────
   DATABASE HELPERS
 ──────────────────────────────────────────────────────────────*/
@@ -198,7 +206,9 @@ const app = new Hono().basePath('/maps');
 app.use(
   '*',
   cors({
-    origin: ALLOWED_ORIGINS,
+    origin: origin => {
+      return isAllowedOrigin(origin) ? origin : null;
+    },
     allowMethods: ['GET', 'OPTIONS'],
     allowHeaders: ['authorization', 'content-type', 'x-client-info'],
   })
