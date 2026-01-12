@@ -198,6 +198,7 @@ module.exports = [
     rules: {
       'react-native/no-inline-styles': 'warn',
       'react-native/no-color-literals': 'warn',
+      quotes: ['error', 'single', { avoidEscape: true }],
     },
   },
 
