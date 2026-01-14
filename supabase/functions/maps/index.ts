@@ -35,6 +35,13 @@ const ALLOWED_ORIGINS = [
   'capacitor://localhost',
 ];
 
+function isAllowedOrigin(origin?: string) {
+  return (
+    !!origin &&
+    (ALLOWED_ORIGINS.includes(origin) ||
+      origin.endsWith('.cup-trail.pages.dev'))
+  );
+}
 /*──────────────────────────────────────────────────────────────
   DATABASE HELPERS
 ──────────────────────────────────────────────────────────────*/
@@ -130,7 +137,7 @@ async function getAccessToken(): Promise<string> {
   const now = Math.floor(Date.now() / 1000);
 
   const cached = await loadCache('access_token');
-  // console.log('🔎 EXPIRES AT:', cached.expiresAt, 'NOW+30:', now + 30);
+  console.log('🔎 EXPIRES AT:', cached.expiresAt, 'NOW+30:', now + 30);
 
   if (cached && cached.expiresAt > now + 30) {
     console.log('♻️ Using cached ACCESS TOKEN');
@@ -161,7 +168,7 @@ async function getAccessToken(): Promise<string> {
 
   await saveCache('access_token', token, expiresAt);
 
-  console.log('🔑 New access token expires:', new Date(expiresAt * 1000));
+  console.log('🔑 Access token expires:', new Date(expiresAt * 1000));
 
   return token;
 }
@@ -198,7 +205,9 @@ const app = new Hono().basePath('/maps');
 app.use(
   '*',
   cors({
-    origin: ALLOWED_ORIGINS,
+    origin: origin => {
+      return isAllowedOrigin(origin) ? origin : null;
+    },
     allowMethods: ['GET', 'OPTIONS'],
     allowHeaders: ['authorization', 'content-type', 'x-client-info'],
   })
