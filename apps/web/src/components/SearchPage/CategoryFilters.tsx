@@ -34,7 +34,7 @@ const CategoryFilters = ({
                 'whitespace-nowrap rounded-full border px-4 py-2 text-sm font-medium transition',
                 active
                   ? 'bg-primary-active text-text-on-primary border-border-on-active hover:bg-primary-hover transition-colors duration-150'
-                  : 'bg-primary-default text-text-on-primary border--border-default hover:bg-primary-hover transition-colors duration-150',
+                  : 'bg-primary-default text-text-on-primary border-border-default hover:bg-primary-hover transition-colors duration-150',
               ].join(' ')}
             >
               {c.label}

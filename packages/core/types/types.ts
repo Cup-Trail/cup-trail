@@ -51,7 +51,6 @@ export interface ReviewRow {
   comment: string | null;
   media_urls: string[] | null;
   created_at: string;
-
   shop_drinks: ShopDrinkRow;
 }
 export interface CategoryRow {
