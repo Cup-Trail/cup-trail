@@ -1,11 +1,9 @@
 import type { LocationState, ReviewRow, ShopDrinkRow } from '@cuptrail/core';
-import AddOutlinedIcon from '@mui/icons-material/AddOutlined';
-import { Box, Button, Stack, Tab, Tabs, Typography } from '@mui/material';
+import AddIcon from '@mui/icons-material/Add';
 import { useEffect, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
-
 import { usePopularDrinksQuery, useUserReviewsQuery } from '../../queries';
-
+import ReviewItem from '../ReviewItem';
 import DrinkCard from './DrinkCard';
 
 const STOREFRONT_TAB_VIEWS = {
@@ -17,95 +15,118 @@ const StorefrontPage = () => {
   const { shopId } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
+  const tabs = ['Popular Drinks', 'My Reviews'] as const;
+  type Tab = (typeof tabs)[number];
 
+  const [activeTab, setActiveTab] = useState<Tab>('Popular Drinks');
   useEffect(() => {
     if (!shopId) navigate('/');
   }, [shopId, navigate]);
 
   const { data: drinks } = usePopularDrinksQuery({ shopId: shopId ?? '' });
-  const { data: userDrinks } = useUserReviewsQuery({ shopId });
-
-  const [selectedView, setSelectedView] = useState<string>(
-    STOREFRONT_TAB_VIEWS.PopularDrinks
-  );
+  const { data: userReviews } = useUserReviewsQuery({ shopId });
 
   const shopName = (location.state as LocationState)?.shopName ?? 'Shop';
   const address = (location.state as LocationState)?.address ?? '';
 
   return (
-    <Stack gap={2}>
-      <Typography variant='h4' fontWeight={700}>
-        {shopName}
-      </Typography>
-      <Box display='flex' justifyContent='space-between'>
-        <Typography>{address}</Typography>
-        <Button
-          startIcon={<AddOutlinedIcon />}
-          variant='contained'
+    <div className='flex flex-col gap-5'>
+      <div className='font-semibold text-3xl text-text-primary'>{shopName}</div>
+      <div className='text-text-secondary'>{address}</div>
+      <div className='flex justify-end gap-2'>
+        <button
+          className='flex justify-center rounded-xl border px-4 py-2 bg-primary-default text-text-on-primary border-border-default hover:bg-primary-hover transition-colors duration-150'
           onClick={() =>
             navigate(`/shop/${shopId}/review`, {
               state: { shopName } as LocationState,
             })
           }
         >
-          Add a Review
-        </Button>
-      </Box>
+          <AddIcon /> Add a Review
+        </button>
+      </div>
 
-      <Box display='flex' justifyContent='center'>
-        <Tabs
-          value={selectedView}
-          onChange={(_, view) => setSelectedView(view)}
-        >
-          <Tab
-            label={STOREFRONT_TAB_VIEWS.PopularDrinks}
-            value={STOREFRONT_TAB_VIEWS.PopularDrinks}
-          />
-          <Tab
-            label={STOREFRONT_TAB_VIEWS.MyReviews}
-            value={STOREFRONT_TAB_VIEWS.MyReviews}
-          />
-        </Tabs>
-      </Box>
+      <div className='flex justify-center gap-2 border-b border-border-default'>
+        {tabs.map(tab => (
+          <button
+            key={tab}
+            onClick={() => setActiveTab(tab)}
+            className={[
+              'px-4 py-2 text-sm font-medium rounded-t-lg',
+              activeTab === tab
+                ? 'bg-primary-default text-text-on-primary border hover:bg-primary-hover border-b-transparent'
+                : 'text-text-secondary hover:text-text-primary',
+            ].join(' ')}
+          >
+            {tab}
+          </button>
+        ))}
+      </div>
 
-      {selectedView === STOREFRONT_TAB_VIEWS.PopularDrinks && (
+      {activeTab === STOREFRONT_TAB_VIEWS.PopularDrinks && (
         <>
-          {drinks && drinks.length === 0 && (
-            <Typography>No popular drinks yet...</Typography>
-          )}
+          {drinks && drinks.length === 0 && <p>No popular drinks yet...</p>}
           {drinks && drinks.length > 0 && (
-            <Stack
-              direction='row'
-              spacing={2}
-              sx={{ overflowX: 'auto', pb: 1 }}
-            >
+            <div className='grid gap-3 grid-cols-2 md:grid-cols-3 lg:grid-cols-4'>
               {drinks.map((item: ShopDrinkRow) => (
-                <DrinkCard key={item.id} item={item} />
+                <DrinkCard
+                  key={String(item.id)}
+                  drinkName={item.drinks?.name}
+                  rating={item.avg_rating}
+                  photoUrl={item.cover_photo_url ? item.cover_photo_url : ''}
+                />
               ))}
-            </Stack>
+            </div>
           )}
         </>
       )}
 
-      {selectedView === STOREFRONT_TAB_VIEWS.MyReviews && (
+      {activeTab === STOREFRONT_TAB_VIEWS.MyReviews && (
         <>
-          {userDrinks && userDrinks.length === 0 && (
-            <Typography>You haven't reviewed any drinks here yet...</Typography>
+          {userReviews && userReviews.length === 0 && (
+            <p>You haven't reviewed any drinks here yet</p>
           )}
-          {userDrinks && userDrinks.length > 0 && (
-            <Stack
-              direction='row'
-              spacing={2}
-              sx={{ overflowX: 'auto', pb: 1 }}
-            >
-              {userDrinks.map((item: ReviewRow) => (
-                <DrinkCard key={item.shop_drinks.id} item={item.shop_drinks} />
+
+          {userReviews && userReviews.length > 0 && (
+            <div className='grid gap-3 grid-cols-2 md:grid-cols-3 lg:grid-cols-4'>
+              {userReviews.map((r: ReviewRow) => (
+                <DrinkCard
+                  key={String(r.id)}
+                  drinkName={r.shop_drinks?.drinks?.name ?? 'Drink'}
+                  rating={r.rating}
+                  photoUrl={r.media_urls?.[0] ?? null}
+                />
               ))}
-            </Stack>
+            </div>
+          )}
+
+          {userReviews && (
+            <div className='mx-auto px-6 mt-8 w-full'>
+              <h2 className='text-lg font-semibold text-text-primary'>
+                My Reviews
+              </h2>
+
+              {userReviews.length === 0 ? (
+                <p className='mt-2 text-sm text-text-secondary'>
+                  No reviews yet
+                </p>
+              ) : (
+                <div className='mt-3 grid gap-3'>
+                  {userReviews.map((item: ReviewRow) => (
+                    <div
+                      key={String(item.id)}
+                      className='rounded-2xl border border-border-default bg-surface-2 p-4'
+                    >
+                      <ReviewItem item={item} />
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           )}
         </>
       )}
-    </Stack>
+    </div>
   );
 };
 
