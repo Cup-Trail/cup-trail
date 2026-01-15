@@ -1,4 +1,4 @@
-import type { LocationState, ShopDrinkRow, ReviewRow } from '@cuptrail/core';
+import type { LocationState, ReviewRow, ShopDrinkRow } from '@cuptrail/core';
 import AddOutlinedIcon from '@mui/icons-material/AddOutlined';
 import { Box, Button, Stack, Tab, Tabs, Typography } from '@mui/material';
 import { useEffect, useState } from 'react';
@@ -6,7 +6,7 @@ import { useLocation, useNavigate, useParams } from 'react-router-dom';
 
 import { usePopularDrinksQuery, useUserReviewsQuery } from '../../queries';
 
-import ReviewItem from './ReviewItem';
+import DrinkCard from './DrinkCard';
 
 const STOREFRONT_TAB_VIEWS = {
   PopularDrinks: 'Popular Drinks',
@@ -80,7 +80,7 @@ const StorefrontPage = () => {
               sx={{ overflowX: 'auto', pb: 1 }}
             >
               {drinks.map((item: ShopDrinkRow) => (
-                <ReviewItem key={item.id} item={item} />
+                <DrinkCard key={item.id} item={item} />
               ))}
             </Stack>
           )}
@@ -99,7 +99,7 @@ const StorefrontPage = () => {
               sx={{ overflowX: 'auto', pb: 1 }}
             >
               {userDrinks.map((item: ReviewRow) => (
-                <ReviewItem key={item.shop_drinks.id} item={item.shop_drinks} />
+                <DrinkCard key={item.shop_drinks.id} item={item.shop_drinks} />
               ))}
             </Stack>
           )}
