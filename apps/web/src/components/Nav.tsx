@@ -20,7 +20,6 @@ export default function Nav({ signedIn, displayName }: HeaderProps) {
 
   return (
     <nav className='w-full pt-4 h-24 flex flex-col items-center'>
-      <div className='fixed z-40 w-[min(1488px,calc(100%-24px))] md:w-[min(1488px,calc(100%-48px))] -translate-y-2.5 md:-translate-y-5 mx-3 md:mx-6 h-13 bg-surface-1'></div>
       <div className='z-50 fixed w-[min(1488px,calc(100%-24px))] md:w-[min(1488px,calc(100%-48px))] mx-3 md:mx-6 h-16 rounded-full bg-primary-default px-4 flex items-center justify-between'>
         {/* center */}
         <Link
@@ -32,14 +31,6 @@ export default function Nav({ signedIn, displayName }: HeaderProps) {
             className='h-6 w-auto'
           />
         </Link>
-        <div className='flex items-center gap-6'>
-          {/* <Link
-              to='/'
-              className='text-[var(--text-on-primary)] text-sm font-medium hover:opacity-90 no-underline'
-            >
-              About us
-            </Link> */}
-        </div>
 
         {/* right */}
         <div className='flex items-center gap-2'>
