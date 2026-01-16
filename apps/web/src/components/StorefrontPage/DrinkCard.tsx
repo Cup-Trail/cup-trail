@@ -16,7 +16,7 @@ export default function DrinkCard({
       <div className='flex flex-col items-center text-center gap-2'>
         <div className='font-semibold text-text-primary'>{drinkName}</div>
 
-        <div className='text-text-secondary'>{renderStars(rating ?? 0)}</div>
+        <div className='text-yellow-500'>{renderStars(rating ?? 0)}</div>
 
         {photoUrl ? (
           <img

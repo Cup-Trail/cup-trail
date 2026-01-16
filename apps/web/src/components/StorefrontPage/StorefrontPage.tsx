@@ -8,14 +8,14 @@ import DrinkCard from './DrinkCard';
 
 const STOREFRONT_TAB_VIEWS = {
   PopularDrinks: 'Popular Drinks',
-  MyReviews: 'My Reviews',
+  MyDrinks: 'My Drinks',
 };
 
 const StorefrontPage = () => {
   const { shopId } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
-  const tabs = ['Popular Drinks', 'My Reviews'] as const;
+  const tabs = ['Popular Drinks', 'My Drinks'] as const;
   type Tab = (typeof tabs)[number];
 
   const [activeTab, setActiveTab] = useState<Tab>('Popular Drinks');
@@ -81,9 +81,9 @@ const StorefrontPage = () => {
         </>
       )}
 
-      {activeTab === STOREFRONT_TAB_VIEWS.MyReviews && (
+      {activeTab === STOREFRONT_TAB_VIEWS.MyDrinks && (
         <>
-          {userReviews && userReviews.length === 0 && (
+          {!userReviews || userReviews.length === 0 && (
             <p>You haven't reviewed any drinks here yet</p>
           )}
 
@@ -101,7 +101,7 @@ const StorefrontPage = () => {
           )}
 
           {userReviews && (
-            <div className='mx-auto px-6 mt-8 w-full'>
+            <div className='mx-auto mt-8 w-full'>
               <h2 className='text-lg font-semibold text-text-primary'>
                 My Reviews
               </h2>
