@@ -30,6 +30,7 @@ const REVIEW_SELECT = `
   shop_drinks!inner (
     id,
     price,
+    avg_rating,
     drinks!inner (
       id,
       name
