@@ -1,13 +1,13 @@
 import type { LocationState, ReviewRow } from '@cuptrail/core';
 import { useNavigate } from 'react-router-dom';
 
-import { renderStars } from '../../utils';
+import { renderStars } from '../utils';
 
 interface ReviewItemProps {
   item: ReviewRow;
 }
 
-const ReviewItem = ({ item }: ReviewItemProps) => {
+export default function ReviewItem({ item }: ReviewItemProps) {
   const navigate = useNavigate();
 
   const shop = item.shop_drinks.shops;
@@ -30,18 +30,16 @@ const ReviewItem = ({ item }: ReviewItemProps) => {
 
   return (
     <div className='flex flex-col gap-2'>
-      {/* Title */}
       <button
         onClick={navigateToShop}
         className='text-left font-semibold text-text-primary hover:underline'
       >
         {title}
       </button>
+      <p className='text-sm text-text-secondary'>{shop.address}</p>
 
-      {/* Rating */}
       <div className='text-lg text-yellow-500'>{renderStars(item.rating)}</div>
 
-      {/* Comment */}
       {item.comment && (
         <p className='text-sm text-text-secondary'>{item.comment}</p>
       )}
@@ -49,6 +47,4 @@ const ReviewItem = ({ item }: ReviewItemProps) => {
       <span className='text-xs text-text-secondary'>{reviewDate}</span>
     </div>
   );
-};
-
-export default ReviewItem;
+}

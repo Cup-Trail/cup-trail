@@ -1,4 +1,4 @@
-import { getReviewsByUser, type User, type ReviewRow } from '@cuptrail/core';
+import { getReviewsByUser, type ReviewRow, type User } from '@cuptrail/core';
 import { supabase } from '@cuptrail/utils';
 import {
   Cancel as CancelIcon,
@@ -16,7 +16,7 @@ import {
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-import ReviewItem from './SearchPage/ReviewItem';
+import ReviewItem from './ReviewItem';
 
 export default function ProfilePage() {
   const navigate = useNavigate();
