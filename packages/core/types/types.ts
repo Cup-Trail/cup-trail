@@ -68,15 +68,6 @@ export type ShopsByCategory = {
   shop_drinks?: ShopDrinkRow;
 };
 
-// Business logic types
-export interface LocationState {
-  shopName: string;
-  shopId: string;
-  address: string;
-  latitude: number;
-  longitude: number;
-}
-
 // Subset of supabase User type
 export interface User {
   id: string;

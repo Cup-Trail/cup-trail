@@ -2,7 +2,6 @@ import type { User } from '@cuptrail/core';
 import {
   calculateAndUpdateAvgRating,
   insertReview,
-  LocationState,
   RATING_SCALE,
   setShopDrinkCategories,
   updateReview,
@@ -30,18 +29,26 @@ import {
 } from '@mui/material';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 
+import { useShopIdQuery } from '../queries';
 import type { SnackState } from '../types';
 
 export default function InsertReviewPage() {
   const { shopId } = useParams<{ shopId: string }>();
-  const location = useLocation();
-  const shopName = (location.state as LocationState)?.shopName ?? '';
   const navigate = useNavigate();
 
   const [isSaving, setIsSaving] = useState(false);
   const [user, setUser] = useState<User | null>(null);
+
+  const shopQueryResult = useShopIdQuery(shopId);
+  const { data: shop } = shopQueryResult;
+
+  useEffect(() => {
+    if (shopQueryResult.isFetched && !shopQueryResult.data) {
+      navigate('/');
+    }
+  }, [shopQueryResult, navigate]);
 
   useEffect(() => {
     getUser().then(res => setUser(res));
@@ -229,10 +236,11 @@ export default function InsertReviewPage() {
     setSuggestedCategories([]);
     setMediaArr([]);
   }
+
   return (
     <Stack gap={2}>
       <Typography variant='h5' textAlign='center' fontWeight={700}>
-        Add a Review
+        Add a Review at {shop && shop.name}
       </Typography>
 
       {/* DRINK NAME */}
@@ -264,7 +272,7 @@ export default function InsertReviewPage() {
       )}
 
       {/* SHOP NAME (locked) */}
-      <TextField label='Shop' value={shopName} fullWidth disabled />
+      <TextField label='Shop' value={shop?.name ?? ''} fullWidth disabled />
 
       {/* RATING */}
       <TextField

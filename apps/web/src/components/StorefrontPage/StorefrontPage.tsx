@@ -1,22 +1,28 @@
-import type { LocationState, ReviewRow, ShopDrinkRow } from '@cuptrail/core';
+import type { ReviewRow, ShopDrinkRow } from '@cuptrail/core';
 import AddIcon from '@mui/icons-material/Add';
 import { useEffect, useState } from 'react';
-import { useLocation, useNavigate, useParams } from 'react-router-dom';
-import { usePopularDrinksQuery, useUserReviewsQuery } from '../../queries';
+import { useNavigate, useParams } from 'react-router-dom';
+
+import {
+  usePopularDrinksQuery,
+  useShopIdQuery,
+  useUserReviewsQuery,
+} from '../../queries';
 import ReviewItem from '../ReviewItem';
+
 import DrinkCard from './DrinkCard';
 
 const STOREFRONT_TAB_VIEWS = {
   PopularDrinks: 'Popular Drinks',
   MyDrinks: 'My Drinks',
-};
+} as const;
+
+const TABS = ['Popular Drinks', 'My Drinks'] as const;
+type Tab = (typeof TABS)[number];
 
 const StorefrontPage = () => {
   const { shopId } = useParams();
   const navigate = useNavigate();
-  const location = useLocation();
-  const tabs = ['Popular Drinks', 'My Drinks'] as const;
-  type Tab = (typeof tabs)[number];
 
   const [activeTab, setActiveTab] = useState<Tab>('Popular Drinks');
   useEffect(() => {
@@ -26,28 +32,32 @@ const StorefrontPage = () => {
   const { data: drinks } = usePopularDrinksQuery({ shopId: shopId ?? '' });
   const { data: userReviews } = useUserReviewsQuery({ shopId });
 
-  const shopName = (location.state as LocationState)?.shopName ?? 'Shop';
-  const address = (location.state as LocationState)?.address ?? '';
+  const shopQueryResult = useShopIdQuery(shopId ?? null);
+  const { data: shop } = shopQueryResult;
+
+  useEffect(() => {
+    if (shopQueryResult.isFetched && !shopQueryResult.data) {
+      navigate('/');
+    }
+  }, [shopQueryResult, navigate]);
 
   return (
     <div className='flex flex-col gap-5'>
-      <div className='font-semibold text-3xl text-text-primary'>{shopName}</div>
-      <div className='text-text-secondary'>{address}</div>
+      <div className='font-semibold text-3xl text-text-primary'>
+        {shop && shop.name}
+      </div>
+      <div className='text-text-secondary'>{shop && shop.address}</div>
       <div className='flex justify-end gap-2'>
         <button
           className='flex justify-center rounded-xl border px-4 py-2 bg-primary-default text-text-on-primary border-border-default hover:bg-primary-hover transition-colors duration-150'
-          onClick={() =>
-            navigate(`/shop/${shopId}/review`, {
-              state: { shopName } as LocationState,
-            })
-          }
+          onClick={() => navigate(`/shop/${shopId}/review`)}
         >
           <AddIcon /> Add a Review
         </button>
       </div>
 
       <div className='flex justify-center gap-2 border-b border-border-default'>
-        {tabs.map(tab => (
+        {TABS.map(tab => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
@@ -83,9 +93,10 @@ const StorefrontPage = () => {
 
       {activeTab === STOREFRONT_TAB_VIEWS.MyDrinks && (
         <>
-          {!userReviews || userReviews.length === 0 && (
-            <p>You haven't reviewed any drinks here yet</p>
-          )}
+          {!userReviews ||
+            (userReviews.length === 0 && (
+              <p>You haven't reviewed any drinks here yet</p>
+            ))}
 
           {userReviews && userReviews.length > 0 && (
             <div className='grid gap-3 grid-cols-2 md:grid-cols-3 lg:grid-cols-4'>
