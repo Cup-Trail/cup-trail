@@ -22,5 +22,5 @@
 
 html,
 body {
-  @apply bg-surface-1 m-0 min-h-full font-display
+  @apply bg-surface-1 m-0 min-h-full font-display;
 }

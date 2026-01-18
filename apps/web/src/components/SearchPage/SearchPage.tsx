@@ -1,7 +1,6 @@
 import type {
   CategoryRow,
   Geocode,
-  LocationState,
   Prediction,
   ShopRow,
   UserCoordinates,
@@ -21,8 +20,8 @@ import { useNavigate } from 'react-router-dom';
 
 import { useRecentReviewsQuery } from '../../queries';
 import AutocompleteInput from '../AutocompleteInput';
-
 import ReviewItem from '../ReviewItem';
+
 import CategoryFilters from './CategoryFilters';
 import Hero from './Hero';
 const CURRENT_LOC_LABEL = 'My current location';
@@ -189,13 +188,7 @@ export default function SearchPage() {
         const shopId = result.data.id;
         if (!shopId) return;
 
-        navigate(`/shop/${encodeURIComponent(shopId)}`, {
-          state: {
-            shopName: name,
-            address: formattedAddress,
-            shopId,
-          } as LocationState,
-        });
+        navigate(`/shop/${encodeURIComponent(shopId)}`);
       }
     } catch {
       // TODO: surface UI error if needed

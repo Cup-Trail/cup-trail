@@ -1,4 +1,4 @@
-import type { LocationState, ReviewRow } from '@cuptrail/core';
+import type { ReviewRow } from '@cuptrail/core';
 import { useNavigate } from 'react-router-dom';
 
 import { renderStars } from '../utils';
@@ -19,13 +19,7 @@ export default function ReviewItem({ item }: ReviewItemProps) {
   const navigateToShop = () => {
     if (!shop) return;
 
-    navigate(`/shop/${shop.id}`, {
-      state: {
-        shopName: shop.name,
-        address: shop.address,
-        shopId: shop.id,
-      } as LocationState,
-    });
+    navigate(`/shop/${shop.id}`);
   };
 
   return (
