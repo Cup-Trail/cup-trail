@@ -4,6 +4,35 @@ import type { Result, ShopRow } from './types/types';
 
 const SHOPS_TABLE = 'shops';
 
+export async function getShopByID(shop_id: string): Promise<Result<ShopRow>> {
+  const { data: shop, error: fetchError } = await supabase
+    .from(SHOPS_TABLE)
+    .select<string, ShopRow>('*')
+    .eq('id', shop_id)
+    .maybeSingle();
+
+  if (fetchError) {
+    return {
+      success: false,
+      source: 'supabase',
+      message: fetchError.message,
+    };
+  }
+
+  if (shop) {
+    return {
+      success: true,
+      data: shop as ShopRow,
+    };
+  }
+
+  return {
+    success: false,
+    source: 'supabase',
+    message: 'shop does not exist',
+  };
+}
+
 export async function getOrInsertShop(
   name: string,
   address: string,
