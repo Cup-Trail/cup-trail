@@ -77,6 +77,8 @@ cup-trail/
 ```
 ## Backend + Data Model Design Decisions
 
+![Database schema](./db.png)
+
 1) Model “ShopDrink” as the core entity (join table)
 
 Decision: represent “a drink at a shop” as its own record (often called shop_drinks).
@@ -120,7 +122,7 @@ Enables:
 	•	consistent response format across platforms
 	•	caching tokens centrally (less rate limit pain)
 	•	CORS control for local + deployed apps
-   
+
 ## 🛠️ Setup Instructions
 
 1. **Clone the repo**
