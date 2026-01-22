@@ -3,10 +3,11 @@ Cup Trail is a cross-platform app for discovering and tracking drinks at cafés.
 It’s built around the idea that drinks — not just shops — are the true unit of discovery.
 
 Instead of treating reviews as “a shop rating,” the system models a review as “a specific drink at a specific shop,” so the app can answer:
-	•	What should I order here?
-	•	What do I personally like at this shop?
-	•	What drinks are trending at this location?
-   •  Which cafés can I go to for this specific drink?
+
+- What should I order here?
+- What do I personally like at this shop?
+- What drinks are trending at this location?
+- Which cafés can I go to for this specific drink?
 
 ## Product Pillars
 
@@ -16,14 +17,14 @@ Discovery built around real ordering behavior, not generic shop ratings.
 Cup Trail aggregates reviews at the drink + shop level so users can see what people actually order — and enjoy — at a specific café.
 
 Today
-	•	Browse cafés through the drinks people review, not just shop scores
-	•	Surface popular and well-rated drinks at a specific shop
-	•	Discover new spots based on what customers actually order and rate
+- Browse cafés through the drinks people review, not just shop scores
+- Surface popular and well-rated drinks at a specific shop
+- Discover new spots based on what customers actually order and rate
 
 Planned
-	•	Smarter discovery using drink categories and flavor types
-	•	Trend signals (e.g. what’s popular right now vs. historically)
-	•	Location-aware recommendations that factor in city and nearby preferences
+- Smarter discovery using drink categories and flavor types
+- Trend signals (e.g. what’s popular right now vs. historically)
+- Location-aware recommendations that factor in city and nearby preferences
   
 ### Log - “What do I actually like here?”
 A personal drink history, surfaced in a way that’s actually useful.
@@ -31,14 +32,14 @@ A personal drink history, surfaced in a way that’s actually useful.
 Instead of a flat list of reviews, Cup Trail treats each review as a data point that can be summarized back to the user over time.
 
 Today
-	•	Log drinks you’ve tried with ratings and photos
-	•	Build a visual record of café visits and drinks over time
-	•	See which drinks you personally liked most at a given shop, based on your past reviews
+- Log drinks you’ve tried with ratings and photos
+- Build a visual record of café visits and drinks over time
+- See which drinks you personally liked most at a given shop, based on your past reviews
 
 Planned
-	•	Richer tasting notes and structured attributes
-	•	Intelligent summaries of personal preferences (e.g. favorite drink types)
-	•	Better “what should I order again?” signals when returning to a café
+- Richer tasting notes and structured attributes
+- Intelligent summaries of personal preferences (e.g. favorite drink types)
+- Better “what should I order again?” signals when returning to a café
 
 ## Tech Stack
 
@@ -84,44 +85,44 @@ cup-trail/
 Decision: represent “a drink at a shop” as its own record (often called shop_drinks).
 Why: reviews belong to the pairing — not just the shop or drink alone.
 Enables:
-	•	“Popular drinks at this shop”
-	•	“My favorite drinks at this shop”
-	•	“Avg rating for this drink at this shop”
-	•	clean deduping (many users reviewing the same menu item at the same place)
+- “Popular drinks at this shop”
+- “My favorite drinks at this shop”
+- “Avg rating for this drink at this shop”
+- clean deduping (many users reviewing the same menu item at the same place)
 
 Mental model:
-	•	shops = places
-	•	drinks = drink definitions (matcha latte, hojicha, etc.)
-	•	shop_drinks = menu items (drink X is served at shop Y)
-	•	reviews = user feedback on a shop_drink
+- shops = places
+- drinks = drink definitions (matcha latte, hojicha, etc.)
+- shop_drinks = menu items (drink X is served at shop Y)
+- reviews = user feedback on a shop_drink
 
 2) Reviews are first-class and link to shop_drinks
 
 Decision: a review references a shop_drinks row (not just shop_id).
 Why: it keeps review data precise and makes aggregation easy.
 Enables:
-	•	reliable averages by menu item
-	•	per-user personalization on the same menu item
-	•	future features like “most reviewed drink at this shop” or “trending this week”
+- reliable averages by menu item
+- per-user personalization on the same menu item
+- future features like “most reviewed drink at this shop” or “trending this week”
 
 3) Separate “discovery metadata” from “review content”
 
 Decision: keep the stable entities (shops/drinks/menu pairing) separate from user-generated review content (rating/comment/photos).
 Why: menu items are shared across users; reviews are per-user and time-based.
 Enables:
-	•	stable lists + caching
-	•	time-based trends
-	•	moderation / privacy rules per review later without touching shop data
+- stable lists + caching
+- time-based trends
+- moderation / privacy rules per review later without touching shop data
 
 4) External map provider is isolated behind a proxy layer
 
 Decision: use an Edge Function (proxy) for Maps autocomplete/details/geocode.
 Why: keys/tokens stay server-side, and the client only talks to your API.
 Enables:
-	•	better security (no provider secrets in client)
-	•	consistent response format across platforms
-	•	caching tokens centrally (less rate limit pain)
-	•	CORS control for local + deployed apps
+- better security (no provider secrets in client)
+- consistent response format across platforms
+- caching tokens centrally (less rate limit pain)
+- CORS control for local + deployed apps
 
 ## 🛠️ Setup Instructions
 
