@@ -1,68 +1,128 @@
 # Cup Trail
+Cup Trail is a cross-platform app for discovering and tracking drinks at cafés.
+It’s built around the idea that drinks — not just shops — are the true unit of discovery.
 
-Cup Trail is a cross‑platform app for discovering and reviewing drinks at cafés. Search shops, log reviews with ratings and photos, and browse recent activity.
+Instead of treating reviews as “a shop rating,” the system models a review as “a specific drink at a specific shop,” so the app can answer:
 
-## Features
+- What should I order here?
+- What do I personally like at this shop?
+- What drinks are trending at this location?
+- Which cafés can I go to for this specific drink?
 
-- Discover shops and drinks via Google Places
-- Add reviews (rating, comment, photos, videos)
-- Auto-suggest drink categories and filter shops by category
-- Web and mobile apps powered by a shared core
+## Product Pillars
+
+### Discover - “What should I try here?”
+Discovery built around real ordering behavior, not generic shop ratings.
+
+Cup Trail aggregates reviews at the drink + shop level so users can see what people actually order — and enjoy — at a specific café.
+
+Today
+- Browse cafés through the drinks people review, not just shop scores
+- Surface popular and well-rated drinks at a specific shop
+- Discover new spots based on what customers actually order and rate
+
+Planned
+- Smarter discovery using drink categories and flavor types
+- Trend signals (e.g. what’s popular right now vs. historically)
+- Location-aware recommendations that factor in city and nearby preferences
+  
+### Log - “What do I actually like here?”
+A personal drink history, surfaced in a way that’s actually useful.
+
+Instead of a flat list of reviews, Cup Trail treats each review as a data point that can be summarized back to the user over time.
+
+Today
+- Log drinks you’ve tried with ratings and photos
+- Build a visual record of café visits and drinks over time
+- See which drinks you personally liked most at a given shop, based on your past reviews
+
+Planned
+- Richer tasting notes and structured attributes
+- Intelligent summaries of personal preferences (e.g. favorite drink types)
+- Better “what should I order again?” signals when returning to a café
 
 ## Tech Stack
 
-- Web: React + Vite
-- Mobile: React Native (Expo)
+- Web (mobile-friendly): React + Vite
+- Mobile (temporarily paused): React Native (Expo) 
 - Backend: Supabase (PostgreSQL, Auth, Storage, Edge Functions)
-- APIs: Google Maps API
+- APIs: Apple Maps Server API
 - Shared: TypeScript monorepo (pnpm workspaces)
 
-## Monorepo Structure
+## Project Structure
 
 ```
 cup-trail/
 ├─ apps/
-│  ├─ web/                           # Vite (React) web app
+│  ├─ web/                           # React + Vite web app (mobile-friendly)
 │  │  ├─ src/
-│  │  │  └─ components/
-│  │  │     ├─ App.tsx
-│  │  │     ├─ SearchPage.tsx        # Home Page
-│  │  │     ├─ StorefrontPage.tsx
-│  │  │     └─ InsertReviewPage.tsx
-│  │  ├─ vite.config.ts              # Vite config + package aliases
+│  │  │  ├─ components/              # web-only UI components (Tailwind, etc.)
+│  │  │  ├─ queries/                 # cached queries
+│  │  │  └─ App.tsx                  # router entry / layout
+│  │  ├─ public/                     # favicons, static assets
+│  │  ├─ vite.config.ts
 │  │  └─ tsconfig.json
-│  └─ mobile/                        # Expo (React Native) app
-│     ├─ app/
-│     │  ├─ _layout.tsx
-│     │  ├─ index.tsx
-│     │  ├─ storefront/[shopId].tsx
-│     │  └─ review/[shopId].tsx
-│     ├─ components/MediaPreview.tsx # Custom React Component
-│     ├─ storage/uploadMedia.ts      # Supabase storage helpers
-│     ├─ constants/index.ts
-│     ├─ app.json
-│     └─ metro.config.js
+│  └─ mobile/                        # Expo (React Native) app (paused)
+│     ├─ app/                        # expo-router routes
+│     ├─ components/                 # mobile-only UI components
+│     └─ …
 ├─ packages/
-│  ├─ core/                          # Business/data layer (shared)
-│  │  ├─ types.ts                    # Shared types (Result, rows, etc.)
-│  │  ├─ constants.ts                # Shared constants (RATING_SCALE, endpoints)
-│  │  ├─ drinks.ts                   # Drinks + shop_drinks queries/mutations
-│  │  ├─ reviews.ts                  # Reviews queries/mutations
-│  │  ├─ shops.ts                    # Shop lookup/insert
-│  │  ├─ categories.ts               # Category set/get and shop filtering
-│  │  └─ index.ts                    # Public exports
-│  └─ utils/                         # Cross-platform utilities
-│     ├─ env.ts                      # Platform-aware env (web/mobile)
-│     ├─ supabaseClient.ts           # Shared Supabase client
-│     ├─ maps.ts                     # Maps (autocomplete/details via Edge Function)
-│     ├─ categorizeDrinks.ts         # Keyword → category suggestions
-│     └─ index.ts                    # Public exports
-├─ tsconfig.base.json                # TS base config (paths for @cuptrail/*)
-├─ eslint.config.js                  # Monorepo ESLint config
-├─ pnpm-workspace.yaml               # Workspace packages
-├─ package.json                      # Root scripts (dev, lint, typecheck)
-└─ README.md
+│  ├─ core/                          # Shared business/data layer (queries + domain logic)
+│  └─ utils/                         # Shared utilities (supabase client, maps helpers, env)
+├─ supabase/
+│  └─ functions/                     # Edge Functions (Apple Maps proxy, etc.)
+├─ pnpm-workspace.yaml
+├─ tsconfig.base.json
+├─ eslint.config.js
+└─ package.json
 ```
+## Backend + Data Model Design Decisions
+
+![Database schema](./db.png)
+
+1) Model “ShopDrink” as the core entity (join table)
+
+Decision: represent “a drink at a shop” as its own record (often called shop_drinks).
+Why: reviews belong to the pairing — not just the shop or drink alone.
+Enables:
+- “Popular drinks at this shop”
+- “My favorite drinks at this shop”
+- “Avg rating for this drink at this shop”
+- clean deduping (many users reviewing the same menu item at the same place)
+
+Mental model:
+- shops = places
+- drinks = drink definitions (matcha latte, hojicha, etc.)
+- shop_drinks = menu items (drink X is served at shop Y)
+- reviews = user feedback on a shop_drink
+
+2) Reviews are first-class and link to shop_drinks
+
+Decision: a review references a shop_drinks row (not just shop_id).
+Why: it keeps review data precise and makes aggregation easy.
+Enables:
+- reliable averages by menu item
+- per-user personalization on the same menu item
+- future features like “most reviewed drink at this shop” or “trending this week”
+
+3) Separate “discovery metadata” from “review content”
+
+Decision: keep the stable entities (shops/drinks/menu pairing) separate from user-generated review content (rating/comment/photos).
+Why: menu items are shared across users; reviews are per-user and time-based.
+Enables:
+- stable lists + caching
+- time-based trends
+- moderation / privacy rules per review later without touching shop data
+
+4) External map provider is isolated behind a proxy layer
+
+Decision: use an Edge Function (proxy) for Maps autocomplete/details/geocode.
+Why: keys/tokens stay server-side, and the client only talks to your API.
+Enables:
+- better security (no provider secrets in client)
+- consistent response format across platforms
+- caching tokens centrally (less rate limit pain)
+- CORS control for local + deployed apps
 
 ## 🛠️ Setup Instructions
 
@@ -120,8 +180,8 @@ This project wouldn't have been possible without the creativity, technical skill
 
 [Katherine Wong] – Full-stack Developer
 
-[Ly Nguyen] – Frontend Developer
-
-[Tracy Nguyen] – UI/UX Designer
-
 [John Adams] – Full-stack Developer
+
+[Ly Nguyen] – Frontend Developer, Advisor
+
+[Tracy Nguyen] – UI/UX Designer, Advisor
