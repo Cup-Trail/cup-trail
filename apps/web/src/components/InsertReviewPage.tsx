@@ -7,11 +7,7 @@ import {
   updateReview,
   updateShopDrinkCoverFromMedia,
 } from '@cuptrail/core';
-import {
-  getUser,
-  slugToLabel,
-  suggestCategoriesByKeyword,
-} from '@cuptrail/utils';
+import { getUser, slugToLabel } from '@cuptrail/utils';
 import { uploadReviewMedia } from '@cuptrail/utils/storage'; // ⭐ make sure the path matches your setup
 import DeleteIcon from '@mui/icons-material/Delete';
 import PhotoCameraIcon from '@mui/icons-material/PhotoCamera';
@@ -24,8 +20,6 @@ import {
   Paper,
   Snackbar,
   Stack,
-  TextField,
-  Typography,
 } from '@mui/material';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -43,6 +37,20 @@ export default function InsertReviewPage() {
 
   const shopQueryResult = useShopIdQuery(shopId);
   const { data: shop } = shopQueryResult;
+
+  const [rating, setRating] = useState<number>(1);
+  const [previewRating, setPreviewRating] = useState(1);
+  const [isPreview, setIsPreview] = useState(false);
+
+  const stars: boolean[] = isPreview
+    ? [
+        previewRating > 0,
+        previewRating > 1,
+        previewRating > 2,
+        previewRating > 3,
+        previewRating > 4,
+      ]
+    : [rating > 0, rating > 1, rating > 2, rating > 3, rating > 4];
 
   useEffect(() => {
     if (shopQueryResult.isFetched && !shopQueryResult.data) {
@@ -238,21 +246,24 @@ export default function InsertReviewPage() {
   }
 
   return (
-    <Stack gap={2}>
-      <Typography variant='h5' textAlign='center' fontWeight={700}>
-        Add a Review at {shop && shop.name}
-      </Typography>
+    <div className='flex flex-col gap-6'>
+      <div>
+        <h3 className='text-center font-bold'>
+          Add a Review at {shop && shop.name}
+        </h3>
+        <p className='text-text-secondary text-center'>{shop?.address}</p>
+      </div>
 
       {/* DRINK NAME */}
-      <TextField
-        {...register('drinkName')}
-        label='Drink Name (required)'
-        onBlur={() => {
-          const inputValue = getValues('drinkName').trim();
-          setSuggestedCategories(suggestCategoriesByKeyword(inputValue));
-        }}
-        fullWidth
-      />
+      <div className='flex flex-col gap-2 items-start'>
+        <label htmlFor='drinkName'>Drink Name (required)</label>
+        <input
+          type='text'
+          className='py-2 px-3 bg-surface-2 border-border-default border rounded-lg w-full sm:w-72'
+          id='drinkName'
+          {...register('drinkName')}
+        />
+      </div>
 
       {/* SUGGESTED CATEGORIES */}
       {suggestedCategories.length > 0 && (
@@ -271,28 +282,93 @@ export default function InsertReviewPage() {
         </Stack>
       )}
 
-      {/* SHOP NAME (locked) */}
-      <TextField label='Shop' value={shop?.name ?? ''} fullWidth disabled />
+      {/* SHOP NAME (locked and hidden) */}
+      <input type='hidden' value={shop?.name ?? ''} readOnly />
 
       {/* RATING */}
-      <TextField
+      <input
         {...register('rating')}
-        type='number'
-        label={`Rating (${RATING_SCALE.MIN} - ${RATING_SCALE.MAX})`}
-        slotProps={{
-          htmlInput: { min: RATING_SCALE.MIN, max: RATING_SCALE.MAX },
-        }}
-        fullWidth
+        type='hidden'
+        max='5'
+        min='0'
+        readOnly
+        value={rating}
       />
 
+      <div
+        className='relative mx-auto sm:mx-0 text-6xl sm:text-4xl select-none group text-stroke cursor-pointer'
+        onMouseEnter={() => setIsPreview(true)}
+        onTouchStart={() => setIsPreview(true)}
+        onMouseLeave={() => setIsPreview(false)}
+        onTouchEnd={() => {
+          setIsPreview(false);
+          setRating(previewRating);
+        }}
+        onMouseUp={() => setIsPreview(false)}
+        onTouchMove={e => {
+          const touch = e.touches[0];
+          const element = document.elementFromPoint(
+            touch.clientX,
+            touch.clientY
+          );
+          const id = element?.id;
+          if (id && id.startsWith('star-handle')) {
+            const stars = parseInt(id[id.length - 1]);
+            if (previewRating != stars) {
+              setPreviewRating(stars);
+            }
+          }
+        }}
+      >
+        {!isPreview &&
+          stars.map((star, i) =>
+            star ? (
+              <span key={i} className='text-amber-300'>
+                ★
+              </span>
+            ) : (
+              <span key={i} className='text-transparent'>
+                ★
+              </span>
+            )
+          )}
+        {isPreview &&
+          stars.map((star, i) =>
+            star ? (
+              <span key={i} className='text-amber-200'>
+                ★
+              </span>
+            ) : (
+              <span key={i} className='text-transparent'>
+                ★
+              </span>
+            )
+          )}
+        <div className='absolute top-0'>
+          {stars.map((_, i) => (
+            <span
+              key={i}
+              id={`star-handle-${i + 1}`}
+              className='h-lh z-10 opacity-0'
+              onMouseUp={() => setRating(i + 1)}
+              onTouchEnd={() => setRating(i + 1)}
+              onMouseOver={() => setPreviewRating(i + 1)}
+            >
+              ☆
+            </span>
+          ))}
+        </div>
+      </div>
+
       {/* COMMENTS */}
-      <TextField
-        {...register('comments')}
-        label='Comments'
-        fullWidth
-        multiline
-        minRows={4}
-      />
+      <div className='flex flex-col gap-2 items-start'>
+        <label htmlFor='comments'>Comments</label>
+        <textarea
+          className='py-2 px-3 bg-surface-2 border-border-default border rounded-lg max-w-full w-full sm:w-148 min-h-[calc(4lh+1rem+2px)]'
+          id='comments'
+          {...register('comments')}
+        />
+      </div>
 
       {/* MEDIA UPLOAD BUTTON */}
       <Button
@@ -377,6 +453,6 @@ export default function InsertReviewPage() {
           {snack.message}
         </Alert>
       </Snackbar>
-    </Stack>
+    </div>
   );
 }
