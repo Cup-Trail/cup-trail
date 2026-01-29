@@ -12,12 +12,12 @@ export default function Hero({ children }: HeroProps) {
           <img
             src={`${import.meta.env.BASE_URL}favicon-light.svg`}
             alt='Cup Trail'
-            className='w-full max-w-sm'
+            className='w-full max-w-sm mx-auto'
           />
         </div>
 
         <div>
-          <h1 className='font-brand text-center text-4xl tracking-tight text-text-primary'>
+          <h1 className='font-brand text-center tracking-tight'>
             A space to discover and track your favorite drinks.
           </h1>
           <div className='mt-6'>{children}</div>
