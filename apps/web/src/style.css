@@ -18,6 +18,9 @@
   --color-text-on-secondary: #e7eae3; /* text/icons on secondary buttons and secondary filled-chips */
 
   --font-display: 'Bricolage Grotesque', system-ui, sans-serif;
+
+  --breakpoint-xs: 30rem;
+
 }
 
 @layer base {
