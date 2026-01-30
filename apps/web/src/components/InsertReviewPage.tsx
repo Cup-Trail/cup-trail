@@ -7,32 +7,27 @@ import {
   updateReview,
   updateShopDrinkCoverFromMedia,
 } from '@cuptrail/core';
-import {
-  getUser,
-  slugToLabel,
-  suggestCategoriesByKeyword,
-} from '@cuptrail/utils';
+import { getUser, slugToLabel } from '@cuptrail/utils';
 import { uploadReviewMedia } from '@cuptrail/utils/storage'; // ⭐ make sure the path matches your setup
 import DeleteIcon from '@mui/icons-material/Delete';
-import PhotoCameraIcon from '@mui/icons-material/PhotoCamera';
 import {
   Alert,
   Box,
-  Button,
   Chip,
   IconButton,
   Paper,
   Snackbar,
   Stack,
-  TextField,
-  Typography,
 } from '@mui/material';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import { useShopIdQuery } from '../queries';
 import type { SnackState } from '../types';
+
+const createStarArray = (rating: number) =>
+  Array.from({ length: 5 }, (_, i) => rating > i);
 
 export default function InsertReviewPage() {
   const { shopId } = useParams<{ shopId: string }>();
@@ -43,6 +38,13 @@ export default function InsertReviewPage() {
 
   const shopQueryResult = useShopIdQuery(shopId);
   const { data: shop } = shopQueryResult;
+
+  // Rating-related things
+  const [rating, setRating] = useState<number>(1);
+  const [previewRating, setPreviewRating] = useState(1);
+  const [isPreview, setIsPreview] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const stars: boolean[] = createStarArray(isPreview ? previewRating : rating);
 
   useEffect(() => {
     if (shopQueryResult.isFetched && !shopQueryResult.data) {
@@ -85,8 +87,7 @@ export default function InsertReviewPage() {
   };
 
   async function handleSubmitReview() {
-    const { rating, drinkName, comments } = getValues();
-    const parsed = parseFloat(rating);
+    const { drinkName, comments } = getValues();
     setIsSaving(true);
 
     // ------- VALIDATION -------
@@ -100,11 +101,7 @@ export default function InsertReviewPage() {
       return;
     }
 
-    if (
-      Number.isNaN(parsed) ||
-      parsed < RATING_SCALE.MIN ||
-      parsed > RATING_SCALE.MAX
-    ) {
+    if (rating < RATING_SCALE.MIN || rating > RATING_SCALE.MAX) {
       setSnack({
         open: true,
         message: `Rating must be between ${RATING_SCALE.MIN} and ${RATING_SCALE.MAX}.`,
@@ -132,7 +129,7 @@ export default function InsertReviewPage() {
     const reviewResult = await insertReview(
       shopId,
       drinkName.trim(),
-      parsed,
+      rating,
       comments.trim(),
       null,
       user ? user.id : null
@@ -238,21 +235,24 @@ export default function InsertReviewPage() {
   }
 
   return (
-    <Stack gap={2}>
-      <Typography variant='h5' textAlign='center' fontWeight={700}>
-        Add a Review at {shop && shop.name}
-      </Typography>
+    <div className='flex flex-col gap-6 max-w-2xl mx-auto'>
+      <div>
+        <h3 className='text-center font-bold'>
+          Add a Review at {shop && shop.name}
+        </h3>
+        <p className='text-text-secondary text-center'>{shop?.address}</p>
+      </div>
 
       {/* DRINK NAME */}
-      <TextField
-        {...register('drinkName')}
-        label='Drink Name (required)'
-        onBlur={() => {
-          const inputValue = getValues('drinkName').trim();
-          setSuggestedCategories(suggestCategoriesByKeyword(inputValue));
-        }}
-        fullWidth
-      />
+      <div className='flex flex-col gap-2 items-start'>
+        <label htmlFor='drinkName'>Drink Name (required)</label>
+        <input
+          type='text'
+          className='py-2 px-3 bg-surface-2 border-border-default border rounded-lg w-full xs:w-72'
+          id='drinkName'
+          {...register('drinkName')}
+        />
+      </div>
 
       {/* SUGGESTED CATEGORIES */}
       {suggestedCategories.length > 0 && (
@@ -271,45 +271,94 @@ export default function InsertReviewPage() {
         </Stack>
       )}
 
-      {/* SHOP NAME (locked) */}
-      <TextField label='Shop' value={shop?.name ?? ''} fullWidth disabled />
+      {/* SHOP NAME (locked and hidden) */}
+      <input type='hidden' value={shop?.name ?? ''} readOnly />
 
       {/* RATING */}
-      <TextField
-        {...register('rating')}
-        type='number'
-        label={`Rating (${RATING_SCALE.MIN} - ${RATING_SCALE.MAX})`}
-        slotProps={{
-          htmlInput: { min: RATING_SCALE.MIN, max: RATING_SCALE.MAX },
-        }}
-        fullWidth
-      />
+      <input {...register('rating')} type='hidden' readOnly value={rating} />
+
+      <div className='flex flex-col gap-2 items-start'>
+        <label>Rating {(isPreview ? previewRating : rating).toFixed(1)}</label>
+
+        <div
+          className='relative mx-auto xs:ml-0 text-6xl xs:text-4xl select-none group text-stroke cursor-pointer'
+          onMouseEnter={() => setIsPreview(true)}
+          onTouchStart={() => setIsPreview(true)}
+          onMouseLeave={() => setIsPreview(false)}
+          onTouchEnd={() => {
+            setIsPreview(false);
+            setRating(previewRating);
+          }}
+          onMouseUp={() => setIsPreview(false)}
+          onTouchMove={e => {
+            const touch = e.touches[0];
+            const element = document.elementFromPoint(
+              touch.clientX,
+              touch.clientY
+            );
+            const id = element?.id;
+            if (id && id.startsWith('star-handle')) {
+              const stars = parseInt(id[id.length - 1]);
+              if (previewRating != stars) {
+                setPreviewRating(stars);
+              }
+            }
+          }}
+        >
+          {stars.map((star, i) => (
+            <span
+              key={i}
+              className={
+                star
+                  ? isPreview
+                    ? 'text-amber-200'
+                    : 'text-amber-300'
+                  : 'text-transparent'
+              }
+            >
+              ★
+            </span>
+          ))}
+          <div className='absolute top-0 w-full flex flex-row'>
+            {stars.map((_, i) => (
+              <div
+                key={i}
+                id={`star-handle-${i + 1}`}
+                className='h-lh z-10 opacity-0 w-1/5'
+                onMouseUp={() => setRating(i + 1)}
+                onTouchEnd={() => setRating(i + 1)}
+                onMouseOver={() => setPreviewRating(i + 1)}
+              />
+            ))}
+          </div>
+        </div>
+      </div>
 
       {/* COMMENTS */}
-      <TextField
-        {...register('comments')}
-        label='Comments'
-        fullWidth
-        multiline
-        minRows={4}
-      />
+      <div className='flex flex-col gap-2 items-start'>
+        <label htmlFor='comments'>Comments</label>
+        <textarea
+          className='py-2 px-3 bg-surface-2 border-border-default border rounded-lg max-w-full w-full xs:w-148 min-h-[calc(4lh+1rem+2px)]'
+          id='comments'
+          {...register('comments')}
+        />
+      </div>
 
       {/* MEDIA UPLOAD BUTTON */}
-      <Button
-        variant='outlined'
-        startIcon={<PhotoCameraIcon />}
-        component='label'
-        sx={{ alignSelf: 'flex-start' }}
+      <button
+        className='rounded-full bg-primary-default hover:bg-primary-hover text-text-on-primary py-2 px-4 self-start'
+        onClick={() => fileInputRef.current?.click()}
       >
         Upload Media
         <input
+          ref={fileInputRef}
           type='file'
           accept='image/*'
           multiple
           hidden
           onChange={e => handleMediaSelect(e.target.files)}
         />
-      </Button>
+      </button>
 
       {/* MEDIA PREVIEW STRIP */}
       {mediaArr.length > 0 && (
@@ -353,14 +402,13 @@ export default function InsertReviewPage() {
 
       {/* SUBMIT BUTTON */}
       <Box display='flex' justifyContent='center'>
-        <Button
-          variant='contained'
+        <button
+          className='rounded-full bg-primary-default hover:bg-primary-hover text-text-on-primary py-2 px-4 self-start font-bold'
           onClick={handleSubmitReview}
-          fullWidth
           disabled={isSaving}
         >
           Save Review
-        </Button>
+        </button>
       </Box>
 
       {/* SNACKBAR */}
@@ -377,6 +425,6 @@ export default function InsertReviewPage() {
           {snack.message}
         </Alert>
       </Snackbar>
-    </Stack>
+    </div>
   );
 }

@@ -43,10 +43,8 @@ const StorefrontPage = () => {
 
   return (
     <div className='flex flex-col gap-5'>
-      <div className='font-semibold text-3xl text-text-primary'>
-        {shop && shop.name}
-      </div>
-      <div className='text-text-secondary'>{shop && shop.address}</div>
+      <h2>{shop && shop.name}</h2>
+      <p className='text-text-secondary'>{shop && shop.address}</p>
       <div className='flex justify-end gap-2'>
         <button
           className='flex justify-center rounded-xl border px-4 py-2 bg-primary-default text-text-on-primary border-border-default hover:bg-primary-hover transition-colors duration-150'
@@ -113,9 +111,7 @@ const StorefrontPage = () => {
 
           {userReviews && (
             <div className='mx-auto mt-8 w-full'>
-              <h2 className='text-lg font-semibold text-text-primary'>
-                My Reviews
-              </h2>
+              <h3>My Reviews</h3>
 
               {userReviews.length === 0 ? (
                 <p className='mt-2 text-sm text-text-secondary'>
