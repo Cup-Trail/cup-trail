@@ -22,12 +22,10 @@ import {
 import { useEffect, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate, useParams } from 'react-router-dom';
+import StarRating from './StarRating';
 
 import { useShopIdQuery } from '../queries';
 import type { SnackState } from '../types';
-
-const createStarArray = (rating: number) =>
-  Array.from({ length: 5 }, (_, i) => rating > i);
 
 export default function InsertReviewPage() {
   const { shopId } = useParams<{ shopId: string }>();
@@ -39,12 +37,8 @@ export default function InsertReviewPage() {
   const shopQueryResult = useShopIdQuery(shopId);
   const { data: shop } = shopQueryResult;
 
-  // Rating-related things
   const [rating, setRating] = useState<number>(1);
-  const [previewRating, setPreviewRating] = useState(1);
-  const [isPreview, setIsPreview] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
-  const stars: boolean[] = createStarArray(isPreview ? previewRating : rating);
 
   useEffect(() => {
     if (shopQueryResult.isFetched && !shopQueryResult.data) {
@@ -243,6 +237,8 @@ export default function InsertReviewPage() {
         <p className='text-text-secondary text-center'>{shop?.address}</p>
       </div>
 
+      <StarRating rating={rating} setRating={setRating}/>
+
       {/* DRINK NAME */}
       <div className='flex flex-col gap-2 items-start'>
         <label htmlFor='drinkName'>Drink Name (required)</label>
@@ -277,62 +273,7 @@ export default function InsertReviewPage() {
       {/* RATING */}
       <input {...register('rating')} type='hidden' readOnly value={rating} />
 
-      <div className='flex flex-col gap-2 items-start'>
-        <label>Rating {(isPreview ? previewRating : rating).toFixed(1)}</label>
-
-        <div
-          className='relative mx-auto xs:ml-0 text-6xl xs:text-4xl select-none group text-stroke cursor-pointer'
-          onMouseEnter={() => setIsPreview(true)}
-          onTouchStart={() => setIsPreview(true)}
-          onMouseLeave={() => setIsPreview(false)}
-          onTouchEnd={() => {
-            setIsPreview(false);
-            setRating(previewRating);
-          }}
-          onMouseUp={() => setIsPreview(false)}
-          onTouchMove={e => {
-            const touch = e.touches[0];
-            const element = document.elementFromPoint(
-              touch.clientX,
-              touch.clientY
-            );
-            const id = element?.id;
-            if (id && id.startsWith('star-handle')) {
-              const stars = parseInt(id[id.length - 1]);
-              if (previewRating != stars) {
-                setPreviewRating(stars);
-              }
-            }
-          }}
-        >
-          {stars.map((star, i) => (
-            <span
-              key={i}
-              className={
-                star
-                  ? isPreview
-                    ? 'text-amber-200'
-                    : 'text-amber-300'
-                  : 'text-transparent'
-              }
-            >
-              ★
-            </span>
-          ))}
-          <div className='absolute top-0 w-full flex flex-row'>
-            {stars.map((_, i) => (
-              <div
-                key={i}
-                id={`star-handle-${i + 1}`}
-                className='h-lh z-10 opacity-0 w-1/5'
-                onMouseUp={() => setRating(i + 1)}
-                onTouchEnd={() => setRating(i + 1)}
-                onMouseOver={() => setPreviewRating(i + 1)}
-              />
-            ))}
-          </div>
-        </div>
-      </div>
+      
 
       {/* COMMENTS */}
       <div className='flex flex-col gap-2 items-start'>
@@ -346,7 +287,7 @@ export default function InsertReviewPage() {
 
       {/* MEDIA UPLOAD BUTTON */}
       <button
-        className='rounded-full bg-primary-default hover:bg-primary-hover text-text-on-primary py-2 px-4 self-start'
+        className='rounded-full bg-primary-default hover:bg-primary-hover text-text-on-primary py-2 px-4 self-start select-none'
         onClick={() => fileInputRef.current?.click()}
       >
         Upload Media
@@ -403,7 +344,7 @@ export default function InsertReviewPage() {
       {/* SUBMIT BUTTON */}
       <Box display='flex' justifyContent='center'>
         <button
-          className='rounded-full bg-primary-default hover:bg-primary-hover text-text-on-primary py-2 px-4 self-start font-bold'
+          className='rounded-full bg-primary-default hover:bg-primary-hover text-text-on-primary py-2 px-4 self-start font-bold select-none'
           onClick={handleSubmitReview}
           disabled={isSaving}
         >
