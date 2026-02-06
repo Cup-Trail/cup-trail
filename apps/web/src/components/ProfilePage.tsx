@@ -1,212 +1,188 @@
-import { getReviewsByUser, type ReviewRow, type User } from '@cuptrail/core';
+import { type User } from '@cuptrail/core';
 import { supabase } from '@cuptrail/utils';
-import {
-  Cancel as CancelIcon,
-  Edit as EditIcon,
-  Save as SaveIcon,
-} from '@mui/icons-material';
-import {
-  Avatar,
-  Box,
-  Button,
-  Stack,
-  TextField,
-  Typography,
-} from '@mui/material';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-
+import { useUserReviewsQuery } from '../queries';
 import ReviewItem from './ReviewItem';
-
 export default function ProfilePage() {
   const navigate = useNavigate();
+
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+
   const [editing, setEditing] = useState(false);
   const [displayName, setDisplayName] = useState('');
   const [saving, setSaving] = useState(false);
-  const [reviews, setReviews] = useState<ReviewRow[]>([]);
-
   useEffect(() => {
-    supabase.auth.getUser().then(({ data, error }) => {
-      if (error || !data.user) {
+    let alive = true;
+
+    async function load() {
+      setLoading(true);
+
+      // 1) local session first
+      const { data: sess } = await supabase.auth.getSession();
+      if (!alive) return;
+
+      const u = sess.session?.user ?? null;
+      if (!u) {
+        setLoading(false);
         navigate('/auth');
         return;
       }
-      setUser(data.user as User);
-      setDisplayName(data.user.user_metadata?.display_name || 'User');
+
+      setUser(u as User);
+      setDisplayName(u.user_metadata?.display_name ?? 'User');
       setLoading(false);
-      getReviewsByUser(data.user.id).then(data => {
-        if (data.success) {
-          setReviews(data.data);
-        }
-      });
-    });
+
+      if (!alive) return;
+    }
+
+    void load();
+
+    return () => {
+      alive = false;
+    };
   }, [navigate]);
 
-  async function signOut(): Promise<void> {
+  const currentDisplayName = user?.user_metadata?.display_name ?? 'User';
+  const email = user?.email ?? '';
+  const userId = user?.id;
+  const { data: reviews = [], isLoading: reviewsLoading } = useUserReviewsQuery(
+    {
+      userId,
+    }
+  );
+  const initials = useMemo(() => {
+    return currentDisplayName
+      .trim()
+      .split(/\s+/)
+      .map(n => n[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2);
+  }, [currentDisplayName]);
+
+  async function signOut() {
     await supabase.auth.signOut();
     navigate('/');
   }
 
-  async function saveDisplayName(): Promise<void> {
-    if (!displayName.trim()) return;
+  async function saveDisplayName() {
+    const name = displayName.trim();
+    if (!name) return;
 
     setSaving(true);
+
     const { error } = await supabase.auth.updateUser({
-      data: { display_name: displayName.trim() },
+      data: { display_name: name },
     });
+
+    setSaving(false);
 
     if (error) {
       console.error('Failed to update display name:', error);
-      setSaving(false);
       return;
     }
 
-    // Update local user state
+    // update display name in state
     setUser(prev =>
       prev
         ? {
             ...prev,
-            user_metadata: {
-              ...prev.user_metadata,
-              display_name: displayName.trim(),
-            },
+            user_metadata: { ...prev.user_metadata, display_name: name },
           }
-        : null
+        : prev
     );
 
     setEditing(false);
-    setSaving(false);
   }
 
-  function cancelEdit(): void {
-    setDisplayName(user?.user_metadata?.display_name || 'User');
+  function cancelEdit() {
+    setDisplayName(currentDisplayName);
     setEditing(false);
   }
 
-  if (loading) {
-    return <Typography>Loading...</Typography>;
-  }
-
-  const currentDisplayName = user?.user_metadata?.display_name || 'User';
-  const email = user?.email || 'No email';
-  const initials = currentDisplayName
-    .split(' ')
-    .map((n: string) => n[0])
-    .join('')
-    .toUpperCase()
-    .slice(0, 2);
+  if (loading) return <h2>Loading…</h2>;
 
   return (
-    <Box
-      sx={{
-        minHeight: '100vh',
-        display: 'flex',
-        alignItems: 'flex-start',
-        justifyContent: 'center',
-        padding: 2,
-        paddingTop: 4,
-      }}
-    >
-      <Box
-        sx={{
-          maxWidth: 800,
-          width: '100%',
-          backgroundColor: 'white',
-          borderRadius: 3,
-          boxShadow:
-            '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
-          padding: 4,
-          minHeight: 'calc(100vh - 6rem)',
-        }}
-      >
-        <Box sx={{ textAlign: 'center', mb: 3 }}>
-          <Typography
-            variant='h4'
-            fontWeight={700}
-            color='primary.main'
-            gutterBottom
-          >
-            Profile
-          </Typography>
-        </Box>
-        <Stack gap={3}>
-          <Stack direction='row' gap={2} alignItems='center'>
-            <Avatar
-              sx={{
-                width: 64,
-                height: 64,
-                bgcolor: 'primary.main',
-                fontSize: '1.5rem',
-              }}
-            >
+    <div className='flex justify-center px-6'>
+      <div className='w-full max-w-3xl'>
+        <div className='mt-6 grid gap-4'>
+          <div className='flex items-start gap-3'>
+            <div className='my-auto w-18 h-18 rounded-full border border-border-default flex items-center justify-center text-text-primary text-2xl font-semibold'>
               {initials}
-            </Avatar>
-            <Box sx={{ flex: 1 }}>
+            </div>
+
+            <div>
               {editing ? (
-                <Stack direction='row' gap={1} alignItems='center'>
-                  <TextField
+                <div className='flex gap-2 items-center'>
+                  <input
                     value={displayName}
                     onChange={e => setDisplayName(e.target.value)}
-                    size='small'
                     autoFocus
-                    sx={{ flex: 1 }}
+                    className='rounded-lg border border-border-default bg-surface-2 px-3 py-2 text-sm text-text-primary outline-none'
                   />
-                  <Button
-                    size='small'
+                  <button
                     onClick={saveDisplayName}
                     disabled={saving || !displayName.trim()}
-                    startIcon={<SaveIcon />}
+                    className='rounded-full px-3 py-1.5 text-xs bg-primary-default text-text-on-primary hover:bg-primary-hover disabled:opacity-50'
                   >
-                    {saving ? 'Saving...' : 'Save'}
-                  </Button>
-                  <Button
-                    size='small'
+                    {saving ? 'Saving…' : 'Save'}
+                  </button>
+                  <button
                     onClick={cancelEdit}
                     disabled={saving}
-                    startIcon={<CancelIcon />}
+                    className='rounded-full px-3 py-1.5 text-xs border border-border-default text-text-primary hover:bg-surface-1 disabled:opacity-50'
                   >
                     Cancel
-                  </Button>
-                </Stack>
+                  </button>
+                </div>
               ) : (
-                <Stack direction='row' gap={1} alignItems='center'>
-                  <Typography variant='h6'>{currentDisplayName}</Typography>
-                  <Button
-                    size='small'
-                    onClick={() => setEditing(true)}
-                    startIcon={<EditIcon />}
-                  >
-                    Edit
-                  </Button>
-                </Stack>
+                <>
+                  <h3 className='text-text-primary'>{currentDisplayName}</h3>
+
+                  <p className='text-text-secondary'>{email}</p>
+
+                  <div className='mt-2 flex items-center gap-2'>
+                    <button
+                      onClick={() => setEditing(true)}
+                      className='rounded-full px-3 py-1.5 text-xs bg-primary-default text-text-on-primary border border-border-on-active hover:bg-primary-hover no-underline transition-colors duration-150'
+                    >
+                      Edit
+                    </button>
+
+                    <button
+                      onClick={signOut}
+                      className='rounded-full px-3 py-1.5 text-xs bg-surface-1 text-text-primary border border-border-on-active'
+                    >
+                      Sign out
+                    </button>
+                  </div>
+                </>
               )}
-              <Typography variant='body2' color='text.secondary'>
-                {email}
-              </Typography>
-            </Box>
-          </Stack>
-          <Button variant='outlined' color='error' onClick={signOut}>
-            Sign out
-          </Button>
-          {reviews && (
-            <>
-              <Typography variant='h6'>Your Reviews</Typography>
-              {reviews.length === 0 && (
-                <Typography>No recent reviews</Typography>
-              )}
-              {reviews.length > 0 && (
-                <Stack gap={1}>
-                  {reviews.map(item => (
-                    <ReviewItem key={item.id} item={item} />
-                  ))}
-                </Stack>
-              )}
-            </>
+            </div>
+          </div>
+
+          <h3 className='mt-6 text-text-primary'>Your Reviews</h3>
+
+          {reviewsLoading ? (
+            <p className='mt-2 text-sm text-text-secondary'>Loading…</p>
+          ) : reviews.length === 0 ? (
+            <p className='mt-2 text-sm text-text-secondary'>No reviews yet</p>
+          ) : (
+            <div className='grid gap-3'>
+              {reviews.map(r => (
+                <div
+                  key={String(r.id)}
+                  className='rounded-2xl border border-border-default bg-surface-2 p-4'
+                >
+                  <ReviewItem item={r} />
+                </div>
+              ))}
+            </div>
           )}
-        </Stack>
-      </Box>
-    </Box>
+        </div>
+      </div>
+    </div>
   );
 }
