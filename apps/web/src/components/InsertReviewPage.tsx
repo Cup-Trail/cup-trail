@@ -9,7 +9,7 @@ import {
 } from '@cuptrail/core';
 import { getUser, slugToLabel } from '@cuptrail/utils';
 import { uploadReviewMedia } from '@cuptrail/utils/storage'; // ⭐ make sure the path matches your setup
-import DeleteIcon from '@mui/icons-material/Delete';
+import RemoveCircleIcon from '@mui/icons-material/RemoveCircle';
 import {
   Alert,
   Box,
@@ -24,12 +24,18 @@ import { useForm } from 'react-hook-form';
 import { useNavigate, useParams } from 'react-router-dom';
 import StarRating from './StarRating';
 
-import { useShopIdQuery } from '../queries';
+import { useCategoriesQuery, useShopIdQuery } from '../queries';
 import type { SnackState } from '../types';
 
 export default function InsertReviewPage() {
+  const { data: cats } = useCategoriesQuery();
   const { shopId } = useParams<{ shopId: string }>();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!cats || !cats.length) setSuggestedCategories([]);
+    else setSuggestedCategories(cats.map(c => slugToLabel(c.slug)) ?? [])
+  }, [cats])
 
   const [isSaving, setIsSaving] = useState(false);
   const [user, setUser] = useState<User | null>(null);
@@ -334,7 +340,7 @@ export default function InsertReviewPage() {
                 onClick={() => handleRemoveMedia(idx)}
                 sx={{ position: 'absolute', top: 2, right: 2 }}
               >
-                <DeleteIcon fontSize='small' />
+                <RemoveCircleIcon/>
               </IconButton>
             </Paper>
           ))}
@@ -344,7 +350,7 @@ export default function InsertReviewPage() {
       {/* SUBMIT BUTTON */}
       <Box display='flex' justifyContent='center'>
         <button
-          className='rounded-full bg-primary-default hover:bg-primary-hover text-text-on-primary py-2 px-4 self-start font-bold select-none'
+          className='rounded-full bg-primary-default hover:bg-primary-hover text-text-on-primary py-2 px-4 self-start select-none'
           onClick={handleSubmitReview}
           disabled={isSaving}
         >
