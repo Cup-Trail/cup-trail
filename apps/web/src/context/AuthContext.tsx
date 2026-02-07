@@ -5,7 +5,7 @@ import { createContext, useContext, useEffect, useState } from 'react';
 interface AuthContextType {
   user: User | null;
   loading: boolean;
-  signOut: () => void;
+  signOut: () => Promise<void>;
   signIn: () => void;
 }
 
@@ -35,8 +35,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const signIn = () => {};
 
-  const signOut = () => {
-    supabase.auth.signOut();
+  const signOut = async (): Promise<void> => {
+    await supabase.auth.signOut();
   };
 
   return (
