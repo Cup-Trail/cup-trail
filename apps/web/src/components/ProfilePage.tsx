@@ -1,71 +1,37 @@
-import { type User } from '@cuptrail/core';
 import { supabase } from '@cuptrail/utils';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import { useUserReviewsQuery } from '../queries';
 import ReviewItem from './ReviewItem';
+
 export default function ProfilePage() {
   const navigate = useNavigate();
-
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { signOut, user, loading: authLoading } = useAuth();
 
   const [editing, setEditing] = useState(false);
   const [displayName, setDisplayName] = useState('');
   const [saving, setSaving] = useState(false);
+
   useEffect(() => {
-    let alive = true;
+    if (!authLoading && !user) navigate('/auth');
+  }, [authLoading, user, navigate]);
 
-    async function load() {
-      setLoading(true);
-
-      // 1) local session first
-      const { data: sess } = await supabase.auth.getSession();
-      if (!alive) return;
-
-      const u = sess.session?.user ?? null;
-      if (!u) {
-        setLoading(false);
-        navigate('/auth');
-        return;
-      }
-
-      setUser(u as User);
-      setDisplayName(u.user_metadata?.display_name ?? 'User');
-      setLoading(false);
-
-      if (!alive) return;
+  useEffect(() => {
+    if (user) {
+      setDisplayName(user.user_metadata?.display_name ?? 'User');
     }
-
-    void load();
-
-    return () => {
-      alive = false;
-    };
-  }, [navigate]);
+  }, [user]);
 
   const currentDisplayName = user?.user_metadata?.display_name ?? 'User';
   const email = user?.email ?? '';
   const userId = user?.id;
+
   const { data: reviews = [], isLoading: reviewsLoading } = useUserReviewsQuery(
     {
       userId,
     }
   );
-  const initials = useMemo(() => {
-    return currentDisplayName
-      .trim()
-      .split(/\s+/)
-      .map(n => n[0])
-      .join('')
-      .toUpperCase()
-      .slice(0, 2);
-  }, [currentDisplayName]);
-
-  async function signOut() {
-    await supabase.auth.signOut();
-    navigate('/');
-  }
 
   async function saveDisplayName() {
     const name = displayName.trim();
@@ -83,17 +49,6 @@ export default function ProfilePage() {
       console.error('Failed to update display name:', error);
       return;
     }
-
-    // update display name in state
-    setUser(prev =>
-      prev
-        ? {
-            ...prev,
-            user_metadata: { ...prev.user_metadata, display_name: name },
-          }
-        : prev
-    );
-
     setEditing(false);
   }
 
@@ -102,7 +57,8 @@ export default function ProfilePage() {
     setEditing(false);
   }
 
-  if (loading) return <h2>Loading…</h2>;
+  if (authLoading) return <h2>Loading…</h2>;
+  if (!user) return null;
 
   return (
     <div className='flex justify-center px-6'>
@@ -110,7 +66,7 @@ export default function ProfilePage() {
         <div className='mt-6 grid gap-4'>
           <div className='flex items-start gap-3'>
             <div className='my-auto w-18 h-18 rounded-full border border-border-default flex items-center justify-center text-text-primary text-2xl font-semibold'>
-              {initials}
+              {(currentDisplayName?.[0] ?? 'U').toUpperCase()}
             </div>
 
             <div>
@@ -152,7 +108,10 @@ export default function ProfilePage() {
                     </button>
 
                     <button
-                      onClick={signOut}
+                      onClick={async () => {
+                        await signOut();
+                        navigate('/');
+                      }}
                       className='rounded-full px-3 py-1.5 text-xs bg-surface-1 text-text-primary border border-border-on-active'
                     >
                       Sign out
