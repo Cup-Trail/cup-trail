@@ -2,6 +2,7 @@ import type { ReviewRow, ShopDrinkRow } from '@cuptrail/core';
 import AddIcon from '@mui/icons-material/Add';
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+
 import { useAuth } from '../../context/AuthContext';
 import {
   usePopularDrinksQuery,
@@ -9,6 +10,7 @@ import {
   useUserReviewsQuery,
 } from '../../queries';
 import ReviewItem from '../ReviewItem';
+
 import DrinkCard from './DrinkCard';
 
 const STOREFRONT_TAB_VIEWS = {

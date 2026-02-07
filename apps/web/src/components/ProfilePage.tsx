@@ -1,8 +1,10 @@
 import { supabase } from '@cuptrail/utils';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+
 import { useAuth } from '../context/AuthContext';
 import { useUserReviewsQuery } from '../queries';
+
 import ReviewItem from './ReviewItem';
 
 export default function ProfilePage() {
