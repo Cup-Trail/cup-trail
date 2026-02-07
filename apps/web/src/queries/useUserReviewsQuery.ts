@@ -1,4 +1,5 @@
 import {
+  getReviewsByShop,
   getReviewsByUser,
   getReviewsByUserShop,
   type ReviewRow,
@@ -7,7 +8,7 @@ import { useQuery, type UseQueryResult } from '@tanstack/react-query';
 
 type Props = {
   userId?: string | null;
-  shopId?: string;
+  shopId?: string | null;
 };
 
 export default function useUserReviewsQuery({
@@ -15,16 +16,25 @@ export default function useUserReviewsQuery({
   shopId,
 }: Props): UseQueryResult<ReviewRow[], Error> {
   return useQuery({
-    queryKey: ['userReviews', userId, shopId],
-    enabled: !!userId, // don't run until we know who the user is
+    queryKey: ['userReviews', userId ?? null, shopId ?? null],
+    enabled: !!userId || !!shopId,
     queryFn: async () => {
-      if (!userId) return [];
+      if (userId && shopId) {
+        const res = await getReviewsByUserShop(userId, shopId);
+        return res.success ? res.data : [];
+      }
 
-      const res = shopId
-        ? await getReviewsByUserShop(userId, shopId)
-        : await getReviewsByUser(userId);
+      if (userId) {
+        const res = await getReviewsByUser(userId);
+        return res.success ? res.data : [];
+      }
 
-      return res.success ? res.data : [];
+      if (shopId) {
+        const res = await getReviewsByShop(shopId);
+        return res.success ? res.data : [];
+      }
+
+      return [];
     },
     staleTime: 60_000,
   });

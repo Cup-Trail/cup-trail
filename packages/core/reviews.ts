@@ -61,7 +61,24 @@ export async function getReviewsByUser(
 
   return { success: true, data: data };
 }
+/**
+ * Get all reviews on a shop
+ */
+export async function getReviewsByShop(
+  shopId: string
+): Promise<Result<ReviewRow[]>> {
+  const { data, error } = await supabase
+    .from(REVIEWS_TABLE)
+    .select<string, ReviewRow>(REVIEW_SELECT)
+    .eq('shop_drinks.shops.id', shopId)
+    .order('created_at', { ascending: false });
 
+  if (error) {
+    return { success: false, source: 'supabase', message: error.message };
+  }
+
+  return { success: true, data: data };
+}
 /**
  * Get all review made by a user at a shop
  */
