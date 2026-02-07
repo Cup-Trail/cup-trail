@@ -1,22 +1,8 @@
 import { Link } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
-type HeaderProps = {
-  signedIn: boolean;
-  displayName?: string | null;
-};
-
-function getInitials(name?: string | null) {
-  const n = (name ?? 'User').trim();
-  return n
-    .split(/\s+/)
-    .map(part => part[0])
-    .join('')
-    .toUpperCase()
-    .slice(0, 2);
-}
-
-export default function Nav({ signedIn, displayName }: HeaderProps) {
-  const initials = getInitials(displayName);
+export default function Nav() {
+  const { user } = useAuth();
 
   return (
     <nav className='w-full pt-4 h-24 flex flex-col items-center'>
@@ -34,12 +20,12 @@ export default function Nav({ signedIn, displayName }: HeaderProps) {
 
         {/* right */}
         <div className='w-full flex items-center justify-end gap-2'>
-          {signedIn ? (
+          {user ? (
             <Link
               to='/profile'
               className='h-9 w-9 rounded-full grid place-items-center font-semibold text-text-on-primary bg-white/10 hover:bg-white/15 no-underline'
             >
-              {initials}
+              {user.user_metadata.display_name[0].toUpperCase()}
             </Link>
           ) : (
             <>
