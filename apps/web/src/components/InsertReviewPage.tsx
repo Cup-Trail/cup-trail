@@ -10,22 +10,16 @@ import {
 import { getUser, slugToLabel } from '@cuptrail/utils';
 import { uploadReviewMedia } from '@cuptrail/utils/storage'; // ⭐ make sure the path matches your setup
 import RemoveCircleIcon from '@mui/icons-material/RemoveCircle';
-import {
-  Alert,
-  Box,
-  Chip,
-  IconButton,
-  Paper,
-  Snackbar,
-  Stack,
-} from '@mui/material';
+import { Alert, IconButton, Paper, Snackbar } from '@mui/material';
 import { useEffect, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate, useParams } from 'react-router-dom';
-import StarRating from './StarRating';
 
 import { useCategoriesQuery, useShopIdQuery } from '../queries';
 import type { SnackState } from '../types';
+import { zip } from '../utils';
+
+import StarRating from './StarRating';
 
 export default function InsertReviewPage() {
   const { data: cats } = useCategoriesQuery();
@@ -33,9 +27,12 @@ export default function InsertReviewPage() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!cats || !cats.length) setSuggestedCategories([]);
-    else setSuggestedCategories(cats.map(c => slugToLabel(c.slug)) ?? [])
-  }, [cats])
+    if (!cats || !cats.length) setAllCategories([]);
+    else {
+      setAllCategories(cats.map(c => slugToLabel(c.slug)) ?? []);
+      setSelectedCategories(cats.map(() => false));
+    }
+  }, [cats]);
 
   const [isSaving, setIsSaving] = useState(false);
   const [user, setUser] = useState<User | null>(null);
@@ -70,7 +67,8 @@ export default function InsertReviewPage() {
     severity: 'success',
   });
 
-  const [suggestedCategories, setSuggestedCategories] = useState<string[]>([]);
+  const [allCategories, setAllCategories] = useState<string[]>([]);
+  const [selectedCategories, setSelectedCategories] = useState<boolean[]>([]);
 
   const [mediaArr, setMediaArr] = useState<File[]>([]);
 
@@ -215,8 +213,11 @@ export default function InsertReviewPage() {
     // ----------------------------
     // 5. OPTIONAL: CATEGORIES
     // ----------------------------
-    if (shopDrinkId && suggestedCategories.length > 0) {
-      await setShopDrinkCategories(shopDrinkId, suggestedCategories);
+    if (shopDrinkId && selectedCategories.filter(c => c).length > 0) {
+      const categories = zip(allCategories, selectedCategories)
+        .filter(([_, b]) => b)
+        .map(([c, _]) => c);
+      await setShopDrinkCategories(shopDrinkId, categories);
     }
 
     // ----------------------------
@@ -230,7 +231,7 @@ export default function InsertReviewPage() {
     navigate(`/shop/${shopId}`);
     setIsSaving(false);
     reset();
-    setSuggestedCategories([]);
+    setSelectedCategories(cats?.map(() => false) ?? []);
     setMediaArr([]);
   }
 
@@ -243,7 +244,7 @@ export default function InsertReviewPage() {
         <p className='text-text-secondary text-center'>{shop?.address}</p>
       </div>
 
-      <StarRating rating={rating} setRating={setRating}/>
+      <StarRating rating={rating} setRating={setRating} />
 
       {/* DRINK NAME */}
       <div className='flex flex-col gap-2 items-start'>
@@ -257,20 +258,26 @@ export default function InsertReviewPage() {
       </div>
 
       {/* SUGGESTED CATEGORIES */}
-      {suggestedCategories.length > 0 && (
-        <Stack direction='row' gap={1} flexWrap='wrap'>
-          {suggestedCategories.map(cat => (
-            <Chip
+      {allCategories.length > 0 && (
+        <div className='flex flex-row gap-2'>
+          {allCategories.map((cat, i) => (
+            <button
+              type='button'
               key={cat}
-              label={slugToLabel(cat)}
-              onDelete={() =>
-                setSuggestedCategories(prev => prev.filter(c => c !== cat))
+              id={cat}
+              className={`${selectedCategories[i] ? 'bg-primary-active border-border-on-active' : 'bg-primary-default border-border-defaul'} border text-text-on-primary hover:bg-primary-hover rounded-full px-3 py-0.5 hover:cursor-pointer transition-colors duration-150`}
+              onClick={() =>
+                setSelectedCategories(prev => [
+                  ...prev.slice(0, i),
+                  !prev[i],
+                  ...prev.slice(i + 1),
+                ])
               }
-              variant='outlined'
-              size='small'
-            />
+            >
+              {slugToLabel(cat)}
+            </button>
           ))}
-        </Stack>
+        </div>
       )}
 
       {/* SHOP NAME (locked and hidden) */}
@@ -278,8 +285,6 @@ export default function InsertReviewPage() {
 
       {/* RATING */}
       <input {...register('rating')} type='hidden' readOnly value={rating} />
-
-      
 
       {/* COMMENTS */}
       <div className='flex flex-col gap-2 items-start'>
@@ -293,7 +298,7 @@ export default function InsertReviewPage() {
 
       {/* MEDIA UPLOAD BUTTON */}
       <button
-        className='rounded-full bg-primary-default hover:bg-primary-hover text-text-on-primary py-2 px-4 self-start select-none'
+        className='rounded-full bg-primary-default hover:bg-primary-hover text-text-on-primary py-2 px-4 self-start select-none hover:cursor-pointer transition-colors duration-150'
         onClick={() => fileInputRef.current?.click()}
       >
         Upload Media
@@ -309,7 +314,7 @@ export default function InsertReviewPage() {
 
       {/* MEDIA PREVIEW STRIP */}
       {mediaArr.length > 0 && (
-        <Stack direction='row' spacing={2} sx={{ overflowX: 'auto', py: 1 }}>
+        <div className='flex flex-row gap-2 py-1 overflow-x-auto'>
           {mediaArr.map((file, idx) => (
             <Paper
               key={idx}
@@ -340,23 +345,24 @@ export default function InsertReviewPage() {
                 onClick={() => handleRemoveMedia(idx)}
                 sx={{ position: 'absolute', top: 2, right: 2 }}
               >
-                <RemoveCircleIcon/>
+                <RemoveCircleIcon />
               </IconButton>
             </Paper>
           ))}
-        </Stack>
+        </div>
       )}
 
       {/* SUBMIT BUTTON */}
-      <Box display='flex' justifyContent='center'>
+      <div className='flex flex-row justify-center'>
         <button
-          className='rounded-full bg-primary-default hover:bg-primary-hover text-text-on-primary py-2 px-4 self-start select-none'
+          type='button'
+          className='rounded-full bg-primary-default hover:bg-primary-hover hover:cursor-pointer text-text-on-primary py-2 px-4 self-start select-none transition-colors duration-150'
           onClick={handleSubmitReview}
           disabled={isSaving}
         >
           Save Review
         </button>
-      </Box>
+      </div>
 
       {/* SNACKBAR */}
       <Snackbar
