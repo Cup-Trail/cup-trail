@@ -21,9 +21,9 @@ const KEY_ID = Deno.env.get('APPLE_MAPS_KEY_ID')!;
 const PRIVATE_KEY_PEM = Deno.env.get('APPLE_MAPS_PRIVATE_KEY')!;
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
-const SERVICE_ROLE = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+const SECRET_KEY = Deno.env.get('SECRET_KEY')!;
 
-const db = createClient(SUPABASE_URL, SERVICE_ROLE);
+const db = createClient(SUPABASE_URL, SECRET_KEY);
 
 /*──────────────────────────────────────────────────────────────
   CORS

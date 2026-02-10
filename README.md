@@ -152,14 +152,14 @@ apps/mobile/.env
 
 ```
 EXPO_PUBLIC_SUPABASE_URL=your-supabase-url
-EXPO_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
+EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY=your-supabase-publishable-key
 ```
 
 apps/web/.env
 
 ```
 VITE_SUPABASE_URL=your-supabase-url
-VITE_SUPABASE_ANON_KEY=your-supabase-anon-key
+VITE_SUPABASE_PUBLISHABLE_KEY=your-supabase-publishable-key
 ```
 
 4. **Run the app**

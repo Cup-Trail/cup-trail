@@ -1,4 +1,5 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
@@ -11,6 +12,7 @@ import {
   SearchPage,
   StorefrontPage,
 } from './components';
+import { AuthProvider } from './context/AuthContext';
 
 const queryClient = new QueryClient();
 
@@ -37,7 +39,10 @@ if (!rootEl) throw new Error('Root element #root not found');
 createRoot(rootEl).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
-      <RouterProvider router={router} />
+      <AuthProvider>
+        <RouterProvider router={router} />
+        <ReactQueryDevtools initialIsOpen={false} />
+      </AuthProvider>
     </QueryClientProvider>
   </StrictMode>
 );

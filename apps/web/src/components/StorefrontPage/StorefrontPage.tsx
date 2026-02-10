@@ -3,6 +3,7 @@ import AddIcon from '@mui/icons-material/Add';
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
+import { useAuth } from '../../context/AuthContext';
 import {
   usePopularDrinksQuery,
   useShopIdQuery,
@@ -23,14 +24,15 @@ type Tab = (typeof TABS)[number];
 const StorefrontPage = () => {
   const { shopId } = useParams();
   const navigate = useNavigate();
+  const { user, loading: authLoading } = useAuth();
 
   const [activeTab, setActiveTab] = useState<Tab>('Popular Drinks');
+
   useEffect(() => {
     if (!shopId) navigate('/');
   }, [shopId, navigate]);
 
   const { data: drinks } = usePopularDrinksQuery({ shopId: shopId ?? '' });
-  const { data: userReviews } = useUserReviewsQuery({ shopId });
 
   const shopQueryResult = useShopIdQuery(shopId ?? null);
   const { data: shop } = shopQueryResult;
@@ -39,17 +41,28 @@ const StorefrontPage = () => {
     if (shopQueryResult.isFetched && !shopQueryResult.data) {
       navigate('/');
     }
-  }, [shopQueryResult, navigate]);
+  }, [shopQueryResult.isFetched, shopQueryResult.data, navigate]);
+
+  const { data: userReviewsForShop = [] } = useUserReviewsQuery({
+    userId: authLoading ? null : (user?.id ?? null),
+    shopId: shopId ?? null,
+  });
+
+  const { data: reviewsForShop = [] } = useUserReviewsQuery({
+    shopId: shopId ?? null,
+  });
 
   return (
     <div className='flex flex-col gap-5'>
       <div className='font-semibold text-3xl text-text-primary'>
-        {shop && shop.name}
+        {shop?.name}
       </div>
-      <div className='text-text-secondary'>{shop && shop.address}</div>
+      <div className='text-text-secondary'>{shop?.address}</div>
+
       <div className='flex justify-end gap-2'>
         <button
           className='flex justify-center rounded-xl border px-4 py-2 bg-primary-default text-text-on-primary border-border-default hover:bg-primary-hover transition-colors duration-150'
+          disabled={authLoading || !user}
           onClick={() => navigate(`/shop/${shopId}/review`)}
         >
           <AddIcon /> Add a Review
@@ -83,47 +96,55 @@ const StorefrontPage = () => {
                   key={String(item.id)}
                   drinkName={item.drinks?.name}
                   rating={item.avg_rating}
-                  photoUrl={item.cover_photo_url ? item.cover_photo_url : ''}
+                  photoUrl={item.cover_photo_url ?? ''}
                 />
               ))}
             </div>
           )}
+          <div className='mx-auto mt-auto w-full'>
+            <h2 className='text-lg font-semibold text-text-primary'>Reviews</h2>
+            <div className='mt-3 grid gap-3'>
+              {reviewsForShop.map((item: ReviewRow) => (
+                <div
+                  key={String(item.id)}
+                  className='rounded-2xl border border-border-default bg-surface-2 p-4'
+                >
+                  <ReviewItem item={item} />
+                </div>
+              ))}
+            </div>
+          </div>
         </>
       )}
 
       {activeTab === STOREFRONT_TAB_VIEWS.MyDrinks && (
         <>
-          {!userReviews ||
-            (userReviews.length === 0 && (
-              <p>You haven't reviewed any drinks here yet</p>
-            ))}
+          {authLoading ? (
+            <p className='text-sm text-text-secondary'>Loading…</p>
+          ) : !user ? (
+            <h5>Sign in to see your reviews for this shop.</h5>
+          ) : userReviewsForShop.length === 0 ? (
+            <p>You haven't reviewed any drinks here yet</p>
+          ) : (
+            <>
+              <div className='grid gap-3 grid-cols-2 md:grid-cols-3 lg:grid-cols-4'>
+                {userReviewsForShop.map((r: ReviewRow) => (
+                  <DrinkCard
+                    key={String(r.id)}
+                    drinkName={r.shop_drinks?.drinks?.name ?? 'Drink'}
+                    rating={r.rating}
+                    photoUrl={r.media_urls?.[0] ?? ''}
+                  />
+                ))}
+              </div>
 
-          {userReviews && userReviews.length > 0 && (
-            <div className='grid gap-3 grid-cols-2 md:grid-cols-3 lg:grid-cols-4'>
-              {userReviews.map((r: ReviewRow) => (
-                <DrinkCard
-                  key={String(r.id)}
-                  drinkName={r.shop_drinks?.drinks?.name ?? 'Drink'}
-                  rating={r.rating}
-                  photoUrl={r.media_urls?.[0] ?? null}
-                />
-              ))}
-            </div>
-          )}
+              <div className='mx-auto mt-auto w-full'>
+                <h2 className='text-lg font-semibold text-text-primary'>
+                  My Reviews
+                </h2>
 
-          {userReviews && (
-            <div className='mx-auto mt-8 w-full'>
-              <h2 className='text-lg font-semibold text-text-primary'>
-                My Reviews
-              </h2>
-
-              {userReviews.length === 0 ? (
-                <p className='mt-2 text-sm text-text-secondary'>
-                  No reviews yet
-                </p>
-              ) : (
                 <div className='mt-3 grid gap-3'>
-                  {userReviews.map((item: ReviewRow) => (
+                  {userReviewsForShop.map((item: ReviewRow) => (
                     <div
                       key={String(item.id)}
                       className='rounded-2xl border border-border-default bg-surface-2 p-4'
@@ -132,8 +153,8 @@ const StorefrontPage = () => {
                     </div>
                   ))}
                 </div>
-              )}
-            </div>
+              </div>
+            </>
           )}
         </>
       )}

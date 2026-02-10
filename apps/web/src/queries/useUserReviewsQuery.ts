@@ -1,29 +1,41 @@
 import {
+  getReviewsByShop,
   getReviewsByUser,
   getReviewsByUserShop,
   type ReviewRow,
 } from '@cuptrail/core';
-import { getUser } from '@cuptrail/utils';
-import { useQuery, UseQueryResult } from '@tanstack/react-query';
+import { useQuery, type UseQueryResult } from '@tanstack/react-query';
 
-interface QueryProps {
-  shopId?: string;
-}
+type Props = {
+  userId?: string | null;
+  shopId?: string | null;
+};
 
-const useUserReviewsQuery = ({
+export default function useUserReviewsQuery({
+  userId,
   shopId,
-}: QueryProps): UseQueryResult<ReviewRow[], Error> =>
-  useQuery({
-    queryKey: ['userReviews', shopId],
+}: Props): UseQueryResult<ReviewRow[], Error> {
+  return useQuery({
+    queryKey: ['userReviews', userId ?? null, shopId ?? null],
+    enabled: !!userId || !!shopId,
     queryFn: async () => {
-      const user = await getUser();
-      if (!user) return [];
-      const res = shopId
-        ? await getReviewsByUserShop(user.id, shopId)
-        : await getReviewsByUser(user.id);
-      if (res.success) return res.data;
-      else return [];
-    },
-  });
+      if (userId && shopId) {
+        const res = await getReviewsByUserShop(userId, shopId);
+        return res.success ? res.data : [];
+      }
 
-export default useUserReviewsQuery;
+      if (userId) {
+        const res = await getReviewsByUser(userId);
+        return res.success ? res.data : [];
+      }
+
+      if (shopId) {
+        const res = await getReviewsByShop(shopId);
+        return res.success ? res.data : [];
+      }
+
+      return [];
+    },
+    staleTime: 60_000,
+  });
+}

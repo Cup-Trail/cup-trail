@@ -9,9 +9,9 @@ const ENV_KEYS = {
     web: 'VITE_SUPABASE_URL',
     mobile: 'EXPO_PUBLIC_SUPABASE_URL',
   },
-  SUPABASE_ANON_KEY: {
-    web: 'VITE_SUPABASE_ANON_KEY',
-    mobile: 'EXPO_PUBLIC_SUPABASE_ANON_KEY',
+  SUPABASE_PUBLISHABLE_KEY: {
+    web: 'VITE_SUPABASE_PUBLISHABLE_KEY',
+    mobile: 'EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY',
   },
 } as const;
 
@@ -33,13 +33,13 @@ export function getEnv(): EnvironmentConfig {
   if (typeof import.meta !== 'undefined' && (import.meta as any).env) {
     supabaseUrl = (import.meta as any).env[ENV_KEYS.SUPABASE_URL.web] || '';
     supabaseAnonKey =
-      (import.meta as any).env[ENV_KEYS.SUPABASE_ANON_KEY.web] || '';
+      (import.meta as any).env[ENV_KEYS.SUPABASE_PUBLISHABLE_KEY.web] || '';
   }
   // Fall back to EXPO_PUBLIC_ (mobile)
   else if (typeof process !== 'undefined' && (process as any).env) {
     supabaseUrl = (process as any).env[ENV_KEYS.SUPABASE_URL.mobile] || '';
     supabaseAnonKey =
-      (process as any).env[ENV_KEYS.SUPABASE_ANON_KEY.mobile] || '';
+      (process as any).env[ENV_KEYS.SUPABASE_PUBLISHABLE_KEY.mobile] || '';
   }
 
   // Validate required variables
@@ -50,7 +50,7 @@ export function getEnv(): EnvironmentConfig {
   }
   if (!supabaseAnonKey) {
     throw new Error(
-      `Supabase anon key not found. Make sure ${ENV_KEYS.SUPABASE_ANON_KEY.web} or ${ENV_KEYS.SUPABASE_ANON_KEY.mobile} is set.`
+      `Supabase anon key not found. Make sure ${ENV_KEYS.SUPABASE_PUBLISHABLE_KEY.web} or ${ENV_KEYS.SUPABASE_PUBLISHABLE_KEY.mobile} is set.`
     );
   }
 
