@@ -335,10 +335,8 @@ export default function SearchPage() {
       </Hero>
       {selectedCategory && (
         <>
-          <div className='max-w-[1488px] mx-0 px-6'>
-            <h2 className='text-lg font-semibold text-text-primary'>
-              Shops for {selectedCategory.label}
-            </h2>
+          <div className='max-w-[1488px] px-6'>
+            <h2>Shops for {selectedCategory.label}</h2>
 
             {isLoadingShops ? (
               <p className='mt-2 text-sm text-text-secondary'>Loading…</p>
@@ -370,9 +368,7 @@ export default function SearchPage() {
       )}
       {reviews && (
         <div className='max-w-[1488px] mx-0 px-6'>
-          <h2 className='text-lg font-semibold text-text-primary'>
-            Recently Reviewed Shops
-          </h2>
+          <h2>Recently Reviewed Shops</h2>
 
           {reviews.length === 0 ? (
             <p className='mt-2 text-sm text-text-secondary'>

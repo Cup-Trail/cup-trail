@@ -61,8 +61,14 @@ const StorefrontPage = () => {
 
       <div className='flex justify-end gap-2'>
         <button
-          className='flex justify-center rounded-xl border px-4 py-2 bg-primary-default text-text-on-primary border-border-default hover:bg-primary-hover transition-colors duration-150'
+          type='button'
+          className='flex justify-center rounded-xl border px-4 py-2 bg-primary-default text-text-on-primary border-border-default hover:bg-primary-hover transition-colors duration-150 disabled:bg-primary-hover disabled:text-primary-active hover:cursor-pointer'
           disabled={authLoading || !user}
+          title={
+            authLoading || !user
+              ? 'You need to be signed in to add a review'
+              : ''
+          }
           onClick={() => navigate(`/shop/${shopId}/review`)}
         >
           <AddIcon /> Add a Review

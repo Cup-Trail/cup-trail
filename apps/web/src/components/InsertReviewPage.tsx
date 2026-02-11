@@ -7,42 +7,41 @@ import {
   updateReview,
   updateShopDrinkCoverFromMedia,
 } from '@cuptrail/core';
-import {
-  getUser,
-  slugToLabel,
-  suggestCategoriesByKeyword,
-} from '@cuptrail/utils';
+import { getUser, slugToLabel } from '@cuptrail/utils';
 import { uploadReviewMedia } from '@cuptrail/utils/storage'; // ⭐ make sure the path matches your setup
-import DeleteIcon from '@mui/icons-material/Delete';
-import PhotoCameraIcon from '@mui/icons-material/PhotoCamera';
-import {
-  Alert,
-  Box,
-  Button,
-  Chip,
-  IconButton,
-  Paper,
-  Snackbar,
-  Stack,
-  TextField,
-  Typography,
-} from '@mui/material';
-import { useEffect, useState } from 'react';
+import RemoveCircleIcon from '@mui/icons-material/RemoveCircle';
+import { Alert, IconButton, Paper, Snackbar } from '@mui/material';
+import { useEffect, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate, useParams } from 'react-router-dom';
 
-import { useShopIdQuery } from '../queries';
+import { useCategoriesQuery, useShopIdQuery } from '../queries';
 import type { SnackState } from '../types';
+import { zip } from '../utils';
+
+import StarRating from './StarRating';
 
 export default function InsertReviewPage() {
+  const { data: cats } = useCategoriesQuery();
   const { shopId } = useParams<{ shopId: string }>();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!cats || !cats.length) setAllCategories([]);
+    else {
+      setAllCategories(cats.map(c => slugToLabel(c.slug)) ?? []);
+      setSelectedCategories(cats.map(() => false));
+    }
+  }, [cats]);
 
   const [isSaving, setIsSaving] = useState(false);
   const [user, setUser] = useState<User | null>(null);
 
   const shopQueryResult = useShopIdQuery(shopId);
   const { data: shop } = shopQueryResult;
+
+  const [rating, setRating] = useState<number>(1);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
     if (shopQueryResult.isFetched && !shopQueryResult.data) {
@@ -68,7 +67,8 @@ export default function InsertReviewPage() {
     severity: 'success',
   });
 
-  const [suggestedCategories, setSuggestedCategories] = useState<string[]>([]);
+  const [allCategories, setAllCategories] = useState<string[]>([]);
+  const [selectedCategories, setSelectedCategories] = useState<boolean[]>([]);
 
   const [mediaArr, setMediaArr] = useState<File[]>([]);
 
@@ -85,8 +85,7 @@ export default function InsertReviewPage() {
   };
 
   async function handleSubmitReview() {
-    const { rating, drinkName, comments } = getValues();
-    const parsed = parseFloat(rating);
+    const { drinkName, comments } = getValues();
     setIsSaving(true);
 
     // ------- VALIDATION -------
@@ -100,11 +99,7 @@ export default function InsertReviewPage() {
       return;
     }
 
-    if (
-      Number.isNaN(parsed) ||
-      parsed < RATING_SCALE.MIN ||
-      parsed > RATING_SCALE.MAX
-    ) {
+    if (rating < RATING_SCALE.MIN || rating > RATING_SCALE.MAX) {
       setSnack({
         open: true,
         message: `Rating must be between ${RATING_SCALE.MIN} and ${RATING_SCALE.MAX}.`,
@@ -132,7 +127,7 @@ export default function InsertReviewPage() {
     const reviewResult = await insertReview(
       shopId,
       drinkName.trim(),
-      parsed,
+      rating,
       comments.trim(),
       null,
       user ? user.id : null
@@ -218,8 +213,11 @@ export default function InsertReviewPage() {
     // ----------------------------
     // 5. OPTIONAL: CATEGORIES
     // ----------------------------
-    if (shopDrinkId && suggestedCategories.length > 0) {
-      await setShopDrinkCategories(shopDrinkId, suggestedCategories);
+    if (shopDrinkId && selectedCategories.filter(c => c).length > 0) {
+      const categories = zip(allCategories, selectedCategories)
+        .filter(([_, b]) => b)
+        .map(([c, _]) => c);
+      await setShopDrinkCategories(shopDrinkId, categories);
     }
 
     // ----------------------------
@@ -233,87 +231,90 @@ export default function InsertReviewPage() {
     navigate(`/shop/${shopId}`);
     setIsSaving(false);
     reset();
-    setSuggestedCategories([]);
+    setSelectedCategories(cats?.map(() => false) ?? []);
     setMediaArr([]);
   }
 
   return (
-    <Stack gap={2}>
-      <Typography variant='h5' textAlign='center' fontWeight={700}>
-        Add a Review at {shop && shop.name}
-      </Typography>
+    <div className='flex flex-col gap-6 max-w-2xl mx-auto'>
+      <div>
+        <h3 className='text-center font-bold'>
+          Add a Review at {shop && shop.name}
+        </h3>
+        <p className='text-text-secondary text-center'>{shop?.address}</p>
+      </div>
+
+      <StarRating rating={rating} setRating={setRating} />
 
       {/* DRINK NAME */}
-      <TextField
-        {...register('drinkName')}
-        label='Drink Name (required)'
-        onBlur={() => {
-          const inputValue = getValues('drinkName').trim();
-          setSuggestedCategories(suggestCategoriesByKeyword(inputValue));
-        }}
-        fullWidth
-      />
+      <div className='flex flex-col gap-2 items-start'>
+        <label htmlFor='drinkName'>Drink Name (required)</label>
+        <input
+          type='text'
+          className='py-2 px-3 bg-surface-2 border-border-default border rounded-lg w-full xs:w-72'
+          id='drinkName'
+          {...register('drinkName')}
+        />
+      </div>
 
       {/* SUGGESTED CATEGORIES */}
-      {suggestedCategories.length > 0 && (
-        <Stack direction='row' gap={1} flexWrap='wrap'>
-          {suggestedCategories.map(cat => (
-            <Chip
+      {allCategories.length > 0 && (
+        <div className='flex flex-row gap-2'>
+          {allCategories.map((cat, i) => (
+            <button
+              type='button'
               key={cat}
-              label={slugToLabel(cat)}
-              onDelete={() =>
-                setSuggestedCategories(prev => prev.filter(c => c !== cat))
+              id={cat}
+              className={`${selectedCategories[i] ? 'bg-primary-active border-border-on-active' : 'bg-primary-default border-border-defaul'} border text-text-on-primary hover:bg-primary-hover rounded-full px-3 py-0.5 hover:cursor-pointer transition-colors duration-150`}
+              onClick={() =>
+                setSelectedCategories(prev => [
+                  ...prev.slice(0, i),
+                  !prev[i],
+                  ...prev.slice(i + 1),
+                ])
               }
-              variant='outlined'
-              size='small'
-            />
+            >
+              {slugToLabel(cat)}
+            </button>
           ))}
-        </Stack>
+        </div>
       )}
 
-      {/* SHOP NAME (locked) */}
-      <TextField label='Shop' value={shop?.name ?? ''} fullWidth disabled />
+      {/* SHOP NAME (locked and hidden) */}
+      <input type='hidden' value={shop?.name ?? ''} readOnly />
 
       {/* RATING */}
-      <TextField
-        {...register('rating')}
-        type='number'
-        label={`Rating (${RATING_SCALE.MIN} - ${RATING_SCALE.MAX})`}
-        slotProps={{
-          htmlInput: { min: RATING_SCALE.MIN, max: RATING_SCALE.MAX },
-        }}
-        fullWidth
-      />
+      <input {...register('rating')} type='hidden' readOnly value={rating} />
 
       {/* COMMENTS */}
-      <TextField
-        {...register('comments')}
-        label='Comments'
-        fullWidth
-        multiline
-        minRows={4}
-      />
+      <div className='flex flex-col gap-2 items-start'>
+        <label htmlFor='comments'>Comments</label>
+        <textarea
+          className='py-2 px-3 bg-surface-2 border-border-default border rounded-lg max-w-full w-full xs:w-148 min-h-[calc(4lh+1rem+2px)]'
+          id='comments'
+          {...register('comments')}
+        />
+      </div>
 
       {/* MEDIA UPLOAD BUTTON */}
-      <Button
-        variant='outlined'
-        startIcon={<PhotoCameraIcon />}
-        component='label'
-        sx={{ alignSelf: 'flex-start' }}
+      <button
+        className='rounded-full bg-primary-default hover:bg-primary-hover text-text-on-primary py-2 px-4 self-start select-none hover:cursor-pointer transition-colors duration-150'
+        onClick={() => fileInputRef.current?.click()}
       >
         Upload Media
         <input
+          ref={fileInputRef}
           type='file'
           accept='image/*'
           multiple
           hidden
           onChange={e => handleMediaSelect(e.target.files)}
         />
-      </Button>
+      </button>
 
       {/* MEDIA PREVIEW STRIP */}
       {mediaArr.length > 0 && (
-        <Stack direction='row' spacing={2} sx={{ overflowX: 'auto', py: 1 }}>
+        <div className='flex flex-row gap-2 py-1 overflow-x-auto'>
           {mediaArr.map((file, idx) => (
             <Paper
               key={idx}
@@ -344,24 +345,24 @@ export default function InsertReviewPage() {
                 onClick={() => handleRemoveMedia(idx)}
                 sx={{ position: 'absolute', top: 2, right: 2 }}
               >
-                <DeleteIcon fontSize='small' />
+                <RemoveCircleIcon />
               </IconButton>
             </Paper>
           ))}
-        </Stack>
+        </div>
       )}
 
       {/* SUBMIT BUTTON */}
-      <Box display='flex' justifyContent='center'>
-        <Button
-          variant='contained'
+      <div className='flex flex-row justify-center'>
+        <button
+          type='button'
+          className='rounded-full bg-primary-default hover:bg-primary-hover hover:cursor-pointer text-text-on-primary py-2 px-4 self-start select-none transition-colors duration-150'
           onClick={handleSubmitReview}
-          fullWidth
           disabled={isSaving}
         >
           Save Review
-        </Button>
-      </Box>
+        </button>
+      </div>
 
       {/* SNACKBAR */}
       <Snackbar
@@ -377,6 +378,6 @@ export default function InsertReviewPage() {
           {snack.message}
         </Alert>
       </Snackbar>
-    </Stack>
+    </div>
   );
 }
