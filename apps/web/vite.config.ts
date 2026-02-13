@@ -1,5 +1,5 @@
-import path from 'path';
 import tailwindcss from '@tailwindcss/vite';
+import path from 'path';
 
 import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vite';
@@ -12,6 +12,7 @@ export default defineConfig({
     alias: {
       '@cuptrail/core': path.resolve(__dirname, '../../packages/core'),
       '@cuptrail/utils': path.resolve(__dirname, '../../packages/utils'),
+      '@cuptrail/maps-api': path.resolve(__dirname, '../../packages/maps-api'),
     },
     extensions: [
       '.web.tsx',
