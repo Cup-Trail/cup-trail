@@ -24,10 +24,10 @@
  * shape regardless of Apple’s internal response structure.
  */
 
-import type { Geocode, PlaceDetails, Prediction } from '@cuptrail/core';
+import type { AutocompleteResult, Geocode, PlaceDetails } from '@cuptrail/core';
 
-import { getEnv } from './env';
-import { apiGet } from './fetchWrapper';
+import { getEnv } from '../utils/env';
+import { apiGet } from '../utils/fetchWrapper';
 
 const { supabaseUrl } = getEnv();
 const mapsBaseUrl = `${supabaseUrl}/functions/v1/maps`;
@@ -59,7 +59,7 @@ const mapsBaseUrl = `${supabaseUrl}/functions/v1/maps`;
 export async function getAutocomplete(
   input: string,
   userCoordinates?: { latitude: number; longitude: number }
-): Promise<Prediction[]> {
+): Promise<AutocompleteResult[]> {
   if (!input) {
     return [];
   }
@@ -78,26 +78,9 @@ export async function getAutocomplete(
     throw new Error(response.error || `HTTP error! status: ${response.status}`);
   }
 
-  const suggestions = (response.data as any)?.results ?? [];
+  const suggestions = response.data?.results ?? [];
 
-  const results: Prediction[] = suggestions
-    .map((place: any) => {
-      const lines: string[] = place.displayLines ?? [];
-      const name = lines[0] || '';
-      const address = lines[1] || '';
-      const prediction: Prediction = {
-        id: place.id || '',
-        name,
-        address,
-      };
-      return prediction;
-    })
-    .filter(
-      (place: Prediction) =>
-        Boolean(place.id) && Boolean(place.name) && Boolean(place.address)
-    );
-
-  return results;
+  return suggestions;
 }
 
 /**

@@ -1,4 +1,4 @@
-import { renderStars } from '../../utils';
+import { renderStars } from '../../utils/ui';
 
 interface DrinkCardProps {
   drinkName: string;

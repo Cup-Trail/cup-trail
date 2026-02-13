@@ -1,3 +1,23 @@
+export interface AutocompleteResult {
+  id: string;
+  completionUrl: string; // api url
+  displayLines: string[];
+  location: {
+    latitude: number;
+    longitude: number;
+  };
+  structuredAddress: {
+    administrativeArea: string;
+    administrativeAreaCode: string;
+    locality: string;
+    postCode: string;
+    subLocality: string;
+    thoroughfare: string;
+    subThoroughfare: string;
+    fullThoroughfare: string;
+    dependentLocalities: string[];
+  };
+}
 export interface PlaceDetails {
   name: string;
   formattedAddress: string;
