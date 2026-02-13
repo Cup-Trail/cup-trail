@@ -17,7 +17,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 
 import { useCategoriesQuery, useShopIdQuery } from '../queries';
 import type { SnackState } from '../types';
-import { zip } from '../utils';
+import { zip } from '../utils/ui';
 
 import StarRating from './StarRating';
 
@@ -37,7 +37,7 @@ export default function InsertReviewPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [user, setUser] = useState<User | null>(null);
 
-  const shopQueryResult = useShopIdQuery(shopId);
+  const shopQueryResult = useShopIdQuery(shopId ?? '');
   const { data: shop } = shopQueryResult;
 
   const [rating, setRating] = useState<number>(1);

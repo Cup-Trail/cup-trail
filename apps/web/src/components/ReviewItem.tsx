@@ -1,7 +1,7 @@
 import type { ReviewRow } from '@cuptrail/core';
 import { useNavigate } from 'react-router-dom';
 
-import { renderStars } from '../utils';
+import { renderStars } from '../utils/ui';
 
 interface ReviewItemProps {
   item: ReviewRow;
