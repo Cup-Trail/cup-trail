@@ -2,7 +2,6 @@ import type { ReviewRow, ShopDrinkRow } from '@cuptrail/core';
 import AddIcon from '@mui/icons-material/Add';
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-
 import { useAuth } from '../../context/AuthContext';
 import {
   usePopularDrinksQuery,
@@ -10,7 +9,6 @@ import {
   useUserReviewsQuery,
 } from '../../queries';
 import ReviewItem from '../ReviewItem';
-
 import DrinkCard from './DrinkCard';
 
 const STOREFRONT_TAB_VIEWS = {
@@ -32,12 +30,12 @@ const StorefrontPage = () => {
     if (!shopId) navigate('/');
   }, [shopId, navigate]);
 
-  const { data: drinks } = usePopularDrinksQuery({ shopId: shopId ?? '' });
-
-  const shopQueryResult = useShopIdQuery(shopId ?? null);
+  const { data: drinks } = usePopularDrinksQuery(shopId ?? '');
+  const shopQueryResult = useShopIdQuery(shopId ?? '');
   const { data: shop } = shopQueryResult;
 
   useEffect(() => {
+    // no shop data so redirect to home
     if (shopQueryResult.isFetched && !shopQueryResult.data) {
       navigate('/');
     }

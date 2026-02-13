@@ -28,8 +28,10 @@ export interface ShopRow {
   longitude: number;
   image_url: string | null;
   archived: boolean;
-  created_at?: string;
-  updated_at?: string;
+  canonical_key: string | null;
+  apple_place_id: string | null;
+  created_at: string;
+  updated_at: string;
 }
 export interface DrinkRow {
   id: string;
@@ -40,7 +42,6 @@ export interface ShopDrinkRow {
   price: number | null;
   avg_rating: number;
   cover_photo_url: string | null;
-
   drinks: DrinkRow;
   shops: ShopRow;
 }
