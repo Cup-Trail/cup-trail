@@ -1,5 +1,7 @@
 import { supabase } from '@cuptrail/utils';
+
 import { makeCanonicalKey } from '../utils/canonical';
+
 import type { Result, ShopRow } from './types/types';
 
 const SHOPS_TABLE = 'shops';
@@ -83,14 +85,10 @@ export async function getOrInsertShop(
   if (byCanon) {
     // backfill apple_place_id if we learned it later
     if (apple_place_id && !byCanon.apple_place_id) {
-      const { error: backfillErr } = await supabase
+      const { error: _backfillErr } = await supabase
         .from(SHOPS_TABLE)
         .update({ apple_place_id })
         .eq('id', byCanon.id);
-
-      if (backfillErr) {
-        console.warn('Failed to backfill apple_place_id:', backfillErr.message);
-      }
     }
     return { success: true, data: byCanon };
   }

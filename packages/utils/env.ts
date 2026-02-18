@@ -20,6 +20,10 @@ export interface EnvironmentConfig {
   supabaseAnonKey: string;
 }
 
+type EnvValue = string | undefined;
+type EnvMap = Record<string, EnvValue>;
+type ImportMetaWithEnv = ImportMeta & { env?: EnvMap };
+
 /**
  * Get validated environment configuration with platform-aware fallbacks
  * @returns Validated environment configuration object
@@ -30,16 +34,21 @@ export function getEnv(): EnvironmentConfig {
   let supabaseAnonKey = '';
 
   // Try to read from VITE_ (web) first
-  if (typeof import.meta !== 'undefined' && (import.meta as any).env) {
-    supabaseUrl = (import.meta as any).env[ENV_KEYS.SUPABASE_URL.web] || '';
+  const importMetaEnv =
+    typeof import.meta !== 'undefined'
+      ? (import.meta as ImportMetaWithEnv).env
+      : undefined;
+
+  if (importMetaEnv) {
+    supabaseUrl = importMetaEnv[ENV_KEYS.SUPABASE_URL.web] || '';
     supabaseAnonKey =
-      (import.meta as any).env[ENV_KEYS.SUPABASE_PUBLISHABLE_KEY.web] || '';
+      importMetaEnv[ENV_KEYS.SUPABASE_PUBLISHABLE_KEY.web] || '';
   }
   // Fall back to EXPO_PUBLIC_ (mobile)
-  else if (typeof process !== 'undefined' && (process as any).env) {
-    supabaseUrl = (process as any).env[ENV_KEYS.SUPABASE_URL.mobile] || '';
+  else if (typeof process !== 'undefined' && process.env) {
+    supabaseUrl = process.env[ENV_KEYS.SUPABASE_URL.mobile] || '';
     supabaseAnonKey =
-      (process as any).env[ENV_KEYS.SUPABASE_PUBLISHABLE_KEY.mobile] || '';
+      process.env[ENV_KEYS.SUPABASE_PUBLISHABLE_KEY.mobile] || '';
   }
 
   // Validate required variables

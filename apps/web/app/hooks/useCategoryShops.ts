@@ -31,9 +31,10 @@ export function useCategoryShops() {
       if (reqId !== reqIdRef.current) return; // ignore stale response
       setShops(res.success ? res.data : []);
     } finally {
-      if (reqId !== reqIdRef.current) return;
-      setIsLoading(false);
-      setHasFetched(true);
+      if (reqId === reqIdRef.current) {
+        setIsLoading(false);
+        setHasFetched(true);
+      }
     }
   }
 

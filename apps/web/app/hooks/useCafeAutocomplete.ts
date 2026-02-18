@@ -4,6 +4,7 @@ import {
   normalizeAutocompleteResults,
 } from '@cuptrail/maps-api';
 import { useEffect, useState } from 'react';
+
 import { useDebouncedValue } from './useDebouncedValue';
 
 type Props = {
@@ -49,8 +50,9 @@ export function useCafeAutocomplete({
         setItems([]);
         setError('Error getting results. Please try again');
       } finally {
-        if (!alive) return;
-        setLoading(false);
+        if (alive) {
+          setLoading(false);
+        }
       }
     }
 

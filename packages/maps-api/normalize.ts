@@ -3,7 +3,7 @@ export async function normalizeAutocompleteResults(
   results: AutocompleteResult[]
 ): Promise<Prediction[]> {
   const normalized: Prediction[] = results
-    .map((place: any) => {
+    .map(place => {
       const lines: string[] = place.displayLines ?? [];
       const name = lines[0] || '';
       const address = lines[1] || '';

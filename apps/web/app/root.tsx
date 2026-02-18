@@ -16,13 +16,27 @@ export function Layout({ children }: { children: ReactNode }) {
         <meta charSet='utf-8' />
         <meta name='viewport' content='width=device-width, initial-scale=1' />
         <link rel='preconnect' href='https://fonts.googleapis.com' />
-        <link rel='preconnect' href='https://fonts.gstatic.com' crossOrigin='anonymous' />
+        <link
+          rel='preconnect'
+          href='https://fonts.gstatic.com'
+          crossOrigin='anonymous'
+        />
         <link
           href='https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,200..800&display=swap'
           rel='stylesheet'
         />
-        <link rel='icon' type='image/svg+xml' href='/favicon-light.svg' media='(prefers-color-scheme: light)' />
-        <link rel='icon' type='image/svg+xml' href='/favicon-dark.svg' media='(prefers-color-scheme: dark)' />
+        <link
+          rel='icon'
+          type='image/svg+xml'
+          href='/favicon-light.svg'
+          media='(prefers-color-scheme: light)'
+        />
+        <link
+          rel='icon'
+          type='image/svg+xml'
+          href='/favicon-dark.svg'
+          media='(prefers-color-scheme: dark)'
+        />
         <link rel='stylesheet' href={stylesheet} />
         <Meta />
         <Links />

@@ -3,14 +3,14 @@ import AddIcon from '@mui/icons-material/Add';
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router';
 
+import ReviewItem from '../components/ReviewItem';
+import DrinkCard from '../components/StorefrontPage/DrinkCard';
 import { useAuth } from '../context/AuthContext';
 import {
   usePopularDrinksQuery,
   useShopIdQuery,
   useUserReviewsQuery,
 } from '../queries';
-import ReviewItem from '../components/ReviewItem';
-import DrinkCard from '../components/StorefrontPage/DrinkCard';
 
 const STOREFRONT_TAB_VIEWS = {
   PopularDrinks: 'Popular Drinks',

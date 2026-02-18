@@ -14,11 +14,11 @@ import { useEffect, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate, useParams } from 'react-router';
 
+import StarRating from '../components/StarRating';
 import { useAuth } from '../context/AuthContext';
 import { useCategoriesQuery, useShopIdQuery } from '../queries';
 import type { SnackState } from '../types';
 import { zip } from '../utils/ui';
-import StarRating from '../components/StarRating';
 
 export default function InsertReviewRoute() {
   const { data: cats } = useCategoriesQuery();
@@ -176,8 +176,7 @@ export default function InsertReviewRoute() {
           );
           return;
         }
-      } catch (err) {
-        console.error('Media upload failed:', err);
+      } catch {
         setIsSaving(false);
         globalThis.alert(
           'There was an error uploading your media for this review.'
@@ -192,7 +191,6 @@ export default function InsertReviewRoute() {
       });
 
       if (!updateResult.success) {
-        console.error('Failed to update review media:', updateResult.message);
         setIsSaving(false);
         globalThis.alert('There was a problem uploading your review.');
         return;
@@ -209,8 +207,8 @@ export default function InsertReviewRoute() {
 
     if (shopDrinkId && selectedCategories.filter(c => c).length > 0) {
       const categories = zip(allCategories, selectedCategories)
-        .filter(([_, b]) => b)
-        .map(([c, _]) => c);
+        .filter(([, selected]) => selected)
+        .map(([category]) => category);
       await setShopDrinkCategories(shopDrinkId, categories);
     }
 

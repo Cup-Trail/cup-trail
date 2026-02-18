@@ -12,16 +12,16 @@ import SearchIcon from '@mui/icons-material/Search';
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router';
 
+import AutocompleteInput from '../components/AutocompleteInput';
+import ReviewItem from '../components/ReviewItem';
+import CategoryFilters from '../components/SearchPage/CategoryFilters';
+import Hero from '../components/SearchPage/Hero';
 import {
   useCafeAutocomplete,
   useCategoryShops,
   useCityAutocomplete,
 } from '../hooks';
 import { useRecentReviewsQuery } from '../queries';
-import AutocompleteInput from '../components/AutocompleteInput';
-import ReviewItem from '../components/ReviewItem';
-import CategoryFilters from '../components/SearchPage/CategoryFilters';
-import Hero from '../components/SearchPage/Hero';
 
 const CURRENT_LOC_LABEL = 'My current location';
 

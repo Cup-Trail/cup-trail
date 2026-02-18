@@ -1,6 +1,7 @@
 import type { Geocode } from '@cuptrail/core';
 import { getCityCoords } from '@cuptrail/maps-api';
 import { useEffect, useState } from 'react';
+
 import { useDebouncedValue } from './useDebouncedValue';
 
 type Props = {

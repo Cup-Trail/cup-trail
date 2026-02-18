@@ -2,9 +2,9 @@ import { supabase } from '@cuptrail/utils';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
 
+import ReviewItem from '../components/ReviewItem';
 import { useAuth } from '../context/AuthContext';
 import { useUserReviewsQuery } from '../queries';
-import ReviewItem from '../components/ReviewItem';
 
 export default function ProfileRoute() {
   const navigate = useNavigate();
@@ -47,7 +47,7 @@ export default function ProfileRoute() {
     setSaving(false);
 
     if (error) {
-      console.error('Failed to update display name:', error);
+      globalThis.alert('Failed to update display name. Please try again.');
       return;
     }
     setEditing(false);
