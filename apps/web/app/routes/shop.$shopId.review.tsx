@@ -8,7 +8,7 @@ import {
   updateShopDrinkCoverFromMedia,
 } from '@cuptrail/core';
 import { getUser, slugToLabel } from '@cuptrail/utils';
-import { uploadReviewMedia } from '@cuptrail/utils/storage'; // ⭐ make sure the path matches your setup
+import { uploadReviewMedia } from '@cuptrail/utils/storage';
 import RemoveCircleIcon from '@mui/icons-material/RemoveCircle';
 import { Alert, IconButton, Paper, Snackbar } from '@mui/material';
 import { useEffect, useRef, useState } from 'react';
@@ -18,10 +18,9 @@ import { useNavigate, useParams } from 'react-router';
 import { useCategoriesQuery, useShopIdQuery } from '../queries';
 import type { SnackState } from '../types';
 import { zip } from '../utils/ui';
+import StarRating from '../components/StarRating';
 
-import StarRating from './StarRating';
-
-export default function InsertReviewPage() {
+export default function InsertReviewRoute() {
   const { data: cats } = useCategoriesQuery();
   const { shopId } = useParams<{ shopId: string }>();
   const navigate = useNavigate();
@@ -72,12 +71,10 @@ export default function InsertReviewPage() {
 
   const [mediaArr, setMediaArr] = useState<File[]>([]);
 
-  // Remove one photo
   const handleRemoveMedia = (index: number) => {
     setMediaArr(prev => prev.filter((_, i) => i !== index));
   };
 
-  // Select photos
   const handleMediaSelect = (files: FileList | null) => {
     if (!files) return;
     const newFiles = Array.from(files);
@@ -88,7 +85,6 @@ export default function InsertReviewPage() {
     const { drinkName, comments } = getValues();
     setIsSaving(true);
 
-    // ------- VALIDATION -------
     if (!drinkName.trim()) {
       setSnack({
         open: true,
@@ -121,9 +117,6 @@ export default function InsertReviewPage() {
 
     if (!shopId) return;
 
-    // ----------------------------
-    // 1. INSERT REVIEW (TEXT + RATING ONLY)
-    // ----------------------------
     const reviewResult = await insertReview(
       shopId,
       drinkName.trim(),
@@ -148,9 +141,6 @@ export default function InsertReviewPage() {
 
     const uploadedUrls: string[] = [];
 
-    // ----------------------------
-    // 2. UPLOAD MEDIA
-    // ----------------------------
     for (const file of mediaArr) {
       try {
         const buffer = await file.arrayBuffer();
@@ -183,9 +173,6 @@ export default function InsertReviewPage() {
       }
     }
 
-    // ----------------------------
-    // 3. UPDATE REVIEW MEDIA (NON-FATAL)
-    // ----------------------------
     if (uploadedUrls.length > 0) {
       const updateResult = await updateReview(reviewId, {
         media_urls: uploadedUrls,
@@ -203,16 +190,10 @@ export default function InsertReviewPage() {
       }
     }
 
-    // ----------------------------
-    // 4. UPDATE AVG RATING (ONCE)
-    // ----------------------------
     if (shopDrinkId) {
       await calculateAndUpdateAvgRating(shopDrinkId);
     }
 
-    // ----------------------------
-    // 5. OPTIONAL: CATEGORIES
-    // ----------------------------
     if (shopDrinkId && selectedCategories.filter(c => c).length > 0) {
       const categories = zip(allCategories, selectedCategories)
         .filter(([_, b]) => b)
@@ -220,9 +201,6 @@ export default function InsertReviewPage() {
       await setShopDrinkCategories(shopDrinkId, categories);
     }
 
-    // ----------------------------
-    // 6. SUCCESS + RESET
-    // ----------------------------
     setSnack({
       open: true,
       message: 'Review added successfully!',
@@ -246,7 +224,6 @@ export default function InsertReviewPage() {
 
       <StarRating rating={rating} setRating={setRating} />
 
-      {/* DRINK NAME */}
       <div className='flex flex-col gap-2 items-start'>
         <label htmlFor='drinkName'>Drink Name (required)</label>
         <input
@@ -257,7 +234,6 @@ export default function InsertReviewPage() {
         />
       </div>
 
-      {/* SUGGESTED CATEGORIES */}
       {allCategories.length > 0 && (
         <div className='flex flex-row gap-2'>
           {allCategories.map((cat, i) => (
@@ -280,13 +256,9 @@ export default function InsertReviewPage() {
         </div>
       )}
 
-      {/* SHOP NAME (locked and hidden) */}
       <input type='hidden' value={shop?.name ?? ''} readOnly />
-
-      {/* RATING */}
       <input {...register('rating')} type='hidden' readOnly value={rating} />
 
-      {/* COMMENTS */}
       <div className='flex flex-col gap-2 items-start'>
         <label htmlFor='comments'>Comments</label>
         <textarea
@@ -296,7 +268,6 @@ export default function InsertReviewPage() {
         />
       </div>
 
-      {/* MEDIA UPLOAD BUTTON */}
       <button
         className='rounded-full bg-primary-default hover:bg-primary-hover text-text-on-primary py-2 px-4 self-start select-none hover:cursor-pointer transition-colors duration-150'
         onClick={() => fileInputRef.current?.click()}
@@ -312,7 +283,6 @@ export default function InsertReviewPage() {
         />
       </button>
 
-      {/* MEDIA PREVIEW STRIP */}
       {mediaArr.length > 0 && (
         <div className='flex flex-row gap-2 py-1 overflow-x-auto'>
           {mediaArr.map((file, idx) => (
@@ -352,7 +322,6 @@ export default function InsertReviewPage() {
         </div>
       )}
 
-      {/* SUBMIT BUTTON */}
       <div className='flex flex-row justify-center'>
         <button
           type='button'
@@ -364,7 +333,6 @@ export default function InsertReviewPage() {
         </button>
       </div>
 
-      {/* SNACKBAR */}
       <Snackbar
         open={snack.open}
         autoHideDuration={3000}

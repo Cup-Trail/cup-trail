@@ -2,14 +2,15 @@ import type { ReviewRow, ShopDrinkRow } from '@cuptrail/core';
 import AddIcon from '@mui/icons-material/Add';
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router';
-import { useAuth } from '../../context/AuthContext';
+
+import { useAuth } from '../context/AuthContext';
 import {
   usePopularDrinksQuery,
   useShopIdQuery,
   useUserReviewsQuery,
-} from '../../queries';
-import ReviewItem from '../ReviewItem';
-import DrinkCard from './DrinkCard';
+} from '../queries';
+import ReviewItem from '../components/ReviewItem';
+import DrinkCard from '../components/StorefrontPage/DrinkCard';
 
 const STOREFRONT_TAB_VIEWS = {
   PopularDrinks: 'Popular Drinks',
@@ -19,7 +20,7 @@ const STOREFRONT_TAB_VIEWS = {
 const TABS = ['Popular Drinks', 'My Drinks'] as const;
 type Tab = (typeof TABS)[number];
 
-const StorefrontPage = () => {
+export default function StorefrontRoute() {
   const { shopId } = useParams();
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
@@ -35,7 +36,6 @@ const StorefrontPage = () => {
   const { data: shop } = shopQueryResult;
 
   useEffect(() => {
-    // no shop data so redirect to home
     if (shopQueryResult.isFetched && !shopQueryResult.data) {
       navigate('/');
     }
@@ -164,6 +164,4 @@ const StorefrontPage = () => {
       )}
     </div>
   );
-};
-
-export default StorefrontPage;
+}

@@ -12,21 +12,20 @@ import SearchIcon from '@mui/icons-material/Search';
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router';
 
-import { useRecentReviewsQuery } from '../../queries';
-import AutocompleteInput from '../AutocompleteInput';
-import ReviewItem from '../ReviewItem';
-import CategoryFilters from './CategoryFilters';
-import Hero from './Hero';
-
 import {
   useCafeAutocomplete,
   useCategoryShops,
   useCityAutocomplete,
-} from '../../hooks';
+} from '../hooks';
+import { useRecentReviewsQuery } from '../queries';
+import AutocompleteInput from '../components/AutocompleteInput';
+import ReviewItem from '../components/ReviewItem';
+import CategoryFilters from '../components/SearchPage/CategoryFilters';
+import Hero from '../components/SearchPage/Hero';
 
 const CURRENT_LOC_LABEL = 'My current location';
 
-export default function SearchPage() {
+export default function SearchRoute() {
   const navigate = useNavigate();
 
   const [searchInput, setSearchInput] = useState('');
@@ -157,7 +156,7 @@ export default function SearchPage() {
 
       const shopId = result.data.id;
       navigate(`/shop/${encodeURIComponent(shopId)}`);
-    } catch (e) {
+    } catch {
       setSelectError('Something went wrong. Please try again.');
     } finally {
       setSelecting(false);
@@ -179,7 +178,6 @@ export default function SearchPage() {
     }
   }
 
-  // If user clears location input, also clear coords/state
   useEffect(() => {
     if (!locationInput.trim()) resetLocationState();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -285,8 +283,8 @@ export default function SearchPage() {
             value={locationInput}
             onChange={next => {
               setLocationInput(next);
-              setIsUsingCurrentLocation(false); // typing cancels “current location” mode
-              if (!next.trim()) return; // effect handles resets
+              setIsUsingCurrentLocation(false);
+              if (!next.trim()) return;
             }}
             items={citySuggestions}
             openWhenEmpty={false}

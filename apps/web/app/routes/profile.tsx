@@ -4,10 +4,9 @@ import { useNavigate } from 'react-router';
 
 import { useAuth } from '../context/AuthContext';
 import { useUserReviewsQuery } from '../queries';
+import ReviewItem from '../components/ReviewItem';
 
-import ReviewItem from './ReviewItem';
-
-export default function ProfilePage() {
+export default function ProfileRoute() {
   const navigate = useNavigate();
   const { signOut, user, loading: authLoading } = useAuth();
 
