@@ -1,4 +1,3 @@
-import type { User } from '@cuptrail/core';
 import {
   calculateAndUpdateAvgRating,
   insertReview,
@@ -7,7 +6,7 @@ import {
   updateReview,
   updateShopDrinkCoverFromMedia,
 } from '@cuptrail/core';
-import { getUser, slugToLabel } from '@cuptrail/utils';
+import { slugToLabel } from '@cuptrail/utils';
 import { uploadReviewMedia } from '@cuptrail/utils/storage';
 import RemoveCircleIcon from '@mui/icons-material/RemoveCircle';
 import { Alert, IconButton, Paper, Snackbar } from '@mui/material';
@@ -15,6 +14,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate, useParams } from 'react-router';
 
+import { useAuth } from '../context/AuthContext';
 import { useCategoriesQuery, useShopIdQuery } from '../queries';
 import type { SnackState } from '../types';
 import { zip } from '../utils/ui';
@@ -24,6 +24,7 @@ export default function InsertReviewRoute() {
   const { data: cats } = useCategoriesQuery();
   const { shopId } = useParams<{ shopId: string }>();
   const navigate = useNavigate();
+  const { user, loading: authLoading } = useAuth();
 
   useEffect(() => {
     if (!cats || !cats.length) setAllCategories([]);
@@ -34,7 +35,6 @@ export default function InsertReviewRoute() {
   }, [cats]);
 
   const [isSaving, setIsSaving] = useState(false);
-  const [user, setUser] = useState<User | null>(null);
 
   const shopQueryResult = useShopIdQuery(shopId ?? '');
   const { data: shop } = shopQueryResult;
@@ -47,10 +47,6 @@ export default function InsertReviewRoute() {
       navigate('/');
     }
   }, [shopQueryResult, navigate]);
-
-  useEffect(() => {
-    getUser().then(res => setUser(res));
-  }, []);
 
   const { register, getValues, reset } = useForm({
     defaultValues: {
@@ -82,6 +78,15 @@ export default function InsertReviewRoute() {
   };
 
   async function handleSubmitReview() {
+    if (authLoading || !user) {
+      setSnack({
+        open: true,
+        message: 'Please sign in to submit a review.',
+        severity: 'error',
+      });
+      return;
+    }
+
     const { drinkName, comments } = getValues();
     setIsSaving(true);
 
@@ -115,7 +120,15 @@ export default function InsertReviewRoute() {
       return;
     }
 
-    if (!shopId) return;
+    if (!shopId) {
+      setSnack({
+        open: true,
+        message: 'Missing shop. Please return to the shop page.',
+        severity: 'error',
+      });
+      setIsSaving(false);
+      return;
+    }
 
     const reviewResult = await insertReview(
       shopId,
@@ -129,7 +142,7 @@ export default function InsertReviewRoute() {
     if (!reviewResult.success) {
       setSnack({
         open: true,
-        message: 'Failed to add review.',
+        message: reviewResult.message ?? 'Failed to add review.',
         severity: 'error',
       });
       setIsSaving(false);
@@ -327,7 +340,7 @@ export default function InsertReviewRoute() {
           type='button'
           className='rounded-full bg-primary-default hover:bg-primary-hover hover:cursor-pointer text-text-on-primary py-2 px-4 self-start select-none transition-colors duration-150'
           onClick={handleSubmitReview}
-          disabled={isSaving}
+          disabled={authLoading || !user || isSaving}
         >
           Save Review
         </button>
