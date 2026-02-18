@@ -126,6 +126,9 @@ importers:
       '@mui/material':
         specifier: ^7.3.8
         version: 7.3.8(@emotion/react@11.14.0(@types/react@19.2.14)(react@19.0.0))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.2.14)(react@19.0.0))(@types/react@19.2.14)(react@19.0.0))(@types/react@19.2.14)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
+      '@react-router/node':
+        specifier: ^7.13.0
+        version: 7.13.0(react-router@7.13.0(react-dom@19.0.0(react@19.0.0))(react@19.0.0))(typescript@5.9.3)
       '@supabase/supabase-js':
         specifier: ^2.96.0
         version: 2.96.0
@@ -138,6 +141,9 @@ importers:
       '@tanstack/react-query-devtools':
         specifier: ^5.91.3
         version: 5.91.3(@tanstack/react-query@5.90.21(react@19.0.0))(react@19.0.0)
+      isbot:
+        specifier: ^5
+        version: 5.1.35
       react:
         specifier: 19.0.0
         version: 19.0.0

@@ -5,6 +5,6 @@
     "composite": true,
     "rootDir": "../../"
   },
-  "include": ["./**/*", "../core/**/*"],
+  "include": ["./**/*", "../core/**/*", "../utils/**/*"],
   "exclude": ["node_modules", "dist"]
 }
