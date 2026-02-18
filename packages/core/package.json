@@ -9,9 +9,8 @@
     "lint:fix": "eslint . --ext .ts,.tsx --fix",
     "typecheck": "tsc --noEmit"
   },
-  "dependencies": {},
   "devDependencies": {
-    "typescript": "^5.8.0",
-    "@types/node": "^20.0.0"
+    "@types/node": "^20.19.33",
+    "typescript": "^5.9.3"
   }
 }

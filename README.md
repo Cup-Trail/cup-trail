@@ -137,7 +137,7 @@ cd cup-trail
 
 Prerequisites:
 
-- Node 18+
+- Node 20.19+ (or newer)
 - pnpm 10+
 - Supabase project (URL + anon key)
 

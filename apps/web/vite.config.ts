@@ -1,12 +1,12 @@
 import tailwindcss from '@tailwindcss/vite';
 import path from 'path';
 
-import react from '@vitejs/plugin-react';
+import { reactRouter } from '@react-router/dev/vite';
 import { defineConfig } from 'vite';
 
 export default defineConfig({
   base: process.env.VITE_BASE || '/',
-  plugins: [react(), tailwindcss()],
+  plugins: [reactRouter(), tailwindcss()],
   envPrefix: ['VITE_', 'EXPO_PUBLIC_'],
   resolve: {
     alias: {

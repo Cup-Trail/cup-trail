@@ -3,8 +3,8 @@
   "compilerOptions": {
     "lib": ["ES2020", "DOM"],
     "moduleSuffixes": [".web", ""],
-    "types": ["vite/client"]
+    "types": ["vite/client", "node"]
   },
-  "include": ["src", "vite-env.d.ts"],
+  "include": ["app"],
   "exclude": ["node_modules", "dist"]
 }

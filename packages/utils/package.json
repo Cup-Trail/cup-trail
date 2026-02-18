@@ -11,7 +11,7 @@
   },
   "dependencies": {
     "@cuptrail/core": "workspace:*",
-    "@supabase/supabase-js": "^2.55.0"
+    "@supabase/supabase-js": "^2.96.0"
   },
   "devDependencies": {
     "typescript": "~5.8.3"
