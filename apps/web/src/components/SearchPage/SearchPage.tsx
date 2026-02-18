@@ -10,7 +10,7 @@ import LocationOnOutlinedIcon from '@mui/icons-material/LocationOnOutlined';
 import MyLocationIcon from '@mui/icons-material/MyLocation';
 import SearchIcon from '@mui/icons-material/Search';
 import { useEffect, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 
 import { useRecentReviewsQuery } from '../../queries';
 import AutocompleteInput from '../AutocompleteInput';

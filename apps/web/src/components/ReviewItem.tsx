@@ -1,5 +1,5 @@
 import type { ReviewRow } from '@cuptrail/core';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 
 import { renderStars } from '../utils/ui';
 

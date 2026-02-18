@@ -1,6 +1,6 @@
 import { supabase } from '@cuptrail/utils';
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 
 import { useAuth } from '../context/AuthContext';
 import { useUserReviewsQuery } from '../queries';

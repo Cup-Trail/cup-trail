@@ -13,7 +13,7 @@ import RemoveCircleIcon from '@mui/icons-material/RemoveCircle';
 import { Alert, IconButton, Paper, Snackbar } from '@mui/material';
 import { useEffect, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router';
 
 import { useCategoriesQuery, useShopIdQuery } from '../queries';
 import type { SnackState } from '../types';
