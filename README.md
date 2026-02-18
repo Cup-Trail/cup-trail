@@ -43,7 +43,7 @@ Planned
 
 ## Tech Stack
 
-- Web (mobile-friendly): React + Vite
+- Web (mobile-friendly): React Router Framework mode + Vite
 - Mobile (temporarily paused): React Native (Expo) 
 - Backend: Supabase (PostgreSQL, Auth, Storage, Edge Functions)
 - APIs: Apple Maps Server API
@@ -54,12 +54,14 @@ Planned
 ```
 cup-trail/
 ├─ apps/
-│  ├─ web/                           # React + Vite web app (mobile-friendly)
-│  │  ├─ src/
-│  │  │  ├─ components/              # web-only UI components (Tailwind, etc.)
+│  ├─ web/                           # React Router web app (mobile-friendly)
+│  │  ├─ app/
+│  │  │  ├─ routes/                  # file-based routes
+│  │  │  ├─ components/              # web UI components
 │  │  │  ├─ queries/                 # cached queries
-│  │  │  └─ App.tsx                  # router entry / layout
+│  │  │  └─ root.tsx                 # root document layout
 │  │  ├─ public/                     # favicons, static assets
+│  │  ├─ react-router.config.ts      # framework mode config
 │  │  ├─ vite.config.ts
 │  │  └─ tsconfig.json
 │  └─ mobile/                        # Expo (React Native) app (paused)
@@ -167,7 +169,7 @@ VITE_SUPABASE_PUBLISHABLE_KEY=your-supabase-publishable-key
 - mobile: `pnpm run dev:mobile`
 - web: `pnpm run dev:web`
 
-5. **Run linter**
+5. **Run checks**
    From repo root:
 
 - Lint all: `pnpm lint`
