@@ -126,9 +126,6 @@ importers:
       '@mui/material':
         specifier: ^7.3.8
         version: 7.3.8(@emotion/react@11.14.0(@types/react@19.2.14)(react@19.0.0))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.2.14)(react@19.0.0))(@types/react@19.2.14)(react@19.0.0))(@types/react@19.2.14)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
-      '@react-router/node':
-        specifier: ^7.13.0
-        version: 7.13.0(react-router@7.13.0(react-dom@19.0.0(react@19.0.0))(react@19.0.0))(typescript@5.9.3)
       '@supabase/supabase-js':
         specifier: ^2.96.0
         version: 2.96.0
@@ -141,9 +138,6 @@ importers:
       '@tanstack/react-query-devtools':
         specifier: ^5.91.3
         version: 5.91.3(@tanstack/react-query@5.90.21(react@19.0.0))(react@19.0.0)
-      isbot:
-        specifier: ^5
-        version: 5.1.35
       react:
         specifier: 19.0.0
         version: 19.0.0
@@ -153,9 +147,6 @@ importers:
       react-hook-form:
         specifier: ^7.71.1
         version: 7.71.1(react@19.0.0)
-      react-idle-timer:
-        specifier: ^5.7.2
-        version: 5.7.2(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
       react-router:
         specifier: ^7.13.0
         version: 7.13.0(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
@@ -4410,12 +4401,6 @@ packages:
     engines: {node: '>=18.0.0'}
     peerDependencies:
       react: ^16.8.0 || ^17 || ^18 || ^19
-
-  react-idle-timer@5.7.2:
-    resolution: {integrity: sha512-+BaPfc7XEUU5JFkwZCx6fO1bLVK+RBlFH+iY4X34urvIzZiZINP6v2orePx3E6pAztJGE7t4DzvL7if2SL/0GQ==}
-    peerDependencies:
-      react: '>=16'
-      react-dom: '>=16'
 
   react-is@16.13.1:
     resolution: {integrity: sha512-24e6ynE2H+OKt4kqsOvNd8kBpV65zoxbA4BVsEOB3ARVWQki/DHzaUoC5KuON/BiccDaCCTZBuOcfZs70kR8bQ==}
@@ -10160,11 +10145,6 @@ snapshots:
   react-hook-form@7.71.1(react@19.0.0):
     dependencies:
       react: 19.0.0
-
-  react-idle-timer@5.7.2(react-dom@19.0.0(react@19.0.0))(react@19.0.0):
-    dependencies:
-      react: 19.0.0
-      react-dom: 19.0.0(react@19.0.0)
 
   react-is@16.13.1: {}
 
