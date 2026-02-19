@@ -23,7 +23,7 @@ export default function Nav() {
         <div className='w-full flex items-center justify-end gap-2'>
           {user ? (
             <Link
-              to='../profile'
+              to='/profile'
               className='h-9 w-9 rounded-full grid place-items-center font-semibold text-text-on-primary bg-white/10 hover:bg-white/15 no-underline'
             >
               {user.user_metadata.display_name[0].toUpperCase()}
@@ -31,7 +31,7 @@ export default function Nav() {
           ) : (
             <>
               <Link
-                to='../auth'
+                to='/auth'
                 className='rounded-full px-4 py-1.5 text-sm bg-primary-default text-text-on-primary border border-border-on-active hover:bg-primary-hover no-underline transition-colors duration-150'
               >
                 Log in
