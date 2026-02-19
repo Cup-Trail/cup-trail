@@ -18,7 +18,7 @@ import StarRating from '../components/StarRating';
 import { useAuth } from '../context/AuthContext';
 import { useCategoriesQuery, useShopIdQuery } from '../queries';
 import type { SnackState } from '../types';
-import { zip } from '../utils/ui';
+import { zip } from '../utils/functions';
 
 export default function InsertReviewRoute() {
   const { data: cats } = useCategoriesQuery();
