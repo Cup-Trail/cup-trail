@@ -5,6 +5,7 @@
     "source.organizeImports": "explicit"
   },
   "editor.formatOnSave": true,
+  "prettier.prettierPath": "./node_modules/prettier",
   "eslint.validate": [
     "javascript",
     "javascriptreact",

@@ -27,6 +27,10 @@ module.exports = [
       // Generated files
       '**/*.d.ts',
       '**/*.generated.*',
+      '.react-router/',
+      '.react-router-dev/',
+      '**/.react-router/**',
+      '**/.react-router-dev/**',
 
       // Environment files
       '.env',
@@ -114,6 +118,8 @@ module.exports = [
       '@typescript-eslint/explicit-module-boundary-types': 'off',
       // Use TypeScript for undefined checks; this rule doesn't understand TS types
       'no-undef': 'off',
+      // Disabled for TS files; handled by unused-imports rules below.
+      'no-unused-vars': 'off',
 
       // React specific rules
       'react/react-in-jsx-scope': 'off', // Not needed in React 17+

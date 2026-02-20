@@ -6,6 +6,11 @@ node_modules/
 # Expo
 .expo/
 dist/
+build/
+apps/web/.react-router/
+apps/web/.react-router-dev/
+.react-router/
+.react-router-dev/
 web-build/
 expo-env.d.ts
 

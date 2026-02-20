@@ -24,20 +24,20 @@ jobs:
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
-          version: 10.28.0
+          version: 10.30.0
           run_install: false
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 20.19.0
           cache: 'pnpm'
           cache-dependency-path: pnpm-lock.yaml
 
       - name: Install dependencies (workspace)
         run: pnpm install --frozen-lockfile --prefer-offline
 
-      - name: Build @cuptrail/web (Vite) for Pages
+      - name: Build @cuptrail/web for Pages
         working-directory: apps/web
         env:
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
@@ -48,14 +48,14 @@ jobs:
           echo "Using base: $VITE_BASE"
           pnpm build
           # SPA fallback + Pages quirks
-          touch dist/.nojekyll
-          cp dist/index.html dist/404.html
-          sed -n '1,120p' dist/index.html
+          touch build/client/.nojekyll
+          cp build/client/index.html build/client/404.html
+          sed -n '1,120p' build/client/index.html
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: apps/web/dist
+          path: apps/web/build/client
 
   deploy:
     environment:

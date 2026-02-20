@@ -5,7 +5,7 @@ export interface FetchOptions extends RequestInit {
   customHeaders?: Record<string, string>;
 }
 
-export interface ApiResponse<T = any> {
+export interface ApiResponse<T = unknown> {
   data?: T;
   error?: string;
   status: number;
@@ -18,7 +18,7 @@ export interface ApiResponse<T = any> {
  * @param options - Fetch options including custom headers and auth settings
  * @returns Promise with standardized API response
  */
-export async function apiFetch<T = any>(
+export async function apiFetch<T = unknown>(
   url: string,
   options: FetchOptions = {}
 ): Promise<ApiResponse<T>> {
@@ -62,15 +62,18 @@ export async function apiFetch<T = any>(
     if (response.ok) {
       try {
         const data = await response.json();
-        responseData.data = data;
+        responseData.data = data as T;
       } catch {
         // If response is not JSON, try to get text
         const text = await response.text();
-        responseData.data = text as any;
+        responseData.data = text as T;
       }
     } else {
       try {
-        const errorData = await response.json();
+        const errorData = (await response.json()) as {
+          error?: string;
+          message?: string;
+        };
         responseData.error =
           errorData.error || errorData.message || `HTTP ${response.status}`;
       } catch {
@@ -91,7 +94,7 @@ export async function apiFetch<T = any>(
 /**
  * Convenience method for GET requests
  */
-export async function apiGet<T = any>(
+export async function apiGet<T = unknown>(
   url: string,
   options: Omit<FetchOptions, 'method'> = {}
 ): Promise<ApiResponse<T>> {
@@ -101,9 +104,9 @@ export async function apiGet<T = any>(
 /**
  * Convenience method for POST requests
  */
-export async function apiPost<T = any>(
+export async function apiPost<T = unknown>(
   url: string,
-  body?: any,
+  body?: unknown,
   options: Omit<FetchOptions, 'method' | 'body'> = {}
 ): Promise<ApiResponse<T>> {
   return apiFetch<T>(url, {
@@ -116,9 +119,9 @@ export async function apiPost<T = any>(
 /**
  * Convenience method for PUT requests
  */
-export async function apiPut<T = any>(
+export async function apiPut<T = unknown>(
   url: string,
-  body?: any,
+  body?: unknown,
   options: Omit<FetchOptions, 'method' | 'body'> = {}
 ): Promise<ApiResponse<T>> {
   return apiFetch<T>(url, {
@@ -131,7 +134,7 @@ export async function apiPut<T = any>(
 /**
  * Convenience method for DELETE requests
  */
-export async function apiDelete<T = any>(
+export async function apiDelete<T = unknown>(
   url: string,
   options: Omit<FetchOptions, 'method'> = {}
 ): Promise<ApiResponse<T>> {
@@ -141,9 +144,9 @@ export async function apiDelete<T = any>(
 /**
  * Convenience method for PATCH requests
  */
-export async function apiPatch<T = any>(
+export async function apiPatch<T = unknown>(
   url: string,
-  body?: any,
+  body?: unknown,
   options: Omit<FetchOptions, 'method' | 'body'> = {}
 ): Promise<ApiResponse<T>> {
   return apiFetch<T>(url, {

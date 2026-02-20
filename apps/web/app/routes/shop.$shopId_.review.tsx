@@ -1,4 +1,3 @@
-import type { User } from '@cuptrail/core';
 import {
   calculateAndUpdateAvgRating,
   insertReview,
@@ -7,24 +6,25 @@ import {
   updateReview,
   updateShopDrinkCoverFromMedia,
 } from '@cuptrail/core';
-import { getUser, slugToLabel } from '@cuptrail/utils';
-import { uploadReviewMedia } from '@cuptrail/utils/storage'; // ⭐ make sure the path matches your setup
+import { slugToLabel } from '@cuptrail/utils';
+import { uploadReviewMedia } from '@cuptrail/utils/storage';
 import RemoveCircleIcon from '@mui/icons-material/RemoveCircle';
 import { Alert, IconButton, Paper, Snackbar } from '@mui/material';
 import { useEffect, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router';
 
+import StarRating from '../components/StarRating';
+import { useAuth } from '../context/AuthContext';
 import { useCategoriesQuery, useShopIdQuery } from '../queries';
 import type { SnackState } from '../types';
-import { zip } from '../utils';
+import { zip } from '../utils/functions';
 
-import StarRating from './StarRating';
-
-export default function InsertReviewPage() {
+export default function InsertReviewRoute() {
   const { data: cats } = useCategoriesQuery();
   const { shopId } = useParams<{ shopId: string }>();
   const navigate = useNavigate();
+  const { user, loading: authLoading } = useAuth();
 
   useEffect(() => {
     if (!cats || !cats.length) setAllCategories([]);
@@ -35,9 +35,8 @@ export default function InsertReviewPage() {
   }, [cats]);
 
   const [isSaving, setIsSaving] = useState(false);
-  const [user, setUser] = useState<User | null>(null);
 
-  const shopQueryResult = useShopIdQuery(shopId);
+  const shopQueryResult = useShopIdQuery(shopId ?? '');
   const { data: shop } = shopQueryResult;
 
   const [rating, setRating] = useState<number>(1);
@@ -48,10 +47,6 @@ export default function InsertReviewPage() {
       navigate('/');
     }
   }, [shopQueryResult, navigate]);
-
-  useEffect(() => {
-    getUser().then(res => setUser(res));
-  }, []);
 
   const { register, getValues, reset } = useForm({
     defaultValues: {
@@ -72,12 +67,10 @@ export default function InsertReviewPage() {
 
   const [mediaArr, setMediaArr] = useState<File[]>([]);
 
-  // Remove one photo
   const handleRemoveMedia = (index: number) => {
     setMediaArr(prev => prev.filter((_, i) => i !== index));
   };
 
-  // Select photos
   const handleMediaSelect = (files: FileList | null) => {
     if (!files) return;
     const newFiles = Array.from(files);
@@ -85,10 +78,18 @@ export default function InsertReviewPage() {
   };
 
   async function handleSubmitReview() {
+    if (authLoading || !user) {
+      setSnack({
+        open: true,
+        message: 'Please sign in to submit a review.',
+        severity: 'error',
+      });
+      return;
+    }
+
     const { drinkName, comments } = getValues();
     setIsSaving(true);
 
-    // ------- VALIDATION -------
     if (!drinkName.trim()) {
       setSnack({
         open: true,
@@ -119,11 +120,16 @@ export default function InsertReviewPage() {
       return;
     }
 
-    if (!shopId) return;
+    if (!shopId) {
+      setSnack({
+        open: true,
+        message: 'Missing shop. Please return to the shop page.',
+        severity: 'error',
+      });
+      setIsSaving(false);
+      return;
+    }
 
-    // ----------------------------
-    // 1. INSERT REVIEW (TEXT + RATING ONLY)
-    // ----------------------------
     const reviewResult = await insertReview(
       shopId,
       drinkName.trim(),
@@ -136,7 +142,7 @@ export default function InsertReviewPage() {
     if (!reviewResult.success) {
       setSnack({
         open: true,
-        message: 'Failed to add review.',
+        message: reviewResult.message ?? 'Failed to add review.',
         severity: 'error',
       });
       setIsSaving(false);
@@ -148,9 +154,6 @@ export default function InsertReviewPage() {
 
     const uploadedUrls: string[] = [];
 
-    // ----------------------------
-    // 2. UPLOAD MEDIA
-    // ----------------------------
     for (const file of mediaArr) {
       try {
         const buffer = await file.arrayBuffer();
@@ -173,8 +176,7 @@ export default function InsertReviewPage() {
           );
           return;
         }
-      } catch (err) {
-        console.error('Media upload failed:', err);
+      } catch {
         setIsSaving(false);
         globalThis.alert(
           'There was an error uploading your media for this review.'
@@ -183,16 +185,12 @@ export default function InsertReviewPage() {
       }
     }
 
-    // ----------------------------
-    // 3. UPDATE REVIEW MEDIA (NON-FATAL)
-    // ----------------------------
     if (uploadedUrls.length > 0) {
       const updateResult = await updateReview(reviewId, {
         media_urls: uploadedUrls,
       });
 
       if (!updateResult.success) {
-        console.error('Failed to update review media:', updateResult.message);
         setIsSaving(false);
         globalThis.alert('There was a problem uploading your review.');
         return;
@@ -203,26 +201,17 @@ export default function InsertReviewPage() {
       }
     }
 
-    // ----------------------------
-    // 4. UPDATE AVG RATING (ONCE)
-    // ----------------------------
     if (shopDrinkId) {
       await calculateAndUpdateAvgRating(shopDrinkId);
     }
 
-    // ----------------------------
-    // 5. OPTIONAL: CATEGORIES
-    // ----------------------------
     if (shopDrinkId && selectedCategories.filter(c => c).length > 0) {
       const categories = zip(allCategories, selectedCategories)
-        .filter(([_, b]) => b)
-        .map(([c, _]) => c);
+        .filter(([, selected]) => selected)
+        .map(([category]) => category);
       await setShopDrinkCategories(shopDrinkId, categories);
     }
 
-    // ----------------------------
-    // 6. SUCCESS + RESET
-    // ----------------------------
     setSnack({
       open: true,
       message: 'Review added successfully!',
@@ -246,7 +235,6 @@ export default function InsertReviewPage() {
 
       <StarRating rating={rating} setRating={setRating} />
 
-      {/* DRINK NAME */}
       <div className='flex flex-col gap-2 items-start'>
         <label htmlFor='drinkName'>Drink Name (required)</label>
         <input
@@ -257,7 +245,6 @@ export default function InsertReviewPage() {
         />
       </div>
 
-      {/* SUGGESTED CATEGORIES */}
       {allCategories.length > 0 && (
         <div className='flex flex-row gap-2'>
           {allCategories.map((cat, i) => (
@@ -280,13 +267,9 @@ export default function InsertReviewPage() {
         </div>
       )}
 
-      {/* SHOP NAME (locked and hidden) */}
       <input type='hidden' value={shop?.name ?? ''} readOnly />
-
-      {/* RATING */}
       <input {...register('rating')} type='hidden' readOnly value={rating} />
 
-      {/* COMMENTS */}
       <div className='flex flex-col gap-2 items-start'>
         <label htmlFor='comments'>Comments</label>
         <textarea
@@ -296,7 +279,6 @@ export default function InsertReviewPage() {
         />
       </div>
 
-      {/* MEDIA UPLOAD BUTTON */}
       <button
         className='rounded-full bg-primary-default hover:bg-primary-hover text-text-on-primary py-2 px-4 self-start select-none hover:cursor-pointer transition-colors duration-150'
         onClick={() => fileInputRef.current?.click()}
@@ -312,7 +294,6 @@ export default function InsertReviewPage() {
         />
       </button>
 
-      {/* MEDIA PREVIEW STRIP */}
       {mediaArr.length > 0 && (
         <div className='flex flex-row gap-2 py-1 overflow-x-auto'>
           {mediaArr.map((file, idx) => (
@@ -352,19 +333,17 @@ export default function InsertReviewPage() {
         </div>
       )}
 
-      {/* SUBMIT BUTTON */}
       <div className='flex flex-row justify-center'>
         <button
           type='button'
           className='rounded-full bg-primary-default hover:bg-primary-hover hover:cursor-pointer text-text-on-primary py-2 px-4 self-start select-none transition-colors duration-150'
           onClick={handleSubmitReview}
-          disabled={isSaving}
+          disabled={authLoading || !user || isSaving}
         >
           Save Review
         </button>
       </div>
 
-      {/* SNACKBAR */}
       <Snackbar
         open={snack.open}
         autoHideDuration={3000}

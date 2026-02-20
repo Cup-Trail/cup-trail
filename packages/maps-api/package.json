@@ -1,7 +1,7 @@
 {
-  "name": "@cuptrail/core",
-  "version": "0.0.1",
-  "private": true,
+  "name": "@cuptrail/maps-api",
+  "version": "1.0.0",
+  "description": "Apple Map API functions for CupTrail apps",
   "main": "index.ts",
   "types": "index.ts",
   "scripts": {
@@ -9,8 +9,10 @@
     "lint:fix": "eslint . --ext .ts,.tsx --fix",
     "typecheck": "tsc --noEmit"
   },
+  "dependencies": {
+    "@cuptrail/core": "workspace:*"
+  },
   "devDependencies": {
-    "@types/node": "^20.19.33",
-    "typescript": "^5.9.3"
+    "typescript": "~5.8.3"
   }
 }

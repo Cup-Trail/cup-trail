@@ -1,17 +1,16 @@
 import type { ReviewRow, ShopDrinkRow } from '@cuptrail/core';
 import AddIcon from '@mui/icons-material/Add';
 import { useEffect, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router';
 
-import { useAuth } from '../../context/AuthContext';
+import ReviewItem from '../components/ReviewItem';
+import DrinkCard from '../components/StorefrontPage/DrinkCard';
+import { useAuth } from '../context/AuthContext';
 import {
   usePopularDrinksQuery,
   useShopIdQuery,
   useUserReviewsQuery,
-} from '../../queries';
-import ReviewItem from '../ReviewItem';
-
-import DrinkCard from './DrinkCard';
+} from '../queries';
 
 const STOREFRONT_TAB_VIEWS = {
   PopularDrinks: 'Popular Drinks',
@@ -21,7 +20,7 @@ const STOREFRONT_TAB_VIEWS = {
 const TABS = ['Popular Drinks', 'My Drinks'] as const;
 type Tab = (typeof TABS)[number];
 
-const StorefrontPage = () => {
+export default function StorefrontRoute() {
   const { shopId } = useParams();
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
@@ -32,9 +31,8 @@ const StorefrontPage = () => {
     if (!shopId) navigate('/');
   }, [shopId, navigate]);
 
-  const { data: drinks } = usePopularDrinksQuery({ shopId: shopId ?? '' });
-
-  const shopQueryResult = useShopIdQuery(shopId ?? null);
+  const { data: drinks } = usePopularDrinksQuery(shopId ?? '');
+  const shopQueryResult = useShopIdQuery(shopId ?? '');
   const { data: shop } = shopQueryResult;
 
   useEffect(() => {
@@ -166,6 +164,4 @@ const StorefrontPage = () => {
       )}
     </div>
   );
-};
-
-export default StorefrontPage;
+}

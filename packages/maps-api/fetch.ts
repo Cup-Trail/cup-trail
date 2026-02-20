@@ -24,13 +24,39 @@
  * shape regardless of Apple’s internal response structure.
  */
 
-import type { Geocode, PlaceDetails, Prediction } from '@cuptrail/core';
+import type { AutocompleteResult, Geocode, PlaceDetails } from '@cuptrail/core';
 
-import { getEnv } from './env';
-import { apiGet } from './fetchWrapper';
+import { getEnv } from '../utils/env';
+import { apiGet } from '../utils/fetchWrapper';
 
 const { supabaseUrl } = getEnv();
 const mapsBaseUrl = `${supabaseUrl}/functions/v1/maps`;
+
+type RawAutocompleteResponse = {
+  results?: AutocompleteResult[];
+};
+
+type RawPlaceDetailsResponse = {
+  name?: string;
+  formattedAddressLines?: string[];
+  coordinate?: {
+    latitude?: number;
+    longitude?: number;
+  };
+};
+
+type RawGeocodeSuggestion = {
+  name?: string;
+  formattedAddressLines?: string[];
+  coordinate?: {
+    latitude?: number;
+    longitude?: number;
+  };
+};
+
+type RawGeocodeResponse = {
+  results?: RawGeocodeSuggestion[];
+};
 
 /**
  * Fetch autocomplete predictions for shops / cafes / drinks.
@@ -59,7 +85,7 @@ const mapsBaseUrl = `${supabaseUrl}/functions/v1/maps`;
 export async function getAutocomplete(
   input: string,
   userCoordinates?: { latitude: number; longitude: number }
-): Promise<Prediction[]> {
+): Promise<AutocompleteResult[]> {
   if (!input) {
     return [];
   }
@@ -72,32 +98,15 @@ export async function getAutocomplete(
     input
   )}${coordParam}`;
 
-  const response = await apiGet<any>(url);
+  const response = await apiGet<RawAutocompleteResponse>(url);
 
   if (!response.ok) {
     throw new Error(response.error || `HTTP error! status: ${response.status}`);
   }
 
-  const suggestions = (response.data as any)?.results ?? [];
+  const suggestions = response.data?.results ?? [];
 
-  const results: Prediction[] = suggestions
-    .map((place: any) => {
-      const lines: string[] = place.displayLines ?? [];
-      const name = lines[0] || '';
-      const address = lines[1] || '';
-      const prediction: Prediction = {
-        id: place.id || '',
-        name,
-        address,
-      };
-      return prediction;
-    })
-    .filter(
-      (place: Prediction) =>
-        Boolean(place.id) && Boolean(place.name) && Boolean(place.address)
-    );
-
-  return results;
+  return suggestions;
 }
 
 /**
@@ -129,13 +138,13 @@ export async function getPlaceDetails(
 
   const url = `${mapsBaseUrl}/details?id=${encodeURIComponent(placeId)}`;
 
-  const response = await apiGet<any>(url);
+  const response = await apiGet<RawPlaceDetailsResponse>(url);
 
   if (!response.ok) {
     throw new Error(response.error || `HTTP error! status: ${response.status}`);
   }
 
-  const data = response.data as any;
+  const data = response.data;
   if (!data) return null;
 
   const name: string = data.name || '';
@@ -199,32 +208,40 @@ export async function getCityCoords(cityQuery: string): Promise<Geocode[]> {
 
   const url = `${mapsBaseUrl}/geocode?q=${encodeURIComponent(cityQuery)}`;
 
-  const response = await apiGet<any>(url);
+  const response = await apiGet<RawGeocodeResponse>(url);
 
   if (!response.ok) {
     throw new Error(response.error || `HTTP error! status: ${response.status}`);
   }
 
-  const suggestions = (response.data as any)?.results ?? [];
+  const suggestions = response.data?.results ?? [];
 
   const results: Geocode[] = suggestions
-    .map((place: any) => {
-      const name = place.name || '';
-      const address = place.formattedAddressLines.join(', ') || '';
-      const coordinate = place.coordinate || {};
-      const geolocation: Geocode = {
+    .map((place): Geocode | null => {
+      const name = place.name ?? '';
+      const address = (place.formattedAddressLines ?? []).join(', ');
+      const latitude = place.coordinate?.latitude;
+      const longitude = place.coordinate?.longitude;
+
+      if (
+        !name ||
+        !address ||
+        typeof latitude !== 'number' ||
+        typeof longitude !== 'number'
+      ) {
+        return null;
+      }
+
+      return {
         name,
         address,
-        coordinate,
+        coordinate: {
+          latitude,
+          longitude,
+        },
       };
-      return geolocation;
     })
-    .filter(
-      (geolocation: Geocode) =>
-        Boolean(geolocation.name) &&
-        Boolean(geolocation.address) &&
-        Boolean(geolocation.coordinate)
-    );
+    .filter((geolocation): geolocation is Geocode => geolocation !== null);
 
   return results;
 }

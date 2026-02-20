@@ -9,9 +9,9 @@ import {
   Typography,
 } from '@mui/material';
 import { useCallback, useEffect, useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router';
 
-export default function AuthPage() {
+export default function AuthRoute() {
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -22,15 +22,14 @@ export default function AuthPage() {
   >('idle');
   const [message, setMessage] = useState('');
   const [showOtpInput, setShowOtpInput] = useState(false);
-  const [canTryOtp, setCanTryOtp] = useState(false); // Supabase accepted OTP request
-  const [canResendConfirm, setCanResendConfirm] = useState(false); // Show “send verification link”
+  const [canTryOtp, setCanTryOtp] = useState(false);
+  const [canResendConfirm, setCanResendConfirm] = useState(false);
   const [countdown, setCountdown] = useState(0);
 
   const cleanedEmail = email.trim().toLowerCase();
   const isValidEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanedEmail);
   const isBusy = status === 'sending' || status === 'verifying';
 
-  // Compute redirect base for PR previews or prod
   function computeRedirect(): string {
     const { origin, pathname } = globalThis.location;
     const prMatch = pathname.match(/\/cup-trail\/pr-\d+\//);
@@ -44,7 +43,6 @@ export default function AuthPage() {
     setCanResendConfirm(false);
   }
 
-  // Handle route-state driven reset
   useEffect(() => {
     if (location.state?.reset) {
       resetForm();
@@ -53,7 +51,6 @@ export default function AuthPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location.state]);
 
-  // Countdown tick
   useEffect(() => {
     if (countdown <= 0) return;
     const t = setTimeout(() => setCountdown(c => c - 1), 1000);
@@ -117,7 +114,6 @@ export default function AuthPage() {
       return;
     }
 
-    // OTP accepted
     setStatus('sent');
     setCountdown(60);
     setCanTryOtp(true);
@@ -205,7 +201,6 @@ export default function AuthPage() {
             </Alert>
           </Snackbar>
 
-          {/* Email */}
           <TextField
             label='Email Address'
             type='email'
@@ -233,7 +228,7 @@ export default function AuthPage() {
               }
             }}
           />
-          {/* OTP */}
+
           {showOtpInput && (
             <TextField
               label='Verification Code'
@@ -273,7 +268,6 @@ export default function AuthPage() {
             />
           )}
 
-          {/* Actions */}
           <Stack direction='row' spacing={2}>
             {!showOtpInput ? (
               canTryOtp || canResendConfirm ? (
@@ -340,7 +334,6 @@ export default function AuthPage() {
             )}
           </Stack>
 
-          {/* Resend code inside OTP view */}
           {showOtpInput && (
             <Box textAlign='center'>
               <Button
