@@ -3,8 +3,15 @@
   "compilerOptions": {
     "lib": ["ES2020", "DOM"],
     "moduleSuffixes": [".web", ""],
-    "types": ["vite/client", "node"]
+    "types": ["vite/client", "node"],
+    "baseUrl": ".",
+    "paths": {
+      "@components/*": ["app/components/*"],
+      "@utils/*": ["app/utils/*"],
+      "@cuptrail/maps-api": ["../../packages/maps-api"],
+      "@cuptrail/maps-api/*": ["../../packages/maps-api/*"]
+    }
   },
   "include": ["app"],
-  "exclude": ["node_modules", "dist"]
+  "exclude": ["node_modules", "dist"],
 }
