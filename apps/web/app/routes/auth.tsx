@@ -1,15 +1,9 @@
 import { supabase } from '@cuptrail/utils';
-import {
-  Alert,
-  Box,
-  Button,
-  Snackbar,
-  Stack,
-  TextField,
-  Typography,
-} from '@mui/material';
+import { Alert, Snackbar } from '@mui/material';
 import { useCallback, useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router';
+
+import { Button, InputText } from '@components/inputs';
 
 export default function AuthRoute() {
   const location = useLocation();
@@ -155,207 +149,126 @@ export default function AuthRoute() {
   }
 
   return (
-    <Box
-      sx={{
-        minHeight: '60vh',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        p: 2,
-      }}
-    >
-      <Box sx={{ textAlign: 'center' }}>
-        <Box sx={{ mb: 2 }}>
-          <Typography
-            variant='h4'
-            gutterBottom
-            fontWeight={500}
-            color='primary.main'
-          >
-            Welcome to Cup Trail!
-          </Typography>
-          <Typography
-            variant='body1'
-            color='text.secondary'
-            gutterBottom
-            sx={{ mb: 4 }}
-          >
-            Sign in to review and discover your favorite coffee shops
-          </Typography>
-        </Box>
+    <div className='flex flex-col justify-center gap-8 text-left'>
+      <div>
+        <h3>Welcome to Cup Trail</h3>
+        <p className='text-text-secondary'>
+          Sign in to review and discover your favorite coffee shops
+        </p>
+      </div>
 
-        <Stack gap={3}>
-          <Snackbar
-            open={Boolean(message) && !isBusy}
-            autoHideDuration={5000}
-            onClose={() => setMessage('')}
-            anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
-          >
-            <Alert
-              onClose={() => setMessage('')}
-              severity={status === 'error' ? 'error' : 'success'}
-              variant='filled'
-              sx={{ width: '100%' }}
+      <Snackbar
+        open={Boolean(message) && !isBusy}
+        autoHideDuration={5000}
+        onClose={() => setMessage('')}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+      >
+        <Alert
+          onClose={() => setMessage('')}
+          severity={status === 'error' ? 'error' : 'success'}
+          variant='filled'
+          sx={{ width: '100%' }}
+        >
+          {message}
+        </Alert>
+      </Snackbar>
+      <InputText
+        id='email'
+        name='email'
+        label='Email Address'
+        autoComplete='email'
+        inputMode='email'
+        value={email}
+        required
+        onChange={e => {
+          setEmail(e.currentTarget.value);
+          setMessage('');
+          resetFlowFlags();
+        }}
+        placeholder='kat@cup-trail.com'
+        disabled={showOtpInput || isBusy}
+        onKeyDown={e => {
+          if (e.key === 'Enter' && isValidEmail && !showOtpInput && !isBusy) {
+            sendOtpCode();
+          }
+        }}
+      />
+
+      {showOtpInput && (
+        <InputText
+          label='Verification Code'
+          name='otp'
+          autoComplete='one-time-code'
+          className='tracking-widest font-monospace text-3xl font-bold w-48 text-center'
+          value={otp}
+          onChange={e => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
+          placeholder='123456'
+          maxLength={6}
+          inputMode='numeric'
+          onKeyDown={e => {
+            if (e.key === 'Enter' && otp.length === 6) verifyOtpCode();
+          }}
+          autoFocus
+          disabled={status === 'verifying'}
+        />
+      )}
+
+      <div className='flex flex-row gap-2'>
+        {!showOtpInput ? (
+          canTryOtp || canResendConfirm ? (
+            <>
+              {canTryOtp && (
+                <Button
+                  onClick={() => {
+                    setMessage('');
+                    setShowOtpInput(true);
+                  }}
+                >
+                  Enter 6-digit code
+                </Button>
+              )}
+              {canResendConfirm && (
+                <Button
+                  onClick={resendConfirmationEmail}
+                  disabled={countdown > 0 || status === 'sending'}
+                >
+                  {status === 'sending'
+                    ? 'Sending…'
+                    : countdown > 0
+                      ? `Resend sign-up confirmation in ${countdown}s`
+                      : 'Resend sign-up confirmation'}
+                </Button>
+              )}
+            </>
+          ) : (
+            <Button onClick={sendOtpCode} disabled={!isValidEmail || isBusy}>
+              {status === 'sending' ? 'Sending…' : 'Continue'}
+            </Button>
+          )
+        ) : (
+          <>
+            <Button
+              onClick={verifyOtpCode}
+              disabled={otp.length !== 6 || isBusy}
             >
-              {message}
-            </Alert>
-          </Snackbar>
+              {status === 'verifying' ? 'Verifying…' : 'Sign in'}
+            </Button>
+            <Button onClick={() => setShowOtpInput(false)}>Back</Button>
+          </>
+        )}
+      </div>
 
-          <TextField
-            label='Email Address'
-            type='email'
-            value={email}
-            helperText={
-              !isValidEmail && email ? 'Enter a valid email address' : ' '
-            }
-            error={!isValidEmail && !!email}
-            onChange={e => {
-              setEmail(e.target.value);
-              setMessage('');
-              resetFlowFlags();
-            }}
-            placeholder='you@example.com'
-            fullWidth
-            disabled={showOtpInput || isBusy}
-            onKeyDown={e => {
-              if (
-                e.key === 'Enter' &&
-                isValidEmail &&
-                !showOtpInput &&
-                !isBusy
-              ) {
-                sendOtpCode();
-              }
-            }}
-          />
+      {showOtpInput && (
+        <div>
+          <Button onClick={sendOtpCode} disabled={countdown > 0}>
+            {countdown > 0 ? `Resend code in ${countdown}s` : 'Resend code'}
+          </Button>
+        </div>
+      )}
 
-          {showOtpInput && (
-            <TextField
-              label='Verification Code'
-              value={otp}
-              onChange={e =>
-                setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))
-              }
-              placeholder='123456'
-              fullWidth
-              variant='outlined'
-              slotProps={{
-                htmlInput: {
-                  maxLength: 6,
-                  inputMode: 'numeric',
-                  style: {
-                    textAlign: 'center',
-                    fontSize: '2rem',
-                    letterSpacing: '0.8rem',
-                    fontFamily: 'monospace',
-                    fontWeight: 'bold',
-                    padding: '1rem',
-                  },
-                },
-              }}
-              helperText='Enter the 6-digit code from your email'
-              onKeyDown={e => {
-                if (e.key === 'Enter' && otp.length === 6) verifyOtpCode();
-              }}
-              autoFocus
-              disabled={status === 'verifying'}
-              sx={{
-                '& .MuiOutlinedInput-root': {
-                  backgroundColor: 'white',
-                  '&.Mui-focused': { backgroundColor: 'white' },
-                },
-              }}
-            />
-          )}
-
-          <Stack direction='row' spacing={2}>
-            {!showOtpInput ? (
-              canTryOtp || canResendConfirm ? (
-                <>
-                  {canTryOtp && (
-                    <Button
-                      variant='contained'
-                      onClick={() => {
-                        setMessage('');
-                        setShowOtpInput(true);
-                      }}
-                      size='large'
-                      fullWidth
-                    >
-                      Enter 6-digit code
-                    </Button>
-                  )}
-                  {canResendConfirm && (
-                    <Button
-                      variant='outlined'
-                      onClick={resendConfirmationEmail}
-                      disabled={countdown > 0 || status === 'sending'}
-                      size='large'
-                      fullWidth
-                    >
-                      {status === 'sending'
-                        ? 'Sending…'
-                        : countdown > 0
-                          ? `Resend sign-up confirmation in ${countdown}s`
-                          : 'Resend sign-up confirmation'}
-                    </Button>
-                  )}
-                </>
-              ) : (
-                <Button
-                  variant='contained'
-                  onClick={sendOtpCode}
-                  disabled={!isValidEmail || isBusy}
-                  size='large'
-                  fullWidth
-                >
-                  {status === 'sending' ? 'Sending…' : 'Continue'}
-                </Button>
-              )
-            ) : (
-              <>
-                <Button
-                  variant='contained'
-                  onClick={verifyOtpCode}
-                  disabled={otp.length !== 6 || isBusy}
-                  size='large'
-                  fullWidth
-                >
-                  {status === 'verifying' ? 'Verifying…' : 'Sign in'}
-                </Button>
-                <Button
-                  variant='outlined'
-                  onClick={() => setShowOtpInput(false)}
-                  size='large'
-                >
-                  Back
-                </Button>
-              </>
-            )}
-          </Stack>
-
-          {showOtpInput && (
-            <Box textAlign='center'>
-              <Button
-                variant='text'
-                onClick={sendOtpCode}
-                disabled={countdown > 0}
-                size='small'
-              >
-                {countdown > 0 ? `Resend code in ${countdown}s` : 'Resend code'}
-              </Button>
-            </Box>
-          )}
-
-          <Typography
-            variant='caption'
-            color='text.secondary'
-            textAlign='center'
-          >
-            By signing in, you agree to our Terms of Service and Privacy Policy
-          </Typography>
-        </Stack>
-      </Box>
-    </Box>
+      <small className='text-text-secondary'>
+        By signing in, you agree to our Terms of Service and Privacy Policy
+      </small>
+    </div>
   );
 }

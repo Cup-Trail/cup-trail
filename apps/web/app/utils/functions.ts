@@ -30,12 +30,12 @@ export function zip<S, T>(s: S[], t: T[]): [S, T][] {
  */
 export function updateAt<T>(array: T[], index: number, value: T): T[] {
   if (index >= array.length || index < -array.length)
-    throw new RangeError("Index out of bounds");
+    throw new RangeError('Index out of bounds');
 
   const normalizedIndex = index < 0 ? array.length + index : index;
   return [
     ...array.slice(0, normalizedIndex),
     value,
-    ...array.slice(normalizedIndex + 1)
+    ...array.slice(normalizedIndex + 1),
   ];
 }
