@@ -6,10 +6,10 @@ type InputTextProps = React.DetailedHTMLProps<
   React.InputHTMLAttributes<HTMLInputElement>,
   HTMLInputElement
 > & {
+  /** label for the input. This should be accompanied by an id attribute. */
   label?: string;
   containerClassName?: string;
   labelClassName?: string;
-  name: string;
 };
 
 export function InputText({

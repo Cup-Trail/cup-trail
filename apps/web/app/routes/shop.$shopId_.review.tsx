@@ -15,6 +15,7 @@ import { useForm } from 'react-hook-form';
 import { useNavigate, useParams } from 'react-router';
 
 import { InputRating, InputText } from '@components/inputs';
+
 import { useAuth } from '../context/AuthContext';
 import { useCategoriesQuery, useShopIdQuery } from '../queries';
 import type { SnackState } from '../types';

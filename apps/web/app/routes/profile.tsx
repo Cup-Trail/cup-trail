@@ -2,10 +2,11 @@ import { supabase } from '@cuptrail/utils';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
 
+import { InputText } from '@components/inputs';
+
 import ReviewItem from '../components/ReviewItem';
 import { useAuth } from '../context/AuthContext';
 import { useUserReviewsQuery } from '../queries';
-import { InputText } from '@components/inputs';
 
 export default function ProfileRoute() {
   const navigate = useNavigate();
@@ -80,7 +81,8 @@ export default function ProfileRoute() {
                     name='displayName'
                     onChange={e => setDisplayName(e.target.value)}
                     autoFocus
-                    className='outline-none' />
+                    className='outline-none'
+                  />
 
                   <button
                     onClick={saveDisplayName}

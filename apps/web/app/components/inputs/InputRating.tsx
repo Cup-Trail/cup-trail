@@ -22,14 +22,13 @@ export function InputRating({ rating, setRating }: Props) {
   };
   const decrementRating = () => {
     setRating(rating => Math.max(rating - RATING_INCREMENTS, 0));
-  }
+  };
 
   return (
     <div className='flex flex-col gap-2 items-start'>
-      <label
-        id='rating-label'
-        onClick={focusRating}
-        >Rating {(isPreview ? previewRating : rating).toFixed(1)}</label>
+      <label id='rating-label' onClick={focusRating}>
+        Rating {(isPreview ? previewRating : rating).toFixed(1)}
+      </label>
       <div
         id='rating'
         ref={ratingRef}
@@ -61,25 +60,25 @@ export function InputRating({ rating, setRating }: Props) {
             setPreviewRating(newRating);
           }
         }}
-        onKeyDown={(e) => {
-        switch (e.code) {
-          case 'ArrowUp':
-          case 'ArrowRight':
+        onKeyDown={e => {
+          switch (e.code) {
+            case 'ArrowUp':
+            case 'ArrowRight':
+              e.preventDefault();
+              incrementRating();
+              break;
+            case 'ArrowDown':
+            case 'ArrowLeft':
+              e.preventDefault();
+              decrementRating();
+              break;
+          }
+          const value = parseInt(e.key);
+          if (!isNaN(value)) {
             e.preventDefault();
-            incrementRating();
-            break;
-          case 'ArrowDown':
-          case 'ArrowLeft':
-            e.preventDefault();
-            decrementRating();
-            break;
-        }
-        const value = parseInt(e.key);
-        if (!isNaN(value)) {
-          e.preventDefault();
-          setRating(Math.min(value, MAX_RATING));
-        }
-      }}
+            setRating(Math.min(value, MAX_RATING));
+          }
+        }}
       >
         <div className='text-transparent pointer-events-none'>★★★★★</div>
         <div
