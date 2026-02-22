@@ -1,4 +1,4 @@
-import { useState, type Dispatch, type SetStateAction } from 'react';
+import { useRef, useState, type Dispatch, type SetStateAction } from 'react';
 
 interface Props {
   rating: number;
@@ -8,15 +8,35 @@ interface Props {
 const MAX_RATING = 5;
 const RATING_INCREMENTS = 0.5;
 
-export default function StarRating({ rating, setRating }: Props) {
+export function InputRating({ rating, setRating }: Props) {
   const [previewRating, setPreviewRating] = useState<number>(0);
   const [isPreview, setIsPreview] = useState<boolean>(false);
+  const ratingRef = useRef<HTMLDivElement>(null);
+
+  const focusRating = () => {
+    ratingRef.current?.focus();
+  };
+
+  const incrementRating = () => {
+    setRating(rating => Math.min(rating + RATING_INCREMENTS, MAX_RATING));
+  };
+  const decrementRating = () => {
+    setRating(rating => Math.max(rating - RATING_INCREMENTS, 0));
+  };
 
   return (
     <div className='flex flex-col gap-2 items-start'>
-      <label>Rating {(isPreview ? previewRating : rating).toFixed(1)}</label>
+      <label id='rating-label' onClick={focusRating}>
+        Rating {(isPreview ? previewRating : rating).toFixed(1)}
+      </label>
       <div
+        id='rating'
+        ref={ratingRef}
         className='text-4xl relative w-fit justify-start group select-none text-stroke touch-none'
+        tabIndex={0}
+        aria-labelledby='rating-label'
+        aria-label={`Rating: ${rating} out of ${MAX_RATING}. Use arrow keys to adjust. Or type a whole number between 0 and ${MAX_RATING}.`}
+        aria-required='true'
         onMouseEnter={() => setIsPreview(true)}
         onTouchStart={() => setIsPreview(true)}
         onMouseLeave={() => setIsPreview(false)}
@@ -38,6 +58,25 @@ export default function StarRating({ rating, setRating }: Props) {
               (element as HTMLDivElement).dataset.rating ?? '2'
             );
             setPreviewRating(newRating);
+          }
+        }}
+        onKeyDown={e => {
+          switch (e.code) {
+            case 'ArrowUp':
+            case 'ArrowRight':
+              e.preventDefault();
+              incrementRating();
+              break;
+            case 'ArrowDown':
+            case 'ArrowLeft':
+              e.preventDefault();
+              decrementRating();
+              break;
+          }
+          const value = parseInt(e.key);
+          if (!isNaN(value)) {
+            e.preventDefault();
+            setRating(Math.min(value, MAX_RATING));
           }
         }}
       >

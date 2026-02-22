@@ -6,6 +6,7 @@
 
   --color-primary-default: #7f7d2d; /*default bg for primary buttons, main CTAs, key toggles, selected tabs */
   --color-primary-hover: #666323; /* hover state */
+  --color-primary-disabled: oklch(from var(--color-primary-default) l calc(c * 0.2) h); /* disabled state */
   --color-primary-active: #4f4b1a; /* pressed/active state */
   --color-primary-subtle-bg: #e7eae3; /* subtle backgrounds for primary tags, selected list items, informative highlights */
 
@@ -14,6 +15,7 @@
 
   --color-text-primary: #2e2a24; /* main body text, icons */
   --color-text-secondary: #828180; /* supporting text, secondary labels, supporting icons */
+  --color-text-on-disabled: oklch(from var(--color-primary-default) calc(l * 1.3) calc(c * 0.3) h); /* disabled text and icons */
   --color-text-on-primary: #fcf5e8; /* text and icons on primary buttons, chips, primary-filled states */
   --color-text-on-secondary: #e7eae3; /* text/icons on secondary buttons and secondary filled-chips */
 
