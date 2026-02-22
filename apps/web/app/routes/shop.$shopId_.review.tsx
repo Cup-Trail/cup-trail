@@ -14,7 +14,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate, useParams } from 'react-router';
 
-import { InputRating } from '@components/inputs';
+import { InputRating, InputText } from '@components/inputs';
 import { useAuth } from '../context/AuthContext';
 import { useCategoriesQuery, useShopIdQuery } from '../queries';
 import type { SnackState } from '../types';
@@ -236,11 +236,10 @@ export default function InsertReviewRoute() {
       <InputRating rating={rating} setRating={setRating} />
 
       <div className='flex flex-col gap-2 items-start'>
-        <label htmlFor='drinkName'>Drink Name (required)</label>
-        <input
-          type='text'
-          className='py-2 px-3 bg-surface-2 border-border-default border rounded-lg w-full xs:w-72'
+        <InputText
+          label='Drink Name (required)'
           id='drinkName'
+          className='w-full xs:w-72'
           {...register('drinkName')}
         />
       </div>
