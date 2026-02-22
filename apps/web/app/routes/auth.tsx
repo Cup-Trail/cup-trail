@@ -149,8 +149,8 @@ export default function AuthRoute() {
   }
 
   return (
-    <div className='flex flex-col justify-center gap-8 text-left'>
-      <div>
+    <div className='flex flex-col justify-center gap-6 max-w-2xl mx-auto'>
+      <div className='text-center'>
         <h3>Welcome to Cup Trail</h3>
         <p className='text-text-secondary'>
           Sign in to review and discover your favorite coffee shops
