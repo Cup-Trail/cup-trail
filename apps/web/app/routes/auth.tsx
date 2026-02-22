@@ -192,6 +192,7 @@ export default function AuthRoute() {
             sendOtpCode();
           }
         }}
+        className='w-96 max-w-full'
       />
 
       {showOtpInput && (
