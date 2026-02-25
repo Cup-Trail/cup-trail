@@ -7,9 +7,7 @@
     "baseUrl": ".",
     "paths": {
       "@components/*": ["app/components/*"],
-      "@utils/*": ["app/utils/*"],
-      "@cuptrail/maps-api": ["../../packages/maps-api"],
-      "@cuptrail/maps-api/*": ["../../packages/maps-api/*"]
+      "@utils/*": ["app/utils/*"]
     }
   },
   "include": ["app"],
