@@ -2,6 +2,8 @@ import { supabase } from '@cuptrail/utils';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
 
+import { InputText } from '@components/inputs';
+
 import ReviewItem from '../components/ReviewItem';
 import { useAuth } from '../context/AuthContext';
 import { useUserReviewsQuery } from '../queries';
@@ -65,7 +67,7 @@ export default function ProfileRoute() {
     <div className='flex justify-center px-6'>
       <div className='w-full max-w-3xl'>
         <div className='mt-6 grid gap-4'>
-          <div className='flex items-start gap-3'>
+          <div className='flex items-center gap-3'>
             <div className='my-auto w-18 h-18 rounded-full border border-border-default flex items-center justify-center text-text-primary text-2xl font-semibold'>
               {(currentDisplayName?.[0] ?? 'U').toUpperCase()}
             </div>
@@ -73,12 +75,15 @@ export default function ProfileRoute() {
             <div>
               {editing ? (
                 <div className='flex gap-2 items-center'>
-                  <input
+                  <InputText
+                    id='displayName'
                     value={displayName}
+                    name='displayName'
                     onChange={e => setDisplayName(e.target.value)}
                     autoFocus
-                    className='rounded-lg border border-border-default bg-surface-2 px-3 py-2 text-sm text-text-primary outline-none'
+                    className='outline-none'
                   />
+
                   <button
                     onClick={saveDisplayName}
                     disabled={saving || !displayName.trim()}
