@@ -13,6 +13,8 @@ export default defineConfig({
       '@cuptrail/core': path.resolve(__dirname, '../../packages/core'),
       '@cuptrail/utils': path.resolve(__dirname, '../../packages/utils'),
       '@cuptrail/maps-api': path.resolve(__dirname, '../../packages/maps-api'),
+      '@utils': path.resolve(__dirname, './app/utils'),
+      '@components': path.resolve(__dirname, './app/components'),
     },
     extensions: [
       '.web.tsx',
