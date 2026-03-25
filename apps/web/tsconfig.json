@@ -4,10 +4,9 @@
     "lib": ["ES2020", "DOM"],
     "moduleSuffixes": [".web", ""],
     "types": ["vite/client", "node"],
-    "baseUrl": ".",
     "paths": {
-      "@components/*": ["app/components/*"],
-      "@utils/*": ["app/utils/*"]
+      "@components/*": ["./app/components/*"],
+      "@utils/*": ["./app/utils/*"]
     }
   },
   "include": ["app"],

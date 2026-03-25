@@ -11,14 +11,13 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": true,
-    "baseUrl": ".",
     "paths": {
-      "@cuptrail/core": ["packages/core"],
-      "@cuptrail/core/*": ["packages/core/*"],
-      "@cuptrail/utils": ["packages/utils"],
-      "@cuptrail/utils/*": ["packages/utils/*"],
-      "@cuptrail/maps-api": ["packages/maps-api"],
-      "@cuptrail/maps-api/*": ["packages/maps-api/*"]
+      "@cuptrail/core": ["./packages/core"],
+      "@cuptrail/core/*": ["./packages/core/*"],
+      "@cuptrail/utils": ["./packages/utils"],
+      "@cuptrail/utils/*": ["./packages/utils/*"],
+      "@cuptrail/maps-api": ["./packages/maps"],
+      "@cuptrail/maps-api/*": ["./packages/maps/*"]
     }
   }
 }
