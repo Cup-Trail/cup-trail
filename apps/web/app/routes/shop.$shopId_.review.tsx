@@ -25,7 +25,7 @@ export default function InsertReviewRoute() {
   const { data: cats } = useCategoriesQuery();
   const { shopId } = useParams<{ shopId: string }>();
   const navigate = useNavigate();
-  const { user, loading: authLoading } = useAuth();
+  const { isAuthenticated, loading: authLoading } = useAuth();
 
   useEffect(() => {
     if (!cats || !cats.length) setAllCategories([]);
@@ -48,6 +48,12 @@ export default function InsertReviewRoute() {
       navigate('/');
     }
   }, [shopQueryResult, navigate]);
+
+  // Only completed (non-anonymous) users may post. Send everyone else to the
+  // create-account / sign-in flow.
+  useEffect(() => {
+    if (!authLoading && !isAuthenticated) navigate('/auth');
+  }, [authLoading, isAuthenticated, navigate]);
 
   const { register, getValues, reset } = useForm({
     defaultValues: {
@@ -79,12 +85,8 @@ export default function InsertReviewRoute() {
   };
 
   async function handleSubmitReview() {
-    if (authLoading || !user) {
-      setSnack({
-        open: true,
-        message: 'Please sign in to submit a review.',
-        severity: 'error',
-      });
+    if (authLoading || !isAuthenticated) {
+      navigate('/auth');
       return;
     }
 
@@ -131,13 +133,12 @@ export default function InsertReviewRoute() {
       return;
     }
 
+    // The review owner is derived from the verified session server-side.
     const reviewResult = await insertReview(
       shopId,
       drinkName.trim(),
       rating,
-      comments.trim(),
-      null,
-      user ? user.id : null
+      comments.trim()
     );
 
     if (!reviewResult.success) {
@@ -338,7 +339,7 @@ export default function InsertReviewRoute() {
           type='button'
           className='rounded-full bg-primary-default hover:bg-primary-hover hover:cursor-pointer text-text-on-primary py-2 px-4 self-start select-none transition-colors duration-150'
           onClick={handleSubmitReview}
-          disabled={authLoading || !user || isSaving}
+          disabled={authLoading || !isAuthenticated || isSaving}
         >
           Save Review
         </button>

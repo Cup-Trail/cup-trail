@@ -1,6 +1,6 @@
 import type { Prediction } from '@cuptrail/core';
 import { getOrInsertShop } from '@cuptrail/core';
-import { getPlaceDetails } from '@cuptrail/maps-api';
+import { getPlaceDetails } from '@cuptrail/maps';
 import { useCallback, useState } from 'react';
 import { useNavigate } from 'react-router';
 

@@ -16,8 +16,8 @@
       "@cuptrail/core/*": ["./packages/core/*"],
       "@cuptrail/utils": ["./packages/utils"],
       "@cuptrail/utils/*": ["./packages/utils/*"],
-      "@cuptrail/maps-api": ["./packages/maps"],
-      "@cuptrail/maps-api/*": ["./packages/maps/*"]
+      "@cuptrail/maps": ["./packages/maps"],
+      "@cuptrail/maps/*": ["./packages/maps/*"]
     }
   }
 }

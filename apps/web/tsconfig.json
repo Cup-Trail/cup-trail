@@ -6,7 +6,13 @@
     "types": ["vite/client", "node"],
     "paths": {
       "@components/*": ["./app/components/*"],
-      "@utils/*": ["./app/utils/*"]
+      "@utils/*": ["./app/utils/*"],
+      "@cuptrail/core": ["../../packages/core"],
+      "@cuptrail/core/*": ["../../packages/core/*"],
+      "@cuptrail/utils": ["../../packages/utils"],
+      "@cuptrail/utils/*": ["../../packages/utils/*"],
+      "@cuptrail/maps": ["../../packages/maps"],
+      "@cuptrail/maps/*": ["../../packages/maps/*"]
     }
   },
   "include": ["app"],

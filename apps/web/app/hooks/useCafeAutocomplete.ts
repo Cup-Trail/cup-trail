@@ -2,7 +2,7 @@ import type { Prediction, UserCoordinates } from '@cuptrail/core';
 import {
   getAutocomplete,
   normalizeAutocompleteResults,
-} from '@cuptrail/maps-api';
+} from '@cuptrail/maps';
 import { useEffect, useState } from 'react';
 
 import { useDebouncedValue } from './useDebouncedValue';
