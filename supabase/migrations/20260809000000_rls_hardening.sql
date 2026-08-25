@@ -1,11 +1,11 @@
 -- ============================================================================
--- RLS hardening — revised against the LIVE schema (audited 2026-08-09).
+-- RLS hardening - revised against the LIVE schema (audited 2026-08-09).
 --
 -- Findings this fixes:
 --   * RLS was OFF on shops, drinks, shop_drinks, shop_drink_categories,
 --     categories, and apple_maps_token_cache.
 --   * anon + authenticated held ALL privileges (incl. TRUNCATE) on every
---     public table — and TRUNCATE/TRIGGER/REFERENCES are NOT governed by RLS,
+--     public table - and TRUNCATE/TRIGGER/REFERENCES are NOT governed by RLS,
 --     so grants must be revoked, not just papered over with policies.
 --   * reviews had permissive "Anyone can add/update reviews" policies (true).
 --   * apple_maps_token_cache (Apple signing JWT + access token) was readable

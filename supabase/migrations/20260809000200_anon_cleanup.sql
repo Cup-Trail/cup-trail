@@ -1,5 +1,5 @@
 -- ============================================================================
--- Stale account cleanup — DRAFT (Supabase has no built-in anonymous-user
+-- Stale account cleanup - DRAFT (Supabase has no built-in anonymous-user
 -- cleanup yet, so we run our own sweep).
 --
 -- Removes accounts that were started but never completed:

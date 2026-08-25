@@ -29,10 +29,10 @@ const db = createClient(SUPABASE_URL, SECRET_KEY);
 
 // ── Local mock mode ─────────────────────────────────────────────────────────
 // With no Apple credentials (local dev) serve a small fixed set of results so
-// café/city autocomplete works offline — no Apple Developer account needed.
+// café/city autocomplete works offline; no Apple Developer account needed.
 // In the cloud the creds are present, so the real Apple API is used.
 const USE_MOCK = !TEAM_ID || !KEY_ID || !PRIVATE_KEY_PEM;
-if (USE_MOCK) console.log('⚠️  maps: Apple creds absent — serving MOCK data');
+if (USE_MOCK) console.log('⚠️  maps: Apple creds absent, serving MOCK data');
 
 const MOCK_PLACES = [
   { id: 'mock-trailhead', name: 'Trailhead Coffee',  address: '100 Summit Ave, Seattle, WA 98101',        latitude: 47.6062, longitude: -122.3321 },

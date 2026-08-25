@@ -11,7 +11,7 @@ verifies the caller's JWT and calls a `SECURITY DEFINER` rpc per operation (the
 transaction boundary). Auth is passkey-based: "sign up" silently creates a
 Supabase **anonymous** user, links a placeholder email server-side to make it
 permanent, then registers a **passkey**. An anonymous session counts as *logged
-out* — it's just the transient shell of sign-up. `avg_rating` is computed by a
+out*; it is just the transient shell of sign-up. `avg_rating` is computed by a
 DB trigger, never by clients.
 
 ## Components
@@ -26,20 +26,20 @@ DB trigger, never by clients.
 | Client auth state machine | `apps/web/app/context/AuthContext.tsx` |
 | Sign-in / create screen | `apps/web/app/routes/auth.tsx` |
 
-## Local development (self-contained — recommended)
+## Local development (self-contained, recommended)
 
 Everything auth needs is configured as code in `supabase/config.toml`
 (anonymous sign-ins, manual linking, passkeys with RP `localhost` /
-`http://localhost:33718`) — **no dashboard and no cloud project required.**
+`http://localhost:33718`), so **no dashboard and no cloud project are required.**
 
 One-time prereqs: `brew install colima docker supabase`.
 
-- **`pnpm db:up`** — starts Colima + the local Supabase stack, applies all
+- **`pnpm db:up`**: starts Colima + the local Supabase stack, applies all
   migrations + `seed.sql`, and writes `apps/web/.env.development` pointing the
   web app at local Supabase.
-- **`pnpm dev:web`** — serves the app on `http://localhost:33718` (matches the
+- **`pnpm dev:web`**: serves the app on `http://localhost:33718` (matches the
   passkey RP origin).
-- **`pnpm db:down`** (`--all` also stops the Colima VM) · **`pnpm db:reset`**
+- **`pnpm db:down`** (`--all` also stops the Colima VM) and **`pnpm db:reset`**
   (rebuild the DB from migrations + seed).
 
 Local Studio / API URLs: `supabase status`. Local edge functions are served at
@@ -48,17 +48,16 @@ Local Studio / API URLs: `supabase status`. Local edge functions are served at
 Café/city autocomplete works offline too: the `maps` function serves a small
 built-in **mock** dataset (see `MOCK_PLACES` / `MOCK_CITIES` in
 `supabase/functions/maps/index.ts`) whenever the `APPLE_MAPS_*` secrets are
-absent. To use the real Apple Maps API locally instead, set those secrets — the
-same function switches to live automatically. Add fixtures by editing the mock
-arrays.
+absent. To use the real Apple Maps API locally instead, set those secrets and
+the same function switches to live automatically. Add fixtures by editing the
+mock arrays.
 
 ---
 
-## Provisioning a cloud environment (prod / beta)
+## Provisioning a cloud environment (production)
 
-The steps below apply to a hosted Supabase project. Because passkeys bind to one
-RP domain per project, each deployed environment (prod, optional beta) is its
-own project with its own RP origin.
+The steps below apply to a hosted Supabase project. Local dev is self-contained
+(above), so the cloud project is effectively production.
 
 ### 1. Apply the database migrations
 
@@ -76,47 +75,70 @@ curl -s -H "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" \
   "https://api.supabase.com/v1/projects/<ref>/database/query"
 ```
 
-## 2. Deploy the edge function
+### 2. Deploy the edge functions
 
 ```bash
-supabase functions deploy api --project-ref <ref>
+supabase functions deploy api maps --project-ref <ref>
 ```
 
-Requires project secrets `SECRET_KEY` (service role) and `SUPABASE_URL` — these
-already exist for the maps function. CORS allows any `localhost` port (dev),
+They read `SUPABASE_SERVICE_ROLE_KEY` (auto-injected) with a `SECRET_KEY`
+fallback, plus `SUPABASE_URL`. CORS allows any `localhost` port (dev),
 `*.cup-trail.pages.dev`, and `cup-trail.github.io`.
 
-## 3. Dashboard settings (Authentication)
+### 3. Dashboard settings (Authentication, owner only)
 
-The Management API does not reliably write these — do them in the dashboard:
+The Management API returns 403 on auth config for non-owner tokens, so set these
+in the dashboard:
 
-- **Anonymous sign-ins** → enable
-- **Manual linking** → enable
-- **Passkeys (beta)** → enable, then set the relying party:
+- **Anonymous sign-ins**: enable
+- **Manual linking**: enable
+- **URL configuration**: Site URL `https://cup-trail.pages.dev`; redirect
+  allow-list `https://cup-trail.pages.dev/**` and `https://*.cup-trail.pages.dev/**`
+- **Passkeys (beta)**: enable, then set the relying party:
   - Display name: `Cup Trail`
-  - **Local dev:** RP ID `localhost`, origin `http://localhost:33718`
-  - **Production:** RP ID `cup-trail.pages.dev`, origin `https://cup-trail.pages.dev`
-  - (One RP ID only — local and prod passkeys can't be shared; reconfigure when
-    moving to prod or a custom domain.)
+  - RP ID: `cup-trail.pages.dev`
+  - RP origins (up to 5, no wildcards):
+    - `https://cup-trail.pages.dev`
+    - `https://preview.cup-trail.pages.dev`
 
-## 4. Environment (`apps/web/.env`)
+Passkeys are cryptographically scoped to the RP ID, so a credential is valid
+across any `*.cup-trail.pages.dev` subdomain at the browser level. The real
+limiter is this origins list: Supabase validates each ceremony's exact origin
+against it, and wildcards are not supported. List the fixed origins you test on.
+
+### Preview deploys and passkeys
+
+Cloudflare Pages gives each deploy a random `<hash>.cup-trail.pages.dev` URL
+(not usable for passkeys, since the origin changes every deploy) plus a stable
+**branch alias** `<branch>.cup-trail.pages.dev`. We keep a long-lived
+**`preview`** branch whose alias `https://preview.cup-trail.pages.dev` is
+registered as an RP origin above. To test any branch on that stable URL with
+working passkeys, point `preview` at it and push:
+
+```bash
+git push -f origin <branch>:preview
+```
+
+Cloudflare redeploys the same alias and the registered origin keeps working.
+Random per-commit preview URLs will not have passkeys.
+
+### 4. Environment (`apps/web/.env` / Cloudflare Pages vars)
 
 ```
 VITE_SUPABASE_URL=...
 VITE_SUPABASE_PUBLISHABLE_KEY=...      # anon/publishable key
 ```
 
-## 5. Test locally
+Production reads these from the Cloudflare Pages project settings; local dev
+overrides them via `apps/web/.env.development` (written by `pnpm db:up`).
 
-```bash
-pnpm dev:web        # http://localhost:33718
-```
+### 5. Smoke test
 
-- Add a review while logged out → redirected to `/auth` → **Create account with
-  passkey** → passkey prompt → review saves.
+- Add a review while logged out, get redirected to `/auth`, **Create account
+  with passkey**, complete the prompt, and the review saves.
 - **Sign out**, then **Sign in with passkey**.
-- Start "Create account", **cancel** the passkey prompt → the shell account is
-  deleted (also covered by the cleanup sweep for non-clean exits).
+- Start "Create account", **cancel** the passkey prompt, and the shell account
+  is deleted (also covered by the cleanup sweep for non-clean exits).
 
 ## Notes / TODO
 
@@ -126,7 +148,7 @@ pnpm dev:web        # http://localhost:33718
 - **Placeholder email domain:** `users.cup-trail.com` in
   `supabase/functions/api/index.ts` (`FAKE_EMAIL_DOMAIN`). Use a domain you
   control with no MX records so stray mail bounces.
-- **supabase-js:** must be ≥ `2.111` for `registerPasskey`/`signInWithPasskey`
+- **supabase-js:** must be >= `2.111` for `registerPasskey`/`signInWithPasskey`
   (repo is on `2.112.2`).
 - **Cleanup sweep:** `sweep-stale-accounts` runs every 30 min; deletes
   anonymous + placeholder-email-no-passkey accounts older than 24h that hold no

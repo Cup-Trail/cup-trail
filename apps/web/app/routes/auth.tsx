@@ -31,7 +31,7 @@ export default function AuthRoute() {
       <div>
         <h3>Welcome to Cup Trail</h3>
         <p className='text-text-secondary'>
-          Your account is secured with a passkey — no password or email needed.
+          Your account is secured with a passkey. No password or email needed.
         </p>
       </div>
 

@@ -5,7 +5,7 @@ import { getEnv } from './env';
 const { supabaseUrl, supabaseAnonKey } = getEnv();
 
 // Passkeys are a beta feature and must be explicitly enabled. `experimental`
-// may not exist on the options type in older @supabase/supabase-js versions —
+// may not exist on the options type in older @supabase/supabase-js versions -
 // bump the dependency if passkey methods are missing at runtime.
 const authOptions = {
   persistSession: true,

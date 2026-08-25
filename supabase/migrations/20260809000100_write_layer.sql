@@ -1,5 +1,5 @@
 -- ============================================================================
--- Authoritative write layer — DRAFT (reconstructed from application code; not
+-- Authoritative write layer - DRAFT (reconstructed from application code; not
 -- yet verified against the live DB, which was paused at time of writing).
 --
 -- Depends on 20260809000000_rls_hardening.sql (tables are read-public /
@@ -18,7 +18,7 @@
 -- ============================================================================
 
 -- ---------------------------------------------------------------------------
--- avg_rating is DERIVED — recomputed by trigger, never written by clients.
+-- avg_rating is DERIVED - recomputed by trigger, never written by clients.
 -- ---------------------------------------------------------------------------
 create or replace function public.recompute_shop_drink_avg()
 returns trigger
@@ -44,7 +44,7 @@ after insert or delete or update of rating on public.reviews
 for each row execute function public.recompute_shop_drink_avg();
 
 -- ---------------------------------------------------------------------------
--- get_or_insert_shop — mirrors packages/core/shops.ts getOrInsertShop.
+-- get_or_insert_shop - mirrors packages/core/shops.ts getOrInsertShop.
 -- canonical_key is computed client-side (pure fn) and passed in.
 -- ---------------------------------------------------------------------------
 create or replace function public.get_or_insert_shop(
@@ -91,7 +91,7 @@ end;
 $$;
 
 -- ---------------------------------------------------------------------------
--- archive_shop — soft delete. (Catalog write: any authed caller today; wrap
+-- archive_shop - soft delete. (Catalog write: any authed caller today; wrap
 -- with an admin/ownership check here later without touching the client.)
 -- ---------------------------------------------------------------------------
 create or replace function public.archive_shop(p_shop_id uuid)
@@ -109,7 +109,7 @@ end;
 $$;
 
 -- ---------------------------------------------------------------------------
--- submit_review — the core atomic write. Replaces the client-side sequence
+-- submit_review - the core atomic write. Replaces the client-side sequence
 -- getOrInsertDrink -> getOrInsertShopDrink -> insert review.
 -- avg_rating is handled by the trigger above.
 -- ---------------------------------------------------------------------------
@@ -164,7 +164,7 @@ end;
 $$;
 
 -- ---------------------------------------------------------------------------
--- update_review — owner-scoped partial update. p_patch may contain any of
+-- update_review - owner-scoped partial update. p_patch may contain any of
 -- rating / comment / media_urls (mirrors ReviewUpdateInput).
 -- ---------------------------------------------------------------------------
 create or replace function public.update_review(
@@ -199,7 +199,7 @@ end;
 $$;
 
 -- ---------------------------------------------------------------------------
--- update_shop_drink_fields — price / cover only. avg_rating is intentionally
+-- update_shop_drink_fields - price / cover only. avg_rating is intentionally
 -- NOT settable here (trigger owns it).
 -- ---------------------------------------------------------------------------
 create or replace function public.update_shop_drink_fields(
@@ -229,7 +229,7 @@ end;
 $$;
 
 -- ---------------------------------------------------------------------------
--- set_shop_drink_categories — mirrors categories.ts (replace mappings).
+-- set_shop_drink_categories - mirrors categories.ts (replace mappings).
 -- ---------------------------------------------------------------------------
 create or replace function public.set_shop_drink_categories(
   p_shop_drink_id uuid,

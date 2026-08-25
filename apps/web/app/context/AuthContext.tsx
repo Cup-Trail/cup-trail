@@ -19,7 +19,7 @@ type PasskeyAuth = {
 type AuthResult = { ok: boolean; message?: string };
 
 interface AuthContextType {
-  /** Raw session user — may be an incomplete anonymous shell. */
+  /** Raw session user - may be an incomplete anonymous shell. */
   user: User | null;
   loading: boolean;
   /**
@@ -94,7 +94,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     if (sessionUser && !sessionUser.is_anonymous) return { ok: true };
 
     if (!sessionUser) {
-      // TODO: attach a Turnstile/CAPTCHA token — Supabase flags the anonymous
+      // TODO: attach a Turnstile/CAPTCHA token - Supabase flags the anonymous
       // endpoint as a DB-bloat abuse vector.
       const { data, error } = await supabase.auth.signInAnonymously();
       if (error) return { ok: false, message: error.message };

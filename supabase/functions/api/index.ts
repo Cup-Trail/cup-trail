@@ -3,7 +3,7 @@
 // (RLS is read-public / write-none); every mutation goes through here.
 //
 // This layer: verifies the caller's JWT, validates input, and calls a single
-// SECURITY DEFINER rpc per operation (the transaction boundary — see
+// SECURITY DEFINER rpc per operation (the transaction boundary - see
 // supabase/migrations/20260809000100_write_layer.sql). Reads stay direct-client.
 console.log('Cup Trail write API booting…');
 
@@ -53,7 +53,7 @@ app.use(
 
 /*──────────────────────── Auth: verify the caller's JWT ────────────────────*/
 // Populates c.get('userId') with the verified user id (works for anonymous
-// sign-in too — anon users still carry a real JWT).
+// sign-in too - anon users still carry a real JWT).
 app.use('*', async (c, next) => {
   const authz = c.req.header('Authorization') ?? '';
   const token = authz.startsWith('Bearer ') ? authz.slice(7) : '';

@@ -1,5 +1,5 @@
 -- ============================================================================
--- Baseline schema — the tables as they existed before the security rework.
+-- Baseline schema - the tables as they existed before the security rework.
 -- Reconstructed from the live schema so a fresh database (local dev / a new
 -- environment) can be built from migrations alone. The later 20260809*ND
 -- migrations lock this down (RLS, grants, write RPCs) on top of it.
