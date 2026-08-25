@@ -4,13 +4,8 @@ import { useAuth } from '../context/AuthContext';
 
 export default function Nav() {
   const { user, isAuthenticated } = useAuth();
-  const avatarInitial = (
-    user?.user_metadata?.display_name ??
-    user?.email ??
-    'U'
-  )
-    .charAt(0)
-    .toUpperCase();
+  const displayName = (user?.user_metadata?.display_name ?? '').trim();
+  const avatarInitial = (displayName || 'U').charAt(0).toUpperCase();
 
   return (
     <nav className='w-full pt-4 h-24 flex flex-col items-center'>

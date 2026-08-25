@@ -177,7 +177,11 @@ app.post('/account/abandon', async c => {
   const { data: existing } = await admin.auth.admin.getUserById(userId);
   const email = existing.user?.email ?? '';
   const isAnon = Boolean(existing.user?.is_anonymous);
-  const isGhost = email.endsWith(`@${FAKE_EMAIL_DOMAIN}`);
+  // A completed (passkey-flagged) account also carries the placeholder email,
+  // so exclude it explicitly: only anon shells and not-yet-completed ghosts
+  // are deletable.
+  const completed = existing.user?.user_metadata?.passkey_completed === true;
+  const isGhost = email.endsWith(`@${FAKE_EMAIL_DOMAIN}`) && !completed;
 
   if (!isAnon && !isGhost) {
     return c.json({ error: 'refusing to delete a completed account' }, 403);

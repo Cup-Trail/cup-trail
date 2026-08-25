@@ -18,16 +18,34 @@ type PasskeyAuth = {
 
 type AuthResult = { ok: boolean; message?: string };
 
+// A user is "complete" only once a passkey ceremony has actually succeeded. We
+// record that with a user-metadata flag rather than keying on is_anonymous:
+// /account/complete links a placeholder email (flipping is_anonymous to false)
+// *before* registerPasskey runs, so is_anonymous=false alone does not mean the
+// account has a passkey. If the flow is interrupted between those two steps, the
+// account is a "ghost" (permanent, no passkey, unrecoverable). Keying on this
+// flag fails safe: an interrupted attempt reads as logged out, and the user can
+// simply sign in again with the passkey they did register.
+const PASSKEY_DONE = 'passkey_completed';
+
+function isComplete(user: User | null | undefined): boolean {
+  return Boolean(
+    user && !user.is_anonymous && user.user_metadata?.[PASSKEY_DONE] === true
+  );
+}
+
+// Best-effort stamp of the completion flag after a successful passkey ceremony.
+async function markPasskeyCompleted(): Promise<void> {
+  await supabase.auth.updateUser({ data: { [PASSKEY_DONE]: true } });
+}
+
 interface AuthContextType {
-  /** Raw session user - may be an incomplete anonymous shell. */
+  /** Raw session user; may be an incomplete anonymous shell or a ghost. */
   user: User | null;
   loading: boolean;
-  /**
-   * True only for a completed, non-anonymous user. An anonymous session is
-   * treated as logged out: it is just a transient step inside sign-up.
-   */
+  /** True only for a completed, passkey-backed user. */
   isAuthenticated: boolean;
-  /** Create a new account: anon shell → placeholder email → passkey. */
+  /** Create a new account: anon shell -> placeholder email -> passkey. */
   createAccount: () => Promise<AuthResult>;
   /** Sign in an existing account with a passkey. */
   signIn: () => Promise<AuthResult>;
@@ -56,10 +74,13 @@ async function callAccountApi(path: string): Promise<{ error?: string }> {
   return {};
 }
 
-/** Discard a stray anonymous shell so it doesn't linger for the sweep. */
-async function discardAnonymous(): Promise<void> {
+/** Discard any not-yet-complete session (anonymous shell or ghost) so it does
+ *  not linger or interfere with signing into a real account. Never touches a
+ *  completed account. */
+async function discardIncompleteSession(): Promise<void> {
   const { data } = await supabase.auth.getSession();
-  if (data.session?.user?.is_anonymous) {
+  const sessionUser = data.session?.user;
+  if (sessionUser && !isComplete(sessionUser)) {
     await callAccountApi('/account/abandon');
     await supabase.auth.signOut();
   }
@@ -88,13 +109,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }, []);
 
   const createAccount = useCallback(async (): Promise<AuthResult> => {
-    // Reuse an existing session, or spin up an anonymous shell.
+    // Already a completed account? Nothing to do.
     const { data: current } = await supabase.auth.getSession();
     let sessionUser = current.session?.user ?? null;
-    if (sessionUser && !sessionUser.is_anonymous) return { ok: true };
+    if (isComplete(sessionUser)) return { ok: true };
 
+    // Reuse a not-yet-complete session (anon shell / ghost) or start one.
     if (!sessionUser) {
-      // TODO: attach a Turnstile/CAPTCHA token - Supabase flags the anonymous
+      // TODO: attach a Turnstile/CAPTCHA token; Supabase flags the anonymous
       // endpoint as a DB-bloat abuse vector.
       const { data, error } = await supabase.auth.signInAnonymously();
       if (error) return { ok: false, message: error.message };
@@ -102,7 +124,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
 
     // Link the placeholder email server-side so the user becomes permanent and
-    // is eligible to register a passkey.
+    // is eligible to register a passkey. Idempotent for an existing ghost.
     const prep = await callAccountApi('/account/complete');
     if (prep.error) return { ok: false, message: prep.error };
     await supabase.auth.refreshSession();
@@ -113,7 +135,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       const { error } = await passkeyAuth.registerPasskey();
       if (error) throw new Error(error.message);
     } catch (e) {
-      // Cancelled/failed → delete the shell so no ghost account remains.
+      // Cancelled/failed -> delete the shell so no ghost remains.
       await callAccountApi('/account/abandon');
       await supabase.auth.signOut();
       return {
@@ -123,23 +145,28 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       };
     }
 
+    // Passkey exists now: mark the account complete.
+    await markPasskeyCompleted();
     return { ok: true };
   }, []);
 
   const signIn = useCallback(async (): Promise<AuthResult> => {
-    // If a new-account attempt left an anon shell, throw it away first.
-    await discardAnonymous();
+    // Throw away any anon/ghost shell before authenticating a real account.
+    await discardIncompleteSession();
     try {
       const passkeyAuth = supabase.auth as unknown as PasskeyAuth;
       const { error } = await passkeyAuth.signInWithPasskey();
       if (error) throw new Error(error.message);
-      return { ok: true };
     } catch (e) {
       return {
         ok: false,
         message: e instanceof Error ? e.message : 'Sign in failed.',
       };
     }
+    // Signed in with a passkey; ensure the completion flag is set (self-heals
+    // any account that registered a passkey but never got flagged).
+    await markPasskeyCompleted();
+    return { ok: true };
   }, []);
 
   const signOut = useCallback(async (): Promise<void> => {
@@ -151,7 +178,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       value={{
         user,
         loading,
-        isAuthenticated: Boolean(user && !user.is_anonymous),
+        isAuthenticated: isComplete(user),
         createAccount,
         signIn,
         signOut,

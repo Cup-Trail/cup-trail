@@ -27,7 +27,9 @@ export default function ProfileRoute() {
   }, [user]);
 
   const currentDisplayName = user?.user_metadata?.display_name ?? 'User';
-  const email = user?.email ?? '';
+  // Passkey accounts carry a synthetic placeholder email; never show it.
+  const rawEmail = user?.email ?? '';
+  const email = rawEmail.endsWith('@users.cup-trail.com') ? '' : rawEmail;
   const userId = user?.id;
 
   const { data: reviews = [], isLoading: reviewsLoading } = useUserReviewsQuery(
@@ -103,7 +105,9 @@ export default function ProfileRoute() {
                 <>
                   <h3 className='text-text-primary'>{currentDisplayName}</h3>
 
-                  <p className='text-text-secondary'>{email}</p>
+                  {email && (
+                    <p className='text-text-secondary'>{email}</p>
+                  )}
 
                   <div className='mt-2 flex items-center gap-2'>
                     <button
