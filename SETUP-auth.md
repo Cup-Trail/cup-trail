@@ -26,7 +26,41 @@ DB trigger, never by clients.
 | Client auth state machine | `apps/web/app/context/AuthContext.tsx` |
 | Sign-in / create screen | `apps/web/app/routes/auth.tsx` |
 
-## 1. Apply the database migrations
+## Local development (self-contained — recommended)
+
+Everything auth needs is configured as code in `supabase/config.toml`
+(anonymous sign-ins, manual linking, passkeys with RP `localhost` /
+`http://localhost:33718`) — **no dashboard and no cloud project required.**
+
+One-time prereqs: `brew install colima docker supabase`.
+
+- **`pnpm db:up`** — starts Colima + the local Supabase stack, applies all
+  migrations + `seed.sql`, and writes `apps/web/.env.development` pointing the
+  web app at local Supabase.
+- **`pnpm dev:web`** — serves the app on `http://localhost:33718` (matches the
+  passkey RP origin).
+- **`pnpm db:down`** (`--all` also stops the Colima VM) · **`pnpm db:reset`**
+  (rebuild the DB from migrations + seed).
+
+Local Studio / API URLs: `supabase status`. Local edge functions are served at
+`http://127.0.0.1:54321/functions/v1/<name>` automatically.
+
+Café/city autocomplete works offline too: the `maps` function serves a small
+built-in **mock** dataset (see `MOCK_PLACES` / `MOCK_CITIES` in
+`supabase/functions/maps/index.ts`) whenever the `APPLE_MAPS_*` secrets are
+absent. To use the real Apple Maps API locally instead, set those secrets — the
+same function switches to live automatically. Add fixtures by editing the mock
+arrays.
+
+---
+
+## Provisioning a cloud environment (prod / beta)
+
+The steps below apply to a hosted Supabase project. Because passkeys bind to one
+RP domain per project, each deployed environment (prod, optional beta) is its
+own project with its own RP origin.
+
+### 1. Apply the database migrations
 
 ```bash
 supabase link --project-ref <ref>
@@ -49,7 +83,7 @@ supabase functions deploy api --project-ref <ref>
 ```
 
 Requires project secrets `SECRET_KEY` (service role) and `SUPABASE_URL` — these
-already exist for the maps function. CORS allows `localhost:5173`,
+already exist for the maps function. CORS allows any `localhost` port (dev),
 `*.cup-trail.pages.dev`, and `cup-trail.github.io`.
 
 ## 3. Dashboard settings (Authentication)
@@ -60,7 +94,7 @@ The Management API does not reliably write these — do them in the dashboard:
 - **Manual linking** → enable
 - **Passkeys (beta)** → enable, then set the relying party:
   - Display name: `Cup Trail`
-  - **Local dev:** RP ID `localhost`, origin `http://localhost:5173`
+  - **Local dev:** RP ID `localhost`, origin `http://localhost:33718`
   - **Production:** RP ID `cup-trail.pages.dev`, origin `https://cup-trail.pages.dev`
   - (One RP ID only — local and prod passkeys can't be shared; reconfigure when
     moving to prod or a custom domain.)
@@ -75,7 +109,7 @@ VITE_SUPABASE_PUBLISHABLE_KEY=...      # anon/publishable key
 ## 5. Test locally
 
 ```bash
-pnpm dev:web        # http://localhost:5173
+pnpm dev:web        # http://localhost:33718
 ```
 
 - Add a review while logged out → redirected to `/auth` → **Create account with

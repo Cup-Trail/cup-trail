@@ -12,7 +12,11 @@ import { Hono } from 'https://deno.land/x/hono@v4.2.9/mod.ts';
 import { createClient } from 'npm:@supabase/supabase-js@2';
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
-const SECRET_KEY = Deno.env.get('SECRET_KEY')!; // service_role key (same name as maps fn)
+// Service-role key. Local edge runtime injects SUPABASE_SERVICE_ROLE_KEY;
+// the deployed project also has SECRET_KEY. Prefer the auto-injected name so
+// the function works both locally and in the cloud.
+const SECRET_KEY =
+  Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? Deno.env.get('SECRET_KEY')!;
 
 // Service-role client: bypasses RLS and is the only thing allowed to call the
 // write RPCs. Never exposed to the browser.
@@ -28,10 +32,12 @@ const ALLOWED_ORIGINS = [
   'capacitor://localhost',
 ];
 function isAllowedOrigin(origin?: string) {
-  return (
-    !!origin &&
-    (ALLOWED_ORIGINS.includes(origin) || origin.endsWith('.cup-trail.pages.dev'))
-  );
+  if (!origin) return false;
+  if (ALLOWED_ORIGINS.includes(origin)) return true;
+  if (origin.endsWith('.cup-trail.pages.dev')) return true;
+  // Dev: allow any localhost / 127.0.0.1 port (vite may pick 5173, 5174, …).
+  if (/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)) return true;
+  return false;
 }
 
 const app = new Hono().basePath('/api');
