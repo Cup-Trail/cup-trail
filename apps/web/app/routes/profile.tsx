@@ -10,15 +10,15 @@ import { useUserReviewsQuery } from '../queries';
 
 export default function ProfileRoute() {
   const navigate = useNavigate();
-  const { signOut, user, loading: authLoading } = useAuth();
+  const { signOut, user, isAuthenticated, loading: authLoading } = useAuth();
 
   const [editing, setEditing] = useState(false);
   const [displayName, setDisplayName] = useState('');
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    if (!authLoading && !user) navigate('/auth');
-  }, [authLoading, user, navigate]);
+    if (!authLoading && !isAuthenticated) navigate('/auth');
+  }, [authLoading, isAuthenticated, navigate]);
 
   useEffect(() => {
     if (user) {
@@ -27,7 +27,9 @@ export default function ProfileRoute() {
   }, [user]);
 
   const currentDisplayName = user?.user_metadata?.display_name ?? 'User';
-  const email = user?.email ?? '';
+  // Passkey accounts carry a synthetic placeholder email; never show it.
+  const rawEmail = user?.email ?? '';
+  const email = rawEmail.endsWith('@users.cup-trail.com') ? '' : rawEmail;
   const userId = user?.id;
 
   const { data: reviews = [], isLoading: reviewsLoading } = useUserReviewsQuery(
@@ -61,7 +63,7 @@ export default function ProfileRoute() {
   }
 
   if (authLoading) return <h2>Loading…</h2>;
-  if (!user) return null;
+  if (!isAuthenticated) return null;
 
   return (
     <div className='flex justify-center px-6'>
@@ -103,7 +105,9 @@ export default function ProfileRoute() {
                 <>
                   <h3 className='text-text-primary'>{currentDisplayName}</h3>
 
-                  <p className='text-text-secondary'>{email}</p>
+                  {email && (
+                    <p className='text-text-secondary'>{email}</p>
+                  )}
 
                   <div className='mt-2 flex items-center gap-2'>
                     <button

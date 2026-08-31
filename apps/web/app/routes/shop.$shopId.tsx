@@ -23,7 +23,7 @@ type Tab = (typeof TABS)[number];
 export default function StorefrontRoute() {
   const { shopId } = useParams();
   const navigate = useNavigate();
-  const { user, loading: authLoading } = useAuth();
+  const { user, isAuthenticated, loading: authLoading } = useAuth();
 
   const [activeTab, setActiveTab] = useState<Tab>('Popular Drinks');
 
@@ -42,7 +42,7 @@ export default function StorefrontRoute() {
   }, [shopQueryResult.isFetched, shopQueryResult.data, navigate]);
 
   const { data: userReviewsForShop = [] } = useUserReviewsQuery({
-    userId: authLoading ? null : (user?.id ?? null),
+    userId: isAuthenticated ? (user?.id ?? null) : null,
     shopId: shopId ?? null,
   });
 
@@ -61,9 +61,9 @@ export default function StorefrontRoute() {
         <button
           type='button'
           className='flex justify-center rounded-xl border px-4 py-2 bg-primary-default text-text-on-primary border-border-default hover:bg-primary-hover transition-colors duration-150 disabled:bg-primary-hover disabled:text-primary-active hover:cursor-pointer'
-          disabled={authLoading || !user}
+          disabled={authLoading || !isAuthenticated}
           title={
-            authLoading || !user
+            authLoading || !isAuthenticated
               ? 'You need to be signed in to add a review'
               : ''
           }
@@ -125,7 +125,7 @@ export default function StorefrontRoute() {
         <>
           {authLoading ? (
             <p className='text-sm text-text-secondary'>Loading…</p>
-          ) : !user ? (
+          ) : !isAuthenticated ? (
             <h5>Sign in to see your reviews for this shop.</h5>
           ) : userReviewsForShop.length === 0 ? (
             <p>You haven't reviewed any drinks here yet</p>

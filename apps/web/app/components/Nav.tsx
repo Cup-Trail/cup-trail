@@ -3,7 +3,9 @@ import { Link } from 'react-router';
 import { useAuth } from '../context/AuthContext';
 
 export default function Nav() {
-  const { user } = useAuth();
+  const { user, isAuthenticated } = useAuth();
+  const displayName = (user?.user_metadata?.display_name ?? '').trim();
+  const avatarInitial = (displayName || 'U').charAt(0).toUpperCase();
 
   return (
     <nav className='w-full pt-4 h-24 flex flex-col items-center'>
@@ -21,28 +23,20 @@ export default function Nav() {
 
         {/* right */}
         <div className='w-full flex items-center justify-end gap-2'>
-          {user ? (
+          {isAuthenticated ? (
             <Link
               to='/profile'
               className='h-9 w-9 rounded-full grid place-items-center font-semibold text-text-on-primary bg-white/10 hover:bg-white/15 no-underline'
             >
-              {user.user_metadata.display_name[0].toUpperCase()}
+              {avatarInitial}
             </Link>
           ) : (
-            <>
-              <Link
-                to='/auth'
-                className='rounded-full px-4 py-1.5 text-sm bg-primary-default text-text-on-primary border border-border-on-active hover:bg-primary-hover no-underline transition-colors duration-150'
-              >
-                Log in
-              </Link>
-              <Link
-                to='/'
-                className='rounded-full px-4 py-1.5 text-sm bg-primary-active text-text-on-primary border border-border-default hover:bg-primary-hover no-underline transition-colors duration-150'
-              >
-                Sign up
-              </Link>
-            </>
+            <Link
+              to='/auth'
+              className='rounded-full px-4 py-1.5 text-sm bg-primary-default text-text-on-primary border border-border-on-active hover:bg-primary-hover no-underline transition-colors duration-150'
+            >
+              Log in / Sign up
+            </Link>
           )}
         </div>
       </div>
