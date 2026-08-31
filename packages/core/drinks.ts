@@ -1,5 +1,6 @@
 import { supabase } from '@cuptrail/utils';
 
+import { apiWritePatch } from './apiClient';
 import type { DrinkRow, Result, ShopDrinkRow } from './types/types';
 
 const DRINKS_TABLE = 'drinks';
@@ -142,22 +143,13 @@ export async function updateShopDrink(
     Pick<ShopDrinkRow, 'price' | 'avg_rating' | 'cover_photo_url'>
   >
 ): Promise<Result<ShopDrinkRow>> {
-  const { data, error } = await supabase
-    .from(SHOP_DRINKS_TABLE)
-    .update(updates)
-    .eq('id', shopDrinkId)
-    .select<string, ShopDrinkRow>(SHOP_DRINK_SELECT)
-    .single();
-
-  if (error || !data) {
-    return {
-      success: false,
-      source: 'supabase',
-      message: error?.message ?? 'Update failed',
-    };
-  }
-
-  return { success: true, data };
+  // avg_rating is derived server-side and ignored by the API; only price and
+  // cover_photo_url are writable. The endpoint returns the base row (no nested
+  // drinks/shops joins), which is fine for the current callers.
+  return apiWritePatch<ShopDrinkRow>(`/shop-drinks/${shopDrinkId}`, {
+    price: updates.price,
+    cover_photo_url: updates.cover_photo_url,
+  });
 }
 export function pickCoverPhotoFromMedia(mediaUrls: string[]): string | null {
   if (!mediaUrls || mediaUrls.length === 0) return null;

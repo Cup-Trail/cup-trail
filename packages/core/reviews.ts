@@ -1,10 +1,6 @@
 import { supabase } from '@cuptrail/utils';
 
-import {
-  getOrInsertDrink,
-  getOrInsertShopDrink,
-  updateShopDrink,
-} from './drinks';
+import { apiWritePatch, apiWritePost } from './apiClient';
 import type { Result, ReviewRow } from './types/types';
 
 export type ReviewInsertRef = {
@@ -167,41 +163,24 @@ export async function getRecentReviews(): Promise<Result<ReviewRow[]>> {
  * @param {*} userId
  * @returns
  */
+// The drink + shop_drink creation, ownership, and avg_rating recompute all
+// happen atomically server-side in the `submit_review` rpc. `media_urls` and
+// `userId` are accepted for signature compatibility but ignored: media is
+// attached afterward via updateReview, and the owner is derived from the JWT.
 export async function insertReview(
   shopId: string,
   drinkName: string,
   rating: number,
   comment: string,
-  media_urls?: string[] | null,
-  userId?: string | null
+  _media_urls?: string[] | null,
+  _userId?: string | null
 ): Promise<Result<ReviewInsertRef>> {
-  const drink = await getOrInsertDrink(drinkName);
-  if (!drink.success) return drink;
-
-  const shopDrink = await getOrInsertShopDrink(shopId, drink.data.id);
-  if (!shopDrink.success) return shopDrink;
-
-  const { data, error } = await supabase
-    .from(REVIEWS_TABLE)
-    .insert({
-      user_id: userId ?? null,
-      shop_drink_id: shopDrink.data.id,
-      rating,
-      comment,
-      media_urls: media_urls ?? null,
-    })
-    .select<string, ReviewInsertRef>('id, shop_drinks(id)')
-    .single();
-
-  if (error || !data) {
-    return {
-      success: false,
-      source: 'supabase',
-      message: error?.message ?? 'Insert failed',
-    };
-  }
-
-  return { success: true, data };
+  return apiWritePost<ReviewInsertRef>('/reviews', {
+    shopId,
+    drinkName,
+    rating,
+    comment,
+  });
 }
 
 export async function updateReview(
@@ -230,46 +209,16 @@ export async function updateReview(
     };
   }
 
-  const { data, error } = await supabase
-    .from(REVIEWS_TABLE)
-    .update(payload)
-    .eq('id', reviewId)
-    .select('id, rating, comment, media_urls')
-    .single();
-
-  if (error || !data) {
-    return {
-      success: false,
-      source: 'supabase',
-      message: error?.message ?? 'Update failed',
-    };
-  }
-
-  return { success: true, data };
+  // Ownership (user_id = caller) is enforced by the `update_review` rpc.
+  return apiWritePatch<
+    Pick<ReviewRow, 'id' | 'rating' | 'comment' | 'media_urls'>
+  >(`/reviews/${reviewId}`, payload);
 }
+
+// avg_rating is now recomputed by a DB trigger whenever reviews change, so this
+// is a no-op kept for signature compatibility with existing callers.
 export async function calculateAndUpdateAvgRating(
-  shopDrinkId: string
+  _shopDrinkId: string
 ): Promise<Result<null>> {
-  const { data, error } = await supabase
-    .from(REVIEWS_TABLE)
-    .select('rating')
-    .eq('shop_drink_id', shopDrinkId);
-
-  if (error || !data?.length) {
-    return {
-      success: false,
-      source: 'supabase',
-      message: error?.message ?? 'No ratings to aggregate',
-    };
-  }
-
-  const avg =
-    Math.round(
-      (data.reduce((sum, r) => sum + r.rating, 0) / data.length) * 10
-    ) / 10;
-
-  const result = await updateShopDrink(shopDrinkId, { avg_rating: avg });
-  if (!result.success) return result;
-
   return { success: true, data: null };
 }
