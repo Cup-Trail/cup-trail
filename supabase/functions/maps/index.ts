@@ -21,9 +21,32 @@ const KEY_ID = Deno.env.get('APPLE_MAPS_KEY_ID')!;
 const PRIVATE_KEY_PEM = Deno.env.get('APPLE_MAPS_PRIVATE_KEY')!;
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
-const SECRET_KEY = Deno.env.get('SECRET_KEY')!;
+// Local edge runtime injects SUPABASE_SERVICE_ROLE_KEY; the cloud also has SECRET_KEY.
+const SECRET_KEY =
+  Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? Deno.env.get('SECRET_KEY')!;
 
 const db = createClient(SUPABASE_URL, SECRET_KEY);
+
+// ── Local mock mode ─────────────────────────────────────────────────────────
+// With no Apple credentials (local dev) serve a small fixed set of results so
+// café/city autocomplete works offline; no Apple Developer account needed.
+// In the cloud the creds are present, so the real Apple API is used.
+const USE_MOCK = !TEAM_ID || !KEY_ID || !PRIVATE_KEY_PEM;
+if (USE_MOCK) console.log('⚠️  maps: Apple creds absent, serving MOCK data');
+
+const MOCK_PLACES = [
+  { id: 'mock-trailhead', name: 'Trailhead Coffee',  address: '100 Summit Ave, Seattle, WA 98101',        latitude: 47.6062, longitude: -122.3321 },
+  { id: 'mock-fogfoam',   name: 'Fog & Foam',        address: '250 Marina Blvd, San Francisco, CA 94123', latitude: 37.806,  longitude: -122.423 },
+  { id: 'mock-hazel',     name: 'Hazel & Oat',       address: '55 Pearl St, Portland, OR 97209',          latitude: 45.5231, longitude: -122.6765 },
+  { id: 'mock-lantern',   name: 'Lantern Tea House',  address: '900 Clement St, San Francisco, CA 94118',  latitude: 37.7825, longitude: -122.468 },
+  { id: 'mock-daybreak',  name: 'Daybreak Espresso',  address: '12 Beacon St, Boston, MA 02108',           latitude: 42.3585, longitude: -71.0636 },
+];
+const MOCK_CITIES = [
+  { name: 'Seattle, WA',       latitude: 47.6062, longitude: -122.3321 },
+  { name: 'San Francisco, CA', latitude: 37.7749, longitude: -122.4194 },
+  { name: 'Portland, OR',      latitude: 45.5152, longitude: -122.6784 },
+];
+const mockMatch = (s: string, q: string) => s.toLowerCase().includes(q.toLowerCase());
 
 /*──────────────────────────────────────────────────────────────
   CORS
@@ -36,11 +59,12 @@ const ALLOWED_ORIGINS = [
 ];
 
 function isAllowedOrigin(origin?: string) {
-  return (
-    !!origin &&
-    (ALLOWED_ORIGINS.includes(origin) ||
-      origin.endsWith('.cup-trail.pages.dev'))
-  );
+  if (!origin) return false;
+  if (ALLOWED_ORIGINS.includes(origin)) return true;
+  if (origin.endsWith('.cup-trail.pages.dev')) return true;
+  // Dev: allow any localhost / 127.0.0.1 port (vite dev server uses 33718).
+  if (/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)) return true;
+  return false;
 }
 /*──────────────────────────────────────────────────────────────
   DATABASE HELPERS
@@ -229,6 +253,17 @@ app.get('/autocomplete', async c => {
 
   if (!q) return c.json({ error: 'Missing q' }, 400);
 
+  if (USE_MOCK) {
+    const results = MOCK_PLACES.filter(
+      p => mockMatch(p.name, q) || mockMatch(p.address, q)
+    ).map(p => ({
+      id: p.id,
+      displayLines: [p.name, p.address],
+      location: { latitude: p.latitude, longitude: p.longitude },
+    }));
+    return c.json({ results });
+  }
+
   let path = `/searchAutocomplete?q=${encodeURIComponent(q)}&includePoiCategories=Restaurant,Cafe`;
 
   if (bias) path += `&userLocation=${encodeURIComponent(bias)}`;
@@ -241,6 +276,16 @@ app.get('/details', async c => {
   const id = c.req.query('id');
   if (!id) return c.json({ error: 'Missing id' }, 400);
 
+  if (USE_MOCK) {
+    const p = MOCK_PLACES.find(x => x.id === id);
+    if (!p) return c.json({ error: 'Not found' }, 404);
+    return c.json({
+      name: p.name,
+      formattedAddressLines: [p.address],
+      coordinate: { latitude: p.latitude, longitude: p.longitude },
+    });
+  }
+
   const res = await appleFetch(`/place/${encodeURIComponent(id)}`);
   return c.json(await res.json(), res.status);
 });
@@ -248,6 +293,15 @@ app.get('/details', async c => {
 app.get('/geocode', async c => {
   const q = c.req.query('q');
   if (!q) return c.json({ error: 'Missing q' }, 400);
+
+  if (USE_MOCK) {
+    const results = MOCK_CITIES.filter(ci => mockMatch(ci.name, q)).map(ci => ({
+      name: ci.name,
+      formattedAddressLines: [ci.name],
+      coordinate: { latitude: ci.latitude, longitude: ci.longitude },
+    }));
+    return c.json({ results });
+  }
 
   const res = await appleFetch(`/geocode?q=${encodeURIComponent(q)}`);
   return c.json(await res.json(), res.status);

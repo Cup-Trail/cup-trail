@@ -8,6 +8,10 @@ export default defineConfig({
   base: process.env.VITE_BASE || '/',
   plugins: [reactRouter(), tailwindcss()],
   envPrefix: ['VITE_', 'EXPO_PUBLIC_'],
+  // Fixed, uncommon dev port so it never collides with other servers and always
+  // matches the passkey relying-party origin. strictPort fails loudly rather
+  // than drifting to another port the RP origin wouldn't match.
+  server: { port: 33718, strictPort: true },
   resolve: {
     alias: {
       '@cuptrail/core': path.resolve(__dirname, '../../packages/core'),
