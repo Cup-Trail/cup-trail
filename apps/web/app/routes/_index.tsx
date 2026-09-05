@@ -5,7 +5,7 @@ import type {
   UserCoordinates,
 } from '@cuptrail/core';
 import { getOrInsertShop } from '@cuptrail/core';
-import { getPlaceDetails } from '@cuptrail/maps-api';
+import { getPlaceDetails } from '@cuptrail/maps';
 import LocationOnOutlinedIcon from '@mui/icons-material/LocationOnOutlined';
 import MyLocationIcon from '@mui/icons-material/MyLocation';
 import SearchIcon from '@mui/icons-material/Search';

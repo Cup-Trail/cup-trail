@@ -1,5 +1,5 @@
 {
-  "name": "@cuptrail/maps-api",
+  "name": "@cuptrail/maps",
   "version": "1.0.0",
   "description": "Apple Map API functions for CupTrail apps",
   "main": "index.ts",

@@ -1,5 +1,5 @@
 import type { Geocode } from '@cuptrail/core';
-import { getCityCoords } from '@cuptrail/maps-api';
+import { getCityCoords } from '@cuptrail/maps';
 import { useEffect, useState } from 'react';
 
 import { useDebouncedValue } from './useDebouncedValue';
