@@ -167,7 +167,10 @@ VITE_SUPABASE_PUBLISHABLE_KEY=your-supabase-publishable-key
 4. **Run the app**
 
 - mobile: `pnpm run dev:mobile`
-- web: `pnpm run dev:web`
+- web: `pnpm run dev:web` (serves on http://localhost:33718)
+
+> Auth (passkeys + anonymous sign-up) requires a one-time Supabase dashboard
+> setup. See [SETUP-auth.md](./SETUP-auth.md).
 
 5. **Run checks**
    From repo root:
